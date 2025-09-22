@@ -51,6 +51,21 @@
       border:1px solid #ccc; border-radius:4px;
     }
 
+    .checkbox-row { display:block; margin-top:6px; padding:0; }
+    .checkbox-row .cb {
+      display:block !important;
+      width:100% !important;
+      padding:6px 0 !important;
+      margin:0 0 6px 0 !important;
+      box-sizing:border-box !important;
+      font-weight:normal;
+    }
+    .checkbox-row .cb input[type="checkbox"] {
+      transform: scale(1.5);
+      margin-right: 12px;
+      accent-color: #2c7be5;
+    }
+
     .radio-row { display:flex; gap:8px; margin-top:6px; }
     .radio-row label { display:flex; align-items:center; gap:8px; }
 
@@ -67,7 +82,7 @@
     button#clearBtn { background:#6c757d; }
 
     #msg{margin-top:10px;color:green;font-weight:600}
-    .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px; }
+    .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px }
     .small{font-size:13px;color:#666;margin-top:6px}
     .form-actions {
       display:flex;
@@ -85,12 +100,18 @@
 <body>
   <div class="container">
     <a class="sheet-link"
-       href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
+       href="https://docs.google.com/spreadsheets/d/1RcW7oIyoafocW4cNFYLvh_su0I7zWhlvN__5PoQmf38/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>Purchase Entry</h1>
 
-    <label class="q-label">1. Purchased what</label>
-    <input id="purchasedItem" type="text" placeholder="e.g. Engine oil" autocomplete="off">
+    <label class="q-label">1. Purchased what (check all that apply) <span style="color:red">*</span></label>
+    <div class="checkbox-row" id="purchasedItems">
+      <label class="cb"><input type="checkbox" class="purchased" value="Floor Tiles"> Floor Tiles</label>
+      <label class="cb"><input type="checkbox" class="purchased" value="Wall Tiles"> Wall Tiles</label>
+      <label class="cb"><input type="checkbox" class="purchased" value="Sanitaryware"> Sanitaryware</label>
+      <label class="cb"><input type="checkbox" class="purchased" value="Accessories"> Accessories</label>
+      <label class="cb"><input type="checkbox" class="purchased" value="Others"> Others</label>
+    </div>
 
     <label class="q-label">2. How many purchased</label>
     <input id="qtyPurchased" type="number" min="0" step="1" placeholder="Enter quantity">
@@ -128,13 +149,13 @@
 
   <script src="app.js"></script>
   <script>
-    // small local validation wiring
+    // local validation and wiring
     document.getElementById('submitBtn').addEventListener('click', () => {
-      const purchased = document.getElementById('purchasedItem').value.trim();
+      const purchasedChecked = document.querySelectorAll('.purchased:checked');
       const payment = document.getElementById('paymentPaid').value.trim();
       const mode = document.querySelector('input[name="modeOfPayment"]:checked');
 
-      if (!purchased) { alert("Purchased item is required."); return; }
+      if (!purchasedChecked || purchasedChecked.length === 0) { alert("Please select at least one purchased item."); return; }
       if (!payment) { alert("Payment paid is required."); return; }
       if (!mode) { alert("Please select a mode of payment."); return; }
 
@@ -149,4 +170,3 @@
   </script>
 </body>
 </html>
-
