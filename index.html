@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Purchase Entry</title>
+  <title>Tile Purchase Entry</title>
   <link rel="manifest" href="manifest.json">
   <style>
     html,body { height:100%; margin:0; padding:0; }
@@ -19,122 +19,94 @@
       padding:20px;
       box-sizing:border-box;
     }
-
     .container {
       width:100%;
-      max-width:520px;
-      background: rgba(255,255,255,0.92);
+      max-width:620px;
+      background: rgba(255,255,255,0.95);
       border-radius:10px;
       padding:14px;
       box-sizing:border-box;
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
-    .sheet-link {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #2c7be5;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 13px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    }
-
     h1{font-size:20px;margin:0 0 10px 0}
     .q-label{display:block;margin-top:10px;font-weight:600}
-
     input[type="text"], input[type="number"], select, textarea {
       width:100%; padding:8px; font-size:15px; margin-top:6px; box-sizing:border-box;
       border:1px solid #ccc; border-radius:4px;
     }
-
-    .checkbox-row { display:block; margin-top:6px; padding:0; }
-    .checkbox-row .cb {
-      display:block !important;
-      width:100% !important;
-      padding:6px 0 !important;
-      margin:0 0 6px 0 !important;
-      box-sizing:border-box !important;
-      font-weight:normal;
-    }
-    .checkbox-row .cb input[type="checkbox"] {
-      transform: scale(1.5);
-      margin-right: 12px;
-      accent-color: #2c7be5;
-    }
-
-    .radio-row { display:flex; gap:8px; margin-top:6px; }
-    .radio-row label { display:flex; align-items:center; gap:8px; }
-
-    button{
-      margin-top:12px;
-      padding:10px 14px;
-      font-size:16px;
-      border-radius:6px;
-      border: none;
-      background:#2c7be5;
-      color:white;
-      cursor:pointer;
-    }
+    .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
+    .item-row .qty { width:110px; flex:0 0 110px; }
+    .checkbox-row { margin-top:6px; padding:0; }
+    .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
+    button{ margin-top:12px; padding:10px 14px; font-size:16px; border-radius:6px; border: none; background:#2c7be5; color:white; cursor:pointer; }
     button#clearBtn { background:#6c757d; }
-
-    #msg{margin-top:10px;color:green;font-weight:600}
-    .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px }
+    .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px; }
     .small{font-size:13px;color:#666;margin-top:6px}
-    .form-actions {
-      display:flex;
-      gap:8px;
-      align-items:center;
-      margin-top:12px;
-      flex-wrap:wrap;
-    }
-    @media (max-width:420px){
-      .form-actions {flex-direction:column; align-items:stretch}
-      .form-actions button {width:100%}
-    }
+    .form-actions { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+    @media (max-width:520px){ .item-row { flex-direction:column; align-items:flex-start } .item-row .qty { width:100%; flex:0 0 auto } }
   </style>
 </head>
 <body>
   <div class="container">
-    <a class="sheet-link"
+     <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
-    <h1>Purchase Entry</h1>
+    <h1>Tile Purchase Entry</h1>
 
-    <!-- 1. Purchased what (checkboxes) -->
-<label class="q-label">1. Purchased what</label>
-<div class="checkbox-row" id="purchased">
-  <label class="cb"><input type="checkbox" value="Floor Tiles" class="purchased"> Floor Tiles</label>
-  <label class="cb"><input type="checkbox" value="Wall Tiles" class="purchased"> Wall Tiles</label>
-  <label class="cb"><input type="checkbox" value="Sanitaryware" class="purchased"> Sanitaryware</label>
-  <label class="cb"><input type="checkbox" value="Accessories" class="purchased"> Accessories</label>
-  <label class="cb"><input type="checkbox" value="Others" class="purchased"> Others</label>
-</div>
-<div id="purchasedOtherWrapper" style="display:none; margin-top:6px;">
-  <input id="purchasedOther" type="text" placeholder="If Others, please specify">
-</div>
+    <!-- Purchased items with inline qty -->
+    <label class="q-label">1. Purchased what (check items and enter quantity)</label>
+    <div class="checkbox-row" id="purchasedList">
+      <div class="item-row">
+        <label class="cb"><input type="checkbox" class="purchased" id="p_floor" value="Floor Tiles"> Floor Tiles</label>
+        <input type="number" min="0" step="1" class="qty" id="q_floor" placeholder="How many" disabled>
+      </div>
 
+      <div class="item-row">
+        <label class="cb"><input type="checkbox" class="purchased" id="p_wall" value="Wall Tiles"> Wall Tiles</label>
+        <input type="number" min="0" step="1" class="qty" id="q_wall" placeholder="How many" disabled>
+      </div>
 
-    <label class="q-label">2. How many purchased</label>
-    <input id="qtyPurchased" type="number" min="0" step="1" placeholder="Enter quantity">
+      <div class="item-row">
+        <label class="cb"><input type="checkbox" class="purchased" id="p_san" value="Sanitaryware"> Sanitaryware</label>
+        <input type="number" min="0" step="1" class="qty" id="q_san" placeholder="How many" disabled>
+      </div>
 
-    <label class="q-label">3. Purchased from whom</label>
-    <input id="purchasedFrom" type="text" placeholder="Vendor name or shop" autocomplete="off">
+      <div class="item-row">
+        <label class="cb"><input type="checkbox" class="purchased" id="p_acc" value="Accessories"> Accessories</label>
+        <input type="number" min="0" step="1" class="qty" id="q_acc" placeholder="How many" disabled>
+      </div>
 
-    <label class="q-label">4. Mode of payment <span style="color:red">*</span></label>
-    <div class="radio-row" id="modes">
-      <label><input type="radio" name="modeOfPayment" value="Cash"> Cash</label>
-      <label><input type="radio" name="modeOfPayment" value="Online"> Online</label>
-      <label><input type="radio" name="modeOfPayment" value="Credit"> Credit</label>
+      <div class="item-row">
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_other" value="Others"> Others
+        </label>
+        <input type="number" min="0" step="1" class="qty" id="q_other" placeholder="How many" disabled>
+      </div>
+
+      <!-- text input to describe 'Other' -->
+      <div style="margin-top:6px">
+        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')" />
+      </div>
     </div>
 
-    <label class="q-label">5. Payment paid (₹) <span style="color:red">*</span></label>
+    <!-- Purchased from -->
+    <label class="q-label">Purchased from</label>
+    <input id="purchasedFrom" type="text" placeholder="Vendor name">
+
+    <!-- Mode of payment -->
+    <label class="q-label">Mode of payment <span style="color:red">*</span></label>
+    <div class="checkbox-row" id="modes">
+      <label class="cb"><input type="radio" name="modeOfPayment" value="Cash"> Cash</label>
+      <label class="cb"><input type="radio" name="modeOfPayment" value="Online"> Online</label>
+      <label class="cb"><input type="radio" name="modeOfPayment" value="Credit"> Credit</label>
+    </div>
+
+    <label class="q-label">Payment paid (₹) <span style="color:red">*</span></label>
     <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Amount paid">
 
-    <label class="q-label">6. Any other information</label>
+    <label class="q-label">Any other information</label>
     <textarea id="otherInfo" rows="2"></textarea>
 
     <div class="form-actions">
@@ -154,37 +126,31 @@
 
   <script src="app.js"></script>
   <script>
-     // show/hide "Other - specify" for Purchased what
-  function handlePurchasedChange() {
-    const anyOther = Array.from(document.querySelectorAll('.purchased'))
-      .some(cb => cb.checked && cb.value === 'Others');
-    const wrapper = document.getElementById('purchasedOtherWrapper');
-    if (wrapper) wrapper.style.display = anyOther ? 'block' : 'none';
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('.purchased').forEach(cb => cb.addEventListener('change', handlePurchasedChange));
-    handlePurchasedChange(); // initial state
-  });
-    // local validation and wiring
-    document.getElementById('submitBtn').addEventListener('click', () => {
-      const purchasedChecked = document.querySelectorAll('.purchased:checked');
-      const payment = document.getElementById('paymentPaid').value.trim();
-      const mode = document.querySelector('input[name="modeOfPayment"]:checked');
-
-      if (!purchasedChecked || purchasedChecked.length === 0) { alert("Please select at least one purchased item."); return; }
-      if (!payment) { alert("Payment paid is required."); return; }
-      if (!mode) { alert("Please select a mode of payment."); return; }
-
-      if (typeof submitForm === "function") {
-        submitForm();
-      }
+    // Wire up per-item checkbox -> qty activation
+    function updateQtyState(checkbox, qtyEl) {
+      if (!checkbox || !qtyEl) return;
+      qtyEl.disabled = !checkbox.checked;
+      if (!checkbox.checked) qtyEl.value = '';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      // find all pairs
+      const pairs = [
+        {chk: 'p_floor', qty: 'q_floor'},
+        {chk: 'p_wall', qty: 'q_wall'},
+        {chk: 'p_san', qty: 'q_san'},
+        {chk: 'p_acc', qty: 'q_acc'},
+        {chk: 'p_other', qty: 'q_other'}
+      ];
+      pairs.forEach(p => {
+        const cb = document.getElementById(p.chk);
+        const q = document.getElementById(p.qty);
+        if (cb && q) {
+          cb.addEventListener('change', ()=> updateQtyState(cb, q));
+          // initial state
+          updateQtyState(cb, q);
+        }
+      });
     });
-
-    // Clear button
-    const clearBtn = document.getElementById('clearBtn');
-    if (clearBtn) clearBtn.addEventListener('click', function(){ if (typeof clearForm === 'function') { clearForm(); showMessage('Form cleared'); } });
   </script>
 </body>
 </html>
-
-
