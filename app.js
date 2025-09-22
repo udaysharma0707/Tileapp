@@ -1,5 +1,5 @@
 // Configuration — set this to your deployed Apps Script web app URL (do not leave the placeholder)
-const ENDPOINT = "https://script.google.com/macros/s/PUT_YOUR_DEPLOYED_SCRIPT_ID_HERE/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbx-E8h3Rsb-jrRbuo542ZJLD8T0BerNElhA24_emdf9JlxPWoKh-PgpIO0Qb9DdJDHTlA/exec";
 const SHARED_TOKEN = "shopSecret2025";
 
 // Tunables
@@ -280,3 +280,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // No offline queueing or flush attempts — offline entries are not supported.
 }); // DOMContentLoaded end
+
