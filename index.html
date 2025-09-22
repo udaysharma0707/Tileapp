@@ -104,14 +104,19 @@
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>Purchase Entry</h1>
 
-    <label class="q-label">1. Purchased what (check all that apply) <span style="color:red">*</span></label>
-    <div class="checkbox-row" id="purchasedItems">
-      <label class="cb"><input type="checkbox" class="purchased" value="Floor Tiles"> Floor Tiles</label>
-      <label class="cb"><input type="checkbox" class="purchased" value="Wall Tiles"> Wall Tiles</label>
-      <label class="cb"><input type="checkbox" class="purchased" value="Sanitaryware"> Sanitaryware</label>
-      <label class="cb"><input type="checkbox" class="purchased" value="Accessories"> Accessories</label>
-      <label class="cb"><input type="checkbox" class="purchased" value="Others"> Others</label>
-    </div>
+    <!-- 1. Purchased what (checkboxes) -->
+<label class="q-label">1. Purchased what</label>
+<div class="checkbox-row" id="purchased">
+  <label class="cb"><input type="checkbox" value="Floor Tiles" class="purchased"> Floor Tiles</label>
+  <label class="cb"><input type="checkbox" value="Wall Tiles" class="purchased"> Wall Tiles</label>
+  <label class="cb"><input type="checkbox" value="Sanitaryware" class="purchased"> Sanitaryware</label>
+  <label class="cb"><input type="checkbox" value="Accessories" class="purchased"> Accessories</label>
+  <label class="cb"><input type="checkbox" value="Others" class="purchased"> Others</label>
+</div>
+<div id="purchasedOtherWrapper" style="display:none; margin-top:6px;">
+  <input id="purchasedOther" type="text" placeholder="If Others, please specify">
+</div>
+
 
     <label class="q-label">2. How many purchased</label>
     <input id="qtyPurchased" type="number" min="0" step="1" placeholder="Enter quantity">
@@ -149,6 +154,17 @@
 
   <script src="app.js"></script>
   <script>
+     // show/hide "Other - specify" for Purchased what
+  function handlePurchasedChange() {
+    const anyOther = Array.from(document.querySelectorAll('.purchased'))
+      .some(cb => cb.checked && cb.value === 'Others');
+    const wrapper = document.getElementById('purchasedOtherWrapper');
+    if (wrapper) wrapper.style.display = anyOther ? 'block' : 'none';
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.purchased').forEach(cb => cb.addEventListener('change', handlePurchasedChange));
+    handlePurchasedChange(); // initial state
+  });
     // local validation and wiring
     document.getElementById('submitBtn').addEventListener('click', () => {
       const purchasedChecked = document.querySelectorAll('.purchased:checked');
@@ -170,4 +186,5 @@
   </script>
 </body>
 </html>
+
 
