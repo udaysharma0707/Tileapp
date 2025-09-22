@@ -44,6 +44,12 @@
     .sub-item label { flex:1; display:flex; align-items:center; gap:8px; }
     .checkbox-row { margin-top:6px; padding:0; }
     .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
+    /* payment inline controls */
+    .mode-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
+    .mode-row .mode-label { flex:1; display:flex; align-items:center; gap:8px; }
+    .mode-amount { width:160px; flex:0 0 160px; }
+    .total-row { margin-top:8px; display:flex; gap:12px; align-items:center; }
+    .total-row label { font-weight:600; }
     button{ margin-top:12px; padding:10px 14px; font-size:16px; border-radius:6px; border: none; background:#2c7be5; color:white; cursor:pointer; }
     button#clearBtn { background:#6c757d; }
     .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px; }
@@ -53,6 +59,9 @@
       .item-row { flex-direction:column; align-items:flex-start }
       .qty { width:100%; flex:0 0 auto }
       .sub-item { flex-direction:column; align-items:flex-start }
+      .mode-row { flex-direction:column; align-items:stretch }
+      .mode-amount { width:100%; flex:auto }
+      .total-row { flex-direction:column; align-items:stretch }
     }
   </style>
 </head>
@@ -66,7 +75,7 @@
     <!-- Purchased items with inline qty and nested subitems -->
     <label class="q-label">1. Purchased what (check items and enter quantity for specific sub-items)</label>
     <div class="checkbox-row" id="purchasedList">
-
+      <!-- ... (same items block as before) ... -->
       <!-- FLOOR TILES -->
       <div class="item-row">
         <label class="cb">
@@ -188,16 +197,26 @@
     <label class="q-label">Purchased from</label>
     <input id="purchasedFrom" type="text" placeholder="Vendor name">
 
-    <!-- Mode of payment -->
-    <label class="q-label">Mode of payment <span style="color:red">*</span></label>
+    <!-- Mode of payment (checkboxes with inline amounts) -->
+    <label class="q-label">Mode of payment (check modes and enter amounts for each)</label>
     <div class="checkbox-row" id="modes">
-      <label class="cb"><input type="radio" name="modeOfPayment" value="Cash"> Cash</label>
-      <label class="cb"><input type="radio" name="modeOfPayment" value="Online"> Online</label>
-      <label class="cb"><input type="radio" name="modeOfPayment" value="Credit"> Credit</label>
+      <div class="mode-row">
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> Cash</label>
+        <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled>
+      </div>
+      <div class="mode-row">
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> Online</label>
+        <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled>
+      </div>
+      <div class="mode-row">
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> Credit</label>
+        <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled>
+      </div>
     </div>
 
+    <!-- Total (editable) -->
     <label class="q-label">Payment paid (₹) <span style="color:red">*</span></label>
-    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Amount paid">
+    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount" >
 
     <label class="q-label">Any other information</label>
     <textarea id="otherInfo" rows="2"></textarea>
@@ -250,7 +269,6 @@
       // generic subitem checkbox -> enable its qty input
       document.querySelectorAll('.subitem').forEach(function(subCb) {
         const id = subCb.id; // e.g. sub_floor_ceramic
-        // map to qty id by replacing 'sub_' with 'q_' and keeping rest
         const qtyId = 'q' + id.slice(3); // 'q_floor_ceramic'
         const qtyEl = document.getElementById(qtyId);
         subCb.addEventListener('change', function() {
@@ -276,8 +294,136 @@
         updOther();
       }
 
+      // --- Payment mode handling (checkboxes + amounts + total) ---
+      const modeCash = document.getElementById('mode_cash');
+      const modeOnline = document.getElementById('mode_online');
+      const modeCredit = document.getElementById('mode_credit');
+      const amtCash = document.getElementById('amt_cash');
+      const amtOnline = document.getElementById('amt_online');
+      const amtCredit = document.getElementById('amt_credit');
+      const totalInput = document.getElementById('paymentPaid');
+      const otherInfo = document.getElementById('otherInfo');
+
+      // track if user manually edited total (true => preserve until amounts change)
+      let manualTotalOverride = false;
+
+      function recomputeTotalFromParts() {
+        // if manual override is active, do not auto-update
+        if (manualTotalOverride) return;
+        const v1 = parseFloat(amtCash.value) || 0;
+        const v2 = parseFloat(amtOnline.value) || 0;
+        const v3 = parseFloat(amtCredit.value) || 0;
+        const sum = (v1 + v2 + v3);
+        // set total input (to 2 decimals)
+        totalInput.value = (Math.round(sum * 100) / 100) || (sum === 0 ? '' : sum);
+      }
+
+      function updateModeEnabled(cb, amtEl) {
+        if (!cb || !amtEl) return;
+        amtEl.disabled = !cb.checked;
+        if (!cb.checked) amtEl.value = '';
+        // changing an amount should clear manual override and recompute
+        amtEl.addEventListener('input', function() {
+          manualTotalOverride = false;
+          recomputeTotalFromParts();
+        });
+      }
+
+      [modeCash, modeOnline, modeCredit].forEach((cb, idx) => {
+        const amtEl = (idx === 0 ? amtCash : (idx === 1 ? amtOnline : amtCredit));
+        if (!cb) return;
+        // when checkbox toggled, enable/disable its amount and recompute
+        cb.addEventListener('change', function() {
+          updateModeEnabled(cb, amtEl);
+          // changing modes clears manual override
+          manualTotalOverride = false;
+          recomputeTotalFromParts();
+          // set combined mode string into first checked element's value so existing app.js picks combined modes
+          writeCombinedModeValue();
+        });
+        // also update initial state
+        updateModeEnabled(cb, amtEl);
+      });
+
+      // When user edits total directly, mark override so amounts won't clobber their edit
+      totalInput.addEventListener('input', function() {
+        manualTotalOverride = true;
+      });
+
+      // write combined mode string into the first-checked mode input's value (so collectFormData sees combined string)
+      function writeCombinedModeValue() {
+        const selected = [];
+        if (modeCash.checked) selected.push('Cash');
+        if (modeOnline.checked) selected.push('Online');
+        if (modeCredit.checked) selected.push('Credit');
+        const combined = selected.join(', ');
+        // reset values to defaults first
+        if (modeCash) modeCash.value = 'Cash';
+        if (modeOnline) modeOnline.value = 'Online';
+        if (modeCredit) modeCredit.value = 'Credit';
+        if (selected.length === 0) return;
+        // set the first checked checkbox's value attr to combined string
+        const firstChecked = document.querySelector('input[name="modeOfPayment"]:checked');
+        if (firstChecked) firstChecked.value = combined;
+      }
+
+      // also, before submit, assemble a breakdown string and put it into otherInfo (if empty)
+      // e.g. "Cash Rs.3000, Online Rs.5000, Credit Rs.15000"
+      function buildPaymentBreakdownString() {
+        const parts = [];
+        if (modeCash.checked) {
+          const v = (amtCash.value && amtCash.value.toString().trim() !== '') ? Number(amtCash.value) : 0;
+          parts.push('Cash Rs.' + (v || 0));
+        }
+        if (modeOnline.checked) {
+          const v = (amtOnline.value && amtOnline.value.toString().trim() !== '') ? Number(amtOnline.value) : 0;
+          parts.push('Online Rs.' + (v || 0));
+        }
+        if (modeCredit.checked) {
+          const v = (amtCredit.value && amtCredit.value.toString().trim() !== '') ? Number(amtCredit.value) : 0;
+          parts.push('Credit Rs.' + (v || 0));
+        }
+        return parts.join(', ');
+      }
+
+      // initial combined write
+      writeCombinedModeValue();
+
+      // Hook into submit to ensure total is correct and combined mode value is applied
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+          // If user has not manually edited total, compute final total from amounts
+          if (!manualTotalOverride) recomputeTotalFromParts();
+
+          // If user did edit total, keep it as-is (but still compute a breakdown for otherInfo)
+          const finalTotalStr = (totalInput.value && totalInput.value.toString().trim() !== '') ? totalInput.value : '';
+          // If no total but there are mode amounts, recompute now
+          if (!finalTotalStr) recomputeTotalFromParts();
+
+          // ensure combined mode value present on first checked field
+          writeCombinedModeValue();
+
+          // ensure at least one mode is checked (app.js validation expects this)
+          const modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
+          if (!modeChecked) {
+            alert('Please select a mode of payment.');
+            return;
+          }
+
+          // Put the breakdown into otherInfo only if user didn't type anything there
+          try {
+            const breakdown = buildPaymentBreakdownString();
+            if (otherInfo && (!otherInfo.value || otherInfo.value.trim() === '')) {
+              otherInfo.value = breakdown;
+            }
+          } catch(e){ /* ignore */ }
+
+          // after this, the existing app.js will collect form fields as usual and submit
+        });
+      }
+
     });
   </script>
 </body>
 </html>
-
