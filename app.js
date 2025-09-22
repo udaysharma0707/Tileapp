@@ -72,6 +72,8 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("purchasedItem", formData.purchasedItem || "");
   add("purchasedFrom", formData.purchasedFrom || "");
   add("modeOfPayment", formData.modeOfPayment || "");
+  // send breakdown so server can attach a comment/note
+  add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
@@ -83,7 +85,7 @@ function sendToServerJSONP(formData, clientTs, opts) {
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
-// collect data from DOM — collects selected subitems with qtys
+// collect data from DOM — collects selected subitems with qtys and mode breakdown
 function collectFormData(){
   const selectedParts = [];
 
@@ -143,12 +145,36 @@ function collectFormData(){
     else selectedParts.push(label);
   }
 
-  var modeEl = document.querySelector('input[name="modeOfPayment"]:checked');
+  // collect modeOfPayment as a comma-separated string (robust, in case index.html didn't set first-checked)
+  const selectedModes = [];
+  const modeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
+  modeEls.forEach(m => { if (m.checked) selectedModes.push((m.value || "").toString()); });
+  const modeStr = selectedModes.join(", ");
+
+  // build mode breakdown: Cash Rs.x, Online Rs.y, Credit Rs.z (only include checked entries)
+  const parts = [];
+  const amtCash = document.getElementById('amt_cash');
+  const amtOnline = document.getElementById('amt_online');
+  const amtCredit = document.getElementById('amt_credit');
+  if (document.getElementById('mode_cash') && document.getElementById('mode_cash').checked) {
+    const v = (amtCash && amtCash.value) ? Number(amtCash.value) : 0;
+    parts.push('Cash Rs.' + (v || 0));
+  }
+  if (document.getElementById('mode_online') && document.getElementById('mode_online').checked) {
+    const v = (amtOnline && amtOnline.value) ? Number(amtOnline.value) : 0;
+    parts.push('Online Rs.' + (v || 0));
+  }
+  if (document.getElementById('mode_credit') && document.getElementById('mode_credit').checked) {
+    const v = (amtCredit && amtCredit.value) ? Number(amtCredit.value) : 0;
+    parts.push('Credit Rs.' + (v || 0));
+  }
+  const modeBreakdown = parts.join(', ');
 
   return {
     purchasedItem: selectedParts.join(", "),
     purchasedFrom: document.getElementById('purchasedFrom').value.trim(),
-    modeOfPayment: modeEl ? modeEl.value : "",
+    modeOfPayment: modeStr,
+    modeBreakdown: modeBreakdown,
     paymentPaid: document.getElementById('paymentPaid').value,
     otherInfo: document.getElementById('otherInfo').value.trim()
   };
@@ -172,7 +198,10 @@ function clearForm(){
     // clear others text and other fields
     const otherEl = document.getElementById('purchasedOtherText'); if (otherEl) otherEl.value = '';
     document.getElementById('purchasedFrom').value = '';
-    document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>el.checked=false);
+    document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>{ el.checked=false; });
+    // clear mode amounts
+    const amts = ['amt_cash','amt_online','amt_credit'];
+    amts.forEach(id => { const el = document.getElementById(id); if (el) { el.value=''; el.disabled = true; }});
     document.getElementById('paymentPaid').value = '';
     document.getElementById('otherInfo').value = '';
   } catch(e){ console.warn('clearForm error', e); }
