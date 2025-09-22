@@ -21,8 +21,8 @@
     }
     .container {
       width:100%;
-      max-width:620px;
-      background: rgba(255,255,255,0.95);
+      max-width:720px;
+      background: rgba(255,255,255,0.98);
       border-radius:10px;
       padding:14px;
       box-sizing:border-box;
@@ -35,9 +35,13 @@
       width:100%; padding:8px; font-size:15px; margin-top:6px; box-sizing:border-box;
       border:1px solid #ccc; border-radius:4px;
     }
+    /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
-    .item-row .qty { width:110px; flex:0 0 110px; }
+    .qty { width:110px; flex:0 0 110px; }
+    .sublist { margin-left:28px; margin-top:6px; padding-left:6px; border-left:2px solid rgba(0,0,0,0.04); display:none; }
+    .sub-item { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .sub-item label { flex:1; display:flex; align-items:center; gap:8px; }
     .checkbox-row { margin-top:6px; padding:0; }
     .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
     button{ margin-top:12px; padding:10px 14px; font-size:16px; border-radius:6px; border: none; background:#2c7be5; color:white; cursor:pointer; }
@@ -45,50 +49,139 @@
     .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px; }
     .small{font-size:13px;color:#666;margin-top:6px}
     .form-actions { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
-    @media (max-width:520px){ .item-row { flex-direction:column; align-items:flex-start } .item-row .qty { width:100%; flex:0 0 auto } }
+    @media (max-width:620px){
+      .item-row { flex-direction:column; align-items:flex-start }
+      .qty { width:100%; flex:0 0 auto }
+      .sub-item { flex-direction:column; align-items:flex-start }
+    }
   </style>
 </head>
 <body>
   <div class="container">
      <a class="sheet-link"
-       href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
+       href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit?gid=0#gid=0"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>Tile Purchase Entry</h1>
 
-    <!-- Purchased items with inline qty -->
-    <label class="q-label">1. Purchased what (check items and enter quantity)</label>
+    <!-- Purchased items with inline qty and nested subitems -->
+    <label class="q-label">1. Purchased what (check items and enter quantity for specific sub-items)</label>
     <div class="checkbox-row" id="purchasedList">
+
+      <!-- FLOOR TILES -->
       <div class="item-row">
-        <label class="cb"><input type="checkbox" class="purchased" id="p_floor" value="Floor Tiles"> Floor Tiles</label>
-        <input type="number" min="0" step="1" class="qty" id="q_floor" placeholder="How many" disabled>
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_floor" value="Floor Tiles"> Floor Tiles
+        </label>
+      </div>
+      <div class="sublist" id="sublist_floor">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles"> Vitrified tiles (most popular for homes/offices)</label>
+          <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles"> Ceramic tiles</label>
+          <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles"> Porcelain tiles</label>
+          <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles"> Marble finish tiles</label>
+          <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles"> Granite finish tiles</label>
+          <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="How many" disabled>
+        </div>
       </div>
 
+      <!-- WALL TILES -->
       <div class="item-row">
-        <label class="cb"><input type="checkbox" class="purchased" id="p_wall" value="Wall Tiles"> Wall Tiles</label>
-        <input type="number" min="0" step="1" class="qty" id="q_wall" placeholder="How many" disabled>
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_wall" value="Wall Tiles"> Wall Tiles
+        </label>
+      </div>
+      <div class="sublist" id="sublist_wall">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)"> Kitchen wall tiles (backsplash)</label>
+          <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)"> Bathroom wall tiles (glazed/anti-skid)</label>
+          <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles"> Decorative / designer wall tiles</label>
+          <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="How many" disabled>
+        </div>
       </div>
 
+      <!-- SANITARYWARE -->
       <div class="item-row">
-        <label class="cb"><input type="checkbox" class="purchased" id="p_san" value="Sanitaryware"> Sanitaryware</label>
-        <input type="number" min="0" step="1" class="qty" id="q_san" placeholder="How many" disabled>
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_san" value="Sanitaryware"> Sanitaryware
+        </label>
+      </div>
+      <div class="sublist" id="sublist_san">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins"> Washbasins</label>
+          <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC"> WC</label>
+          <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals"> Urinals</label>
+          <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="How many" disabled>
+        </div>
       </div>
 
+      <!-- ACCESSORIES -->
       <div class="item-row">
-        <label class="cb"><input type="checkbox" class="purchased" id="p_acc" value="Accessories"> Accessories</label>
-        <input type="number" min="0" step="1" class="qty" id="q_acc" placeholder="How many" disabled>
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_acc" value="Accessories"> Accessories
+        </label>
+      </div>
+      <div class="sublist" id="sublist_acc">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives"> Tile grout & adhesives</label>
+          <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers"> Spacers</label>
+          <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants"> Sealants</label>
+          <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals"> Chemicals</label>
+          <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles"> Skirting & border tiles</label>
+          <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="How many" disabled>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration"> Mosaic tiles for decoration</label>
+          <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="How many" disabled>
+        </div>
       </div>
 
+      <!-- OTHERS (main) — keep simple: checked + custom name + qty -->
       <div class="item-row">
         <label class="cb">
           <input type="checkbox" class="purchased" id="p_other" value="Others"> Others
         </label>
-        <input type="number" min="0" step="1" class="qty" id="q_other" placeholder="How many" disabled>
+        <input type="number" min="0" step="1" id="q_other" class="qty" placeholder="How many" disabled>
+      </div>
+      <div style="margin-top:6px; margin-left:6px;">
+        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
       </div>
 
-      <!-- text input to describe 'Other' -->
-      <div style="margin-top:6px">
-        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')" />
-      </div>
     </div>
 
     <!-- Purchased from -->
@@ -125,31 +218,64 @@
   </div>
 
   <script src="app.js"></script>
+
   <script>
-    // Wire up per-item checkbox -> qty activation
-    function updateQtyState(checkbox, qtyEl) {
-      if (!checkbox || !qtyEl) return;
-      qtyEl.disabled = !checkbox.checked;
-      if (!checkbox.checked) qtyEl.value = '';
-    }
+    // Wiring for showing nested sublists and enabling sub-qty fields
     document.addEventListener('DOMContentLoaded', function() {
-      // find all pairs
-      const pairs = [
-        {chk: 'p_floor', qty: 'q_floor'},
-        {chk: 'p_wall', qty: 'q_wall'},
-        {chk: 'p_san', qty: 'q_san'},
-        {chk: 'p_acc', qty: 'q_acc'},
-        {chk: 'p_other', qty: 'q_other'}
-      ];
-      pairs.forEach(p => {
-        const cb = document.getElementById(p.chk);
-        const q = document.getElementById(p.qty);
-        if (cb && q) {
-          cb.addEventListener('change', ()=> updateQtyState(cb, q));
-          // initial state
-          updateQtyState(cb, q);
+      // map main checkbox id -> sublist id
+      const mainToSub = {
+        'p_floor': 'sublist_floor',
+        'p_wall': 'sublist_wall',
+        'p_san':  'sublist_san',
+        'p_acc':  'sublist_acc'
+      };
+
+      // show/hide sublist when main toggles
+      Object.keys(mainToSub).forEach(mainId => {
+        const mainCb = document.getElementById(mainId);
+        const subDiv = document.getElementById(mainToSub[mainId]);
+        if (!mainCb || !subDiv) return;
+        function update() {
+          subDiv.style.display = mainCb.checked ? 'block' : 'none';
+          // if hidden, also clear any sub-checkboxes and qtys
+          if (!mainCb.checked) {
+            subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
+            subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
+          }
         }
+        mainCb.addEventListener('change', update);
+        update();
       });
+
+      // generic subitem checkbox -> enable its qty input
+      document.querySelectorAll('.subitem').forEach(function(subCb) {
+        const id = subCb.id; // e.g. sub_floor_ceramic
+        // map to qty id by replacing 'sub_' with 'q_' and keeping rest
+        const qtyId = 'q' + id.slice(3); // 'q_floor_ceramic'
+        const qtyEl = document.getElementById(qtyId);
+        subCb.addEventListener('change', function() {
+          if (qtyEl) {
+            qtyEl.disabled = !subCb.checked;
+            if (!subCb.checked) qtyEl.value = '';
+          }
+        });
+        // initial
+        if (qtyEl) qtyEl.disabled = !subCb.checked;
+      });
+
+      // Others main checkbox -> enable its qty and optionally focus the other-text
+      const otherMain = document.getElementById('p_other');
+      const otherQty = document.getElementById('q_other');
+      const otherText = document.getElementById('purchasedOtherText');
+      if (otherMain && otherQty) {
+        function updOther() {
+          otherQty.disabled = !otherMain.checked;
+          if (!otherMain.checked) otherQty.value = '';
+        }
+        otherMain.addEventListener('change', updOther);
+        updOther();
+      }
+
     });
   </script>
 </body>
