@@ -87,9 +87,37 @@ function sendToServerJSONP(formData, clientTs, opts) {
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
+/**
+ * Helper: find value typed by user for "Other" purchased item.
+ * Tries several common element ids/names so it will work with different index.html variants.
+ */
+function getPurchasedOtherText() {
+  var ids = ['purchasedOtherText','purchasedOther','otherPurchased','purchasedOtherInput','purchased-other'];
+  for (var i=0;i<ids.length;i++){
+    var el = document.getElementById(ids[i]);
+    if (el && (typeof el.value !== 'undefined')) return el.value.trim();
+  }
+  // fallback: try name selector
+  var q = document.querySelector('input[name="purchasedOther"]');
+  if (q && typeof q.value !== 'undefined') return q.value.trim();
+  return "";
+}
+
 // collect data from DOM
 function collectFormData(){
   var purchasedItems = Array.from(document.querySelectorAll('.purchased:checked')).map(i=>i.value);
+  // if user selected "Other"/"Others", prefer typed text (if provided)
+  var otherText = getPurchasedOtherText(); // may be ""
+  if (purchasedItems && purchasedItems.length > 0) {
+    purchasedItems = purchasedItems.map(function(it){
+      if (!it) return it;
+      var low = it.toString().toLowerCase();
+      if (low === 'other' || low === 'others' || low === 'other(s)') {
+        return otherText && otherText !== "" ? otherText : 'Others';
+      }
+      return it;
+    });
+  }
   // join into comma-separated string (server expects string)
   var purchasedStr = purchasedItems.join(", ");
   var modeEl = document.querySelector('input[name="modeOfPayment"]:checked');
@@ -118,6 +146,14 @@ function clearForm(){
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>el.checked=false);
     document.getElementById('paymentPaid').value='';
     document.getElementById('otherInfo').value='';
+    // also clear any "Other" text fields if present
+    var otherIds = ['purchasedOtherText','purchasedOther','otherPurchased','purchasedOtherInput','purchased-other'];
+    for (var i=0;i<otherIds.length;i++){
+      var oe = document.getElementById(otherIds[i]);
+      if (oe && typeof oe.value !== 'undefined') oe.value = '';
+    }
+    var q = document.querySelector('input[name="purchasedOther"]');
+    if (q && typeof q.value !== 'undefined') q.value = '';
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -282,4 +318,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // No offline queueing or flush attempts — offline entries are not supported.
 }); // DOMContentLoaded end
-
