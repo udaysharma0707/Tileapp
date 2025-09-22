@@ -1,5 +1,5 @@
 // Configuration — set this to your deployed Apps Script web app URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbzscPoB_TYIrk-Dad6byZy1v7wmbD0nN5rblLDvmOimEAX8yzGAA8KhF6hZHI7jDkfFNQ/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwBqdE5aDrRr-79SOE31rzvhT0QfSxQJdcGa9lXqlZVhauBzVdQUoylHmP8-arl7Ep69Q/exec";
 const SHARED_TOKEN = "shopSecret2025";
 
 // Tunables
@@ -382,3 +382,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
+
