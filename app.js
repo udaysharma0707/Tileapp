@@ -71,9 +71,8 @@ function sendToServerJSONP(formData, clientTs, opts) {
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
   add("token", SHARED_TOKEN);
 
-  // purchasedItem is sent as a comma-separated string (server expects string)
+  // purchasedItem is a comma-separated string containing "QTY Item" entries
   add("purchasedItem", formData.purchasedItem || "");
-  add("qtyPurchased", formData.qtyPurchased === undefined ? "" : String(formData.qtyPurchased));
   add("purchasedFrom", formData.purchasedFrom || "");
   add("modeOfPayment", formData.modeOfPayment || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
@@ -87,43 +86,44 @@ function sendToServerJSONP(formData, clientTs, opts) {
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
-/**
- * Helper: find value typed by user for "Other" purchased item.
- * Tries several common element ids/names so it will work with different index.html variants.
- */
-function getPurchasedOtherText() {
-  var ids = ['purchasedOtherText','purchasedOther','otherPurchased','purchasedOtherInput','purchased-other'];
-  for (var i=0;i<ids.length;i++){
-    var el = document.getElementById(ids[i]);
-    if (el && (typeof el.value !== 'undefined')) return el.value.trim();
-  }
-  // fallback: try name selector
-  var q = document.querySelector('input[name="purchasedOther"]');
-  if (q && typeof q.value !== 'undefined') return q.value.trim();
-  return "";
-}
-
-// collect data from DOM
+// collect data from DOM — now reads per-item qty inputs
 function collectFormData(){
-  var purchasedItems = Array.from(document.querySelectorAll('.purchased:checked')).map(i=>i.value);
-  // if user selected "Other"/"Others", prefer typed text (if provided)
-  var otherText = getPurchasedOtherText(); // may be ""
-  if (purchasedItems && purchasedItems.length > 0) {
-    purchasedItems = purchasedItems.map(function(it){
-      if (!it) return it;
-      var low = it.toString().toLowerCase();
-      if (low === 'other' || low === 'others' || low === 'other(s)') {
-        return otherText && otherText !== "" ? otherText : 'Others';
+  // list of the items and their checkbox & qty ids (keep in sync with html)
+  const items = [
+    {chk: 'p_floor', qty: 'q_floor', label: 'Floor Tiles'},
+    {chk: 'p_wall',  qty: 'q_wall',  label: 'Wall Tiles'},
+    {chk: 'p_san',   qty: 'q_san',   label: 'Sanitaryware'},
+    {chk: 'p_acc',   qty: 'q_acc',   label: 'Accessories'},
+    {chk: 'p_other', qty: 'q_other', label: 'Others'}
+  ];
+
+  const selectedParts = [];
+  items.forEach(it => {
+    const cb = document.getElementById(it.chk);
+    if (!cb) return;
+    if (cb.checked) {
+      const qEl = document.getElementById(it.qty);
+      const qty = qEl ? (qEl.value === undefined ? "" : String(qEl.value).trim()) : "";
+      // For 'Other' prefer the typed other text if present
+      let name = it.label;
+      if (it.chk === 'p_other') {
+        const otherTxtEl = document.getElementById('purchasedOtherText');
+        if (otherTxtEl && otherTxtEl.value && otherTxtEl.value.trim() !== "") name = otherTxtEl.value.trim();
       }
-      return it;
-    });
-  }
-  // join into comma-separated string (server expects string)
-  var purchasedStr = purchasedItems.join(", ");
+      // Build entry as "QTY Name" (if qty present) else just "Name"
+      if (qty !== "") {
+        // keep numeric appearance — but do not force integer parsing here; server will sanitize
+        selectedParts.push(qty + " " + name);
+      } else {
+        // empty qty — return name only (but validation should prevent this)
+        selectedParts.push(name);
+      }
+    }
+  });
+
   var modeEl = document.querySelector('input[name="modeOfPayment"]:checked');
   return {
-    purchasedItem: purchasedStr,
-    qtyPurchased: document.getElementById('qtyPurchased').value,
+    purchasedItem: selectedParts.join(", "),
     purchasedFrom: document.getElementById('purchasedFrom').value.trim(),
     modeOfPayment: modeEl ? modeEl.value : "",
     paymentPaid: document.getElementById('paymentPaid').value,
@@ -140,20 +140,16 @@ function showMessage(text){
 }
 function clearForm(){
   try {
-    document.querySelectorAll('.purchased').forEach(ch=>ch.checked=false);
-    document.getElementById('qtyPurchased').value='';
-    document.getElementById('purchasedFrom').value='';
+    // uncheck all purchased checkboxes and clear qtys
+    document.querySelectorAll('.purchased').forEach(ch => { ch.checked = false; });
+    document.querySelectorAll('.qty').forEach(q => { q.value = ''; q.disabled = true; });
+    // other fields
+    document.getElementById('purchasedFrom').value = '';
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>el.checked=false);
-    document.getElementById('paymentPaid').value='';
-    document.getElementById('otherInfo').value='';
-    // also clear any "Other" text fields if present
-    var otherIds = ['purchasedOtherText','purchasedOther','otherPurchased','purchasedOtherInput','purchased-other'];
-    for (var i=0;i<otherIds.length;i++){
-      var oe = document.getElementById(otherIds[i]);
-      if (oe && typeof oe.value !== 'undefined') oe.value = '';
-    }
-    var q = document.querySelector('input[name="purchasedOther"]');
-    if (q && typeof q.value !== 'undefined') q.value = '';
+    document.getElementById('paymentPaid').value = '';
+    document.getElementById('otherInfo').value = '';
+    const otherEl = document.getElementById('purchasedOtherText');
+    if (otherEl) otherEl.value = '';
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -207,6 +203,23 @@ document.addEventListener('DOMContentLoaded', function() {
       var modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
 
       if (!purchasedChecked || purchasedChecked.length === 0) { alert("Please select at least one purchased item."); return; }
+      // for each selected purchased item, ensure its qty is present and > 0
+      for (let ch of purchasedChecked) {
+        const id = ch.id;
+        const qtyEl = document.querySelector('#q_' + id.slice(2)); // expects pattern p_xxx -> q_xxx
+        // fallback robust lookup if pattern mismatches
+        let foundQty = qtyEl;
+        if (!foundQty) {
+          // try to find sibling with class qty
+          foundQty = ch.closest('.item-row') ? ch.closest('.item-row').querySelector('.qty') : null;
+        }
+        const val = foundQty ? (foundQty.value || "").toString().trim() : "";
+        if (!val || isNaN(Number(val)) || Number(val) <= 0) {
+          alert("Please enter a valid quantity (>0) for the selected item: " + (ch.nextSibling ? ch.nextSibling.textContent : ch.value || "Item"));
+          return;
+        }
+      }
+
       if (payment.trim() === "") { alert("Payment paid is required."); return; }
       if (!modeChecked) { alert("Please select a mode of payment."); return; }
 
