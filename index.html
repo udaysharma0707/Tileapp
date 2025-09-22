@@ -3,33 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Car Entry</title>
-  <!-- prevent aggressive caching -->
-  <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
- <!-- iOS / Apple integration for "Add to Home Screen" -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Car Entry">
-
-<!-- Apple touch icons (relative paths recommended) -->
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
-<link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon-152.png">
-<link rel="apple-touch-icon" sizes="120x120" href="icons/apple-touch-icon-120.png">
-<link rel="apple-touch-icon" sizes="76x76"   href="icons/apple-touch-icon-76.png">
-
-<!-- Generic favicon / android fallback -->
-<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
-<link rel="shortcut icon" href="icons/icon-192.png">
-
-<!-- Manifest (kept) -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2c7be5">
-
-<!-- Optional Safari pinned tab (SVG) -->
-<link rel="mask-icon" href="icons/safari-pinned.svg" color="#2c7be5">
-
+  <title>Purchase Entry</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     html,body { height:100%; margin:0; padding:0; }
     body {
@@ -67,8 +42,6 @@
       font-size: 13px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
-    .sheet-link:active,
-    .sheet-link:focus { outline: none; box-shadow: 0 0 0 3px rgba(44,123,229,0.18); }
 
     h1{font-size:20px;margin:0 0 10px 0}
     .q-label{display:block;margin-top:10px;font-weight:600}
@@ -78,20 +51,8 @@
       border:1px solid #ccc; border-radius:4px;
     }
 
-    .checkbox-row { display:block; margin-top:6px; padding:0; }
-    .checkbox-row .cb {
-      display:block !important;
-      width:100% !important;
-      padding:6px 0 !important;
-      margin:0 0 6px 0 !important;
-      box-sizing:border-box !important;
-      font-weight:normal;
-    }
-    .checkbox-row .cb input[type="checkbox"] {
-      transform: scale(1.5);
-      margin-right: 12px;
-      accent-color: #2c7be5;
-    }
+    .radio-row { display:flex; gap:8px; margin-top:6px; }
+    .radio-row label { display:flex; align-items:center; gap:8px; }
 
     button{
       margin-top:12px;
@@ -119,9 +80,6 @@
       .form-actions {flex-direction:column; align-items:stretch}
       .form-actions button {width:100%}
     }
-
-    /* Hide Q4 by default */
-    #qtyWrapper { display:none; }
   </style>
 </head>
 <body>
@@ -129,52 +87,34 @@
     <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1RcW7oIyoafocW4cNFYLvh_su0I7zWhlvN__5PoQmf38/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
-    <h1>Car Entry</h1>
+    <h1>Purchase Entry</h1>
 
-    <label class="q-label">1. Car registration no.</label>
-    <input id="carRegistrationNo" type="text" placeholder="e.g. MH12AB1234" autocomplete="off">
+    <label class="q-label">1. Purchased what</label>
+    <input id="purchasedItem" type="text" placeholder="e.g. Engine oil" autocomplete="off">
 
-    <label class="q-label">2. Car name</label>
-    <input id="carName" type="text" placeholder="e.g. Swift" autocomplete="off">
+    <label class="q-label">2. How many purchased</label>
+    <input id="qtyPurchased" type="number" min="0" step="1" placeholder="Enter quantity">
 
-    <label class="q-label">3. Services provided (check all that apply)</label>
-    <div class="checkbox-row" id="services">
-      <label class="cb"><input type="checkbox" value="Wheel Alignment" class="service"> Wheel Alignment</label>
-      <label class="cb"><input type="checkbox" value="Wheel Balancing" class="service"> Wheel Balancing</label>
-      <label class="cb"><input type="checkbox" value="Tires sold" class="service"> Tires sold</label>
-      <label class="cb"><input type="checkbox" value="Wheel Cover sold" class="service"> Wheel Cover sold</label>
-      <label class="cb"><input type="checkbox" value="Other" class="service"> Other</label>
+    <label class="q-label">3. Purchased from whom</label>
+    <input id="purchasedFrom" type="text" placeholder="Vendor name or shop" autocomplete="off">
+
+    <label class="q-label">4. Mode of payment <span style="color:red">*</span></label>
+    <div class="radio-row" id="modes">
+      <label><input type="radio" name="modeOfPayment" value="Cash"> Cash</label>
+      <label><input type="radio" name="modeOfPayment" value="Online"> Online</label>
+      <label><input type="radio" name="modeOfPayment" value="Credit"> Credit</label>
     </div>
 
-    <div id="qtyWrapper">
-      <label class="q-label">4. How many Tires/Wheel Cover sold?</label>
-      <input id="qtyTiresWheelCoverSold" type="number" min="0" step="1" placeholder="Enter quantity if sold">
-    </div>
+    <label class="q-label">5. Payment paid (₹) <span style="color:red">*</span></label>
+    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Amount paid">
 
-    <label class="q-label">5. Amount paid by customer (₹) <span style="color:red">*</span></label>
-    <input id="amountPaid" type="number" min="0" step="0.01" required>
-
-    <label class="q-label">6. Mode of Payment (check all that apply) <span style="color:red">*</span></label>
-    <div class="checkbox-row" id="modes">
-      <label class="cb"><input type="checkbox" value="Cash" class="mode"> Cash</label>
-      <label class="cb"><input type="checkbox" value="Online Payment J &amp; K Bank" class="mode"> Online Payment J &amp; K Bank</label>
-      <label class="cb"><input type="checkbox" value="Other" class="mode"> Other</label>
-    </div>
-
-    <label class="q-label">7. How many Kms vehicle has travelled?</label>
-    <input id="kmsTravelled" type="number" min="0" step="1">
-
-    <label class="q-label">8. Advice to customer</label>
-    <textarea id="adviceToCustomer" rows="2"></textarea>
-
-    <label class="q-label">9. Any Other Information</label>
+    <label class="q-label">6. Any other information</label>
     <textarea id="otherInfo" rows="2"></textarea>
 
     <div class="form-actions">
       <button id="submitBtn" type="button">Submit</button>
       <button id="clearBtn" type="button">Clear</button>
 
-      <!-- Sync button removed by design -->
       <div style="margin-left:auto;font-weight:600; display:flex; gap:8px; align-items:center;">
         <div>Online:</div>
         <div id="status">online</div>
@@ -188,57 +128,24 @@
 
   <script src="app.js"></script>
   <script>
-    // Show/Hide Q4 based on services selected (delegated and robust)
-    function handleServiceChange() {
-      const serviceCheckboxes = document.querySelectorAll('.service');
-      const qtyWrapper = document.getElementById('qtyWrapper');
-      const showQty = Array.from(serviceCheckboxes).some(el =>
-        el.checked && (el.value === "Tires sold" || el.value === "Wheel Cover sold")
-      );
-      qtyWrapper.style.display = showQty ? 'block' : 'none';
-    }
+    // small local validation wiring
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      const purchased = document.getElementById('purchasedItem').value.trim();
+      const payment = document.getElementById('paymentPaid').value.trim();
+      const mode = document.querySelector('input[name="modeOfPayment"]:checked');
 
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initial binding
-      document.querySelectorAll('.service').forEach(cb => cb.addEventListener('change', handleServiceChange));
-      handleServiceChange(); // initial state
+      if (!purchased) { alert("Purchased item is required."); return; }
+      if (!payment) { alert("Payment paid is required."); return; }
+      if (!mode) { alert("Please select a mode of payment."); return; }
 
-      // Prevent form submission by Enter inside inputs (avoid accidental submits)
-      Array.from(document.querySelectorAll('input, textarea')).forEach(el => {
-        el.addEventListener('keydown', function(e){
-          if (e.key === 'Enter' && (this.tagName.toLowerCase() === 'input')) {
-            e.preventDefault();
-          }
-        });
-      });
-
-      // Form validation before submit (light guard) — main logic is in app.js
-      document.getElementById('submitBtn').addEventListener('click', () => {
-        const amountPaid = document.getElementById('amountPaid').value.trim();
-        const paymentModes = document.querySelectorAll('.mode:checked');
-
-        if (!amountPaid) {
-          alert("Amount paid by customer is required.");
-          return;
-        }
-        if (paymentModes.length === 0) {
-          alert("Please select at least one mode of payment.");
-          return;
-        }
-
-        // If passes, call app.js submit logic
-        if (typeof submitForm === "function") {
-          submitForm();
-        }
-      });
-
-      // Clear button wiring (backup)
-      const clearBtn = document.getElementById('clearBtn');
-      if (clearBtn) clearBtn.addEventListener('click', function(){ if (typeof clearForm === 'function') { clearForm(); showMessage('Form cleared'); } });
-
+      if (typeof submitForm === "function") {
+        submitForm();
+      }
     });
+
+    // Clear button
+    const clearBtn = document.getElementById('clearBtn');
+    if (clearBtn) clearBtn.addEventListener('click', function(){ if (typeof clearForm === 'function') { clearForm(); showMessage('Form cleared'); } });
   </script>
 </body>
 </html>
-
-
