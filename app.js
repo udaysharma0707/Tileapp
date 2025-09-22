@@ -1,4 +1,4 @@
-// Configuration — set this to your deployed Apps Script web app URL (do not leave the placeholder)
+// Configuration — set this to your deployed Apps Script web app URL
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbx-E8h3Rsb-jrRbuo542ZJLD8T0BerNElhA24_emdf9JlxPWoKh-PgpIO0Qb9DdJDHTlA/exec";
 const SHARED_TOKEN = "shopSecret2025";
 
@@ -71,6 +71,7 @@ function sendToServerJSONP(formData, clientTs, opts) {
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
   add("token", SHARED_TOKEN);
 
+  // purchasedItem is sent as a comma-separated string (server expects string)
   add("purchasedItem", formData.purchasedItem || "");
   add("qtyPurchased", formData.qtyPurchased === undefined ? "" : String(formData.qtyPurchased));
   add("purchasedFrom", formData.purchasedFrom || "");
@@ -88,10 +89,12 @@ function sendToServerJSONP(formData, clientTs, opts) {
 
 // collect data from DOM
 function collectFormData(){
-  // Mode is a radio (single)
+  var purchasedItems = Array.from(document.querySelectorAll('.purchased:checked')).map(i=>i.value);
+  // join into comma-separated string (server expects string)
+  var purchasedStr = purchasedItems.join(", ");
   var modeEl = document.querySelector('input[name="modeOfPayment"]:checked');
   return {
-    purchasedItem: document.getElementById('purchasedItem').value.trim(),
+    purchasedItem: purchasedStr,
     qtyPurchased: document.getElementById('qtyPurchased').value,
     purchasedFrom: document.getElementById('purchasedFrom').value.trim(),
     modeOfPayment: modeEl ? modeEl.value : "",
@@ -109,11 +112,10 @@ function showMessage(text){
 }
 function clearForm(){
   try {
-    document.getElementById('purchasedItem').value='';
+    document.querySelectorAll('.purchased').forEach(ch=>ch.checked=false);
     document.getElementById('qtyPurchased').value='';
     document.getElementById('purchasedFrom').value='';
-    var modeEls = document.querySelectorAll('input[name="modeOfPayment"]');
-    modeEls.forEach(m=>m.checked=false);
+    document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>el.checked=false);
     document.getElementById('paymentPaid').value='';
     document.getElementById('otherInfo').value='';
   } catch(e){ console.warn('clearForm error', e); }
@@ -164,11 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       // Basic client validation
-      var purchased = (document.getElementById('purchasedItem') || {}).value || "";
+      var purchasedChecked = document.querySelectorAll('.purchased:checked');
       var payment = (document.getElementById('paymentPaid') || {}).value || "";
       var modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
 
-      if (purchased.trim() === "") { alert("Purchased item is required."); return; }
+      if (!purchasedChecked || purchasedChecked.length === 0) { alert("Please select at least one purchased item."); return; }
       if (payment.trim() === "") { alert("Payment paid is required."); return; }
       if (!modeChecked) { alert("Please select a mode of payment."); return; }
 
@@ -280,4 +282,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // No offline queueing or flush attempts — offline entries are not supported.
 }); // DOMContentLoaded end
-
