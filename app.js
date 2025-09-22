@@ -16,8 +16,6 @@ function updateStatus() {
   const on = navigator.onLine;
   if (s) s.textContent = on ? 'online' : 'offline';
   if (s2) s2.textContent = on ? 'online' : 'offline';
-
-  // show persistent "Connect to internet" when offline and disable submit
   const msg = document.getElementById('msg');
   const submitBtn = document.getElementById('submitBtn');
   if (!offlineNotice) return;
@@ -30,7 +28,7 @@ function updateStatus() {
     try { if (submitBtn) submitBtn.disabled = false; } catch(e){}
   }
 }
-window.addEventListener('online', ()=>{ updateStatus(); /* do not queue or flush */ });
+window.addEventListener('online', ()=>{ updateStatus(); });
 window.addEventListener('offline', ()=>{ updateStatus(); });
 
 // JSONP helper (returns Promise)
@@ -71,7 +69,6 @@ function sendToServerJSONP(formData, clientTs, opts) {
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
   add("token", SHARED_TOKEN);
 
-  // purchasedItem is a comma-separated string containing "QTY Item" entries
   add("purchasedItem", formData.purchasedItem || "");
   add("purchasedFrom", formData.purchasedFrom || "");
   add("modeOfPayment", formData.modeOfPayment || "");
@@ -86,42 +83,68 @@ function sendToServerJSONP(formData, clientTs, opts) {
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
-// collect data from DOM — now reads per-item qty inputs
+// collect data from DOM — collects selected subitems with qtys
 function collectFormData(){
-  // list of the items and their checkbox & qty ids (keep in sync with html)
-  const items = [
-    {chk: 'p_floor', qty: 'q_floor', label: 'Floor Tiles'},
-    {chk: 'p_wall',  qty: 'q_wall',  label: 'Wall Tiles'},
-    {chk: 'p_san',   qty: 'q_san',   label: 'Sanitaryware'},
-    {chk: 'p_acc',   qty: 'q_acc',   label: 'Accessories'},
-    {chk: 'p_other', qty: 'q_other', label: 'Others'}
-  ];
-
   const selectedParts = [];
-  items.forEach(it => {
-    const cb = document.getElementById(it.chk);
-    if (!cb) return;
-    if (cb.checked) {
-      const qEl = document.getElementById(it.qty);
-      const qty = qEl ? (qEl.value === undefined ? "" : String(qEl.value).trim()) : "";
-      // For 'Other' prefer the typed other text if present
-      let name = it.label;
-      if (it.chk === 'p_other') {
-        const otherTxtEl = document.getElementById('purchasedOtherText');
-        if (otherTxtEl && otherTxtEl.value && otherTxtEl.value.trim() !== "") name = otherTxtEl.value.trim();
-      }
-      // Build entry as "QTY Name" (if qty present) else just "Name"
-      if (qty !== "") {
-        // keep numeric appearance — but do not force integer parsing here; server will sanitize
-        selectedParts.push(qty + " " + name);
-      } else {
-        // empty qty — return name only (but validation should prevent this)
-        selectedParts.push(name);
-      }
+
+  // helper - push if checked
+  function pushIfSub(checkboxId, qtyId, labelOverride) {
+    const cb = document.getElementById(checkboxId);
+    if (!cb || !cb.checked) return;
+    const qtyEl = document.getElementById(qtyId);
+    const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
+    const label = labelOverride || cb.value || "";
+    if (qtyVal !== "") {
+      selectedParts.push(qtyVal + " " + label);
+    } else {
+      selectedParts.push(label);
     }
-  });
+  }
+
+  // Floor subitems
+  if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
+    pushIfSub('sub_floor_vitrified','q_floor_vitrified','Vitrified tiles');
+    pushIfSub('sub_floor_ceramic','q_floor_ceramic','Ceramic tiles');
+    pushIfSub('sub_floor_porcelain','q_floor_porcelain','Porcelain tiles');
+    pushIfSub('sub_floor_marble','q_floor_marble','Marble finish tiles');
+    pushIfSub('sub_floor_granite','q_floor_granite','Granite finish tiles');
+  }
+
+  // Wall subitems
+  if (document.getElementById('p_wall') && document.getElementById('p_wall').checked) {
+    pushIfSub('sub_wall_kitchen','q_wall_kitchen','Kitchen wall tiles (backsplash)');
+    pushIfSub('sub_wall_bath','q_wall_bath','Bathroom wall tiles (glazed/anti-skid)');
+    pushIfSub('sub_wall_decor','q_wall_decor','Decorative / designer wall tiles');
+  }
+
+  // Sanitary subitems
+  if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
+    pushIfSub('sub_san_wash','q_san_wash','Washbasins');
+    pushIfSub('sub_san_wc','q_san_wc','WC');
+    pushIfSub('sub_san_urinal','q_san_urinal','Urinals');
+  }
+
+  // Accessories subitems
+  if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
+    pushIfSub('sub_acc_grout','q_acc_grout','Tile grout & adhesives');
+    pushIfSub('sub_acc_spacers','q_acc_spacers','Spacers');
+    pushIfSub('sub_acc_sealants','q_acc_sealants','Sealants');
+    pushIfSub('sub_acc_chem','q_acc_chem','Chemicals');
+    pushIfSub('sub_acc_skirting','q_acc_skirting','Skirting & border tiles');
+    pushIfSub('sub_acc_mosaic','q_acc_mosaic','Mosaic tiles for decoration');
+  }
+
+  // Others main: if checked, we allow a custom text with qty
+  if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
+    const otherTxt = (document.getElementById('purchasedOtherText') || {}).value || "";
+    const otherQty = (document.getElementById('q_other') || {}).value || "";
+    const label = otherTxt.trim() !== "" ? otherTxt.trim() : "Others";
+    if (otherQty !== "") selectedParts.push(otherQty + " " + label);
+    else selectedParts.push(label);
+  }
 
   var modeEl = document.querySelector('input[name="modeOfPayment"]:checked');
+
   return {
     purchasedItem: selectedParts.join(", "),
     purchasedFrom: document.getElementById('purchasedFrom').value.trim(),
@@ -135,21 +158,23 @@ function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
   m.textContent = text; m.style.display='block';
-  // auto-hide only when online and message isn't the offline notice
   setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 4000);
 }
 function clearForm(){
   try {
-    // uncheck all purchased checkboxes and clear qtys
+    // uncheck main and sub checkboxes
     document.querySelectorAll('.purchased').forEach(ch => { ch.checked = false; });
+    document.querySelectorAll('.subitem').forEach(ch => { ch.checked = false; });
+    // clear all qtys and disable sub qtys
     document.querySelectorAll('.qty').forEach(q => { q.value = ''; q.disabled = true; });
-    // other fields
+    // hide all sublists
+    document.querySelectorAll('.sublist').forEach(s => s.style.display = 'none');
+    // clear others text and other fields
+    const otherEl = document.getElementById('purchasedOtherText'); if (otherEl) otherEl.value = '';
     document.getElementById('purchasedFrom').value = '';
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>el.checked=false);
     document.getElementById('paymentPaid').value = '';
     document.getElementById('otherInfo').value = '';
-    const otherEl = document.getElementById('purchasedOtherText');
-    if (otherEl) otherEl.value = '';
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -168,115 +193,132 @@ window.submitForm = async function() {
 // ---------- DOM bindings (no offline queueing) ----------
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
-
   const submitBtn = document.getElementById('submitBtn');
   const clearBtn = document.getElementById('clearBtn');
 
-  // disable submit immediately if offline
   if (submitBtn && !navigator.onLine) {
     try { submitBtn.disabled = true; } catch(e){}
   }
 
-  if (!submitBtn) {
-    console.warn('[INIT] submitBtn not found in DOM');
-    return;
-  }
-
-  // Ensure button is type=button
+  if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
   try { submitBtn.setAttribute('type','button'); } catch(e){}
 
   // Prevent double-handling between touchend and click
   let ignoreNextClick = false;
 
+  // Helper to validate: for each checked main category ensure at least one subitem is selected
+  function validateMainSubSelection() {
+    const errors = [];
+    // floor
+    if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
+      const any = Array.from(document.querySelectorAll('#sublist_floor .subitem')).some(s=>s.checked);
+      if (!any) errors.push('Floor Tiles: select at least one sub-item and enter quantity.');
+    }
+    if (document.getElementById('p_wall') && document.getElementById('p_wall').checked) {
+      const any = Array.from(document.querySelectorAll('#sublist_wall .subitem')).some(s=>s.checked);
+      if (!any) errors.push('Wall Tiles: select at least one sub-item and enter quantity.');
+    }
+    if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
+      const any = Array.from(document.querySelectorAll('#sublist_san .subitem')).some(s=>s.checked);
+      if (!any) errors.push('Sanitaryware: select at least one sub-item and enter quantity.');
+    }
+    if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
+      const any = Array.from(document.querySelectorAll('#sublist_acc .subitem')).some(s=>s.checked);
+      if (!any) errors.push('Accessories: select at least one sub-item and enter quantity.');
+    }
+    if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
+      const q = (document.getElementById('q_other') || {}).value || "";
+      const txt = (document.getElementById('purchasedOtherText') || {}).value || "";
+      if (!q && txt.trim() === "") {
+        errors.push('Others: please specify the item name and quantity (or uncheck Others).');
+      }
+    }
+    return errors;
+  }
+
   async function doSubmitFlow() {
     try {
-      // If offline, block submission and inform user
       if (!navigator.onLine) {
         alert('Connect to internet. Your entry cannot be saved while offline.');
         updateStatus();
         return;
       }
 
-      // Basic client validation
-      var purchasedChecked = document.querySelectorAll('.purchased:checked');
-      var payment = (document.getElementById('paymentPaid') || {}).value || "";
-      var modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
+      // basic checks
+      const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
+      if (!anyMainChecked) { alert('Please select at least one purchased main category.'); return; }
 
-      if (!purchasedChecked || purchasedChecked.length === 0) { alert("Please select at least one purchased item."); return; }
-      // for each selected purchased item, ensure its qty is present and > 0
-      for (let ch of purchasedChecked) {
-        const id = ch.id;
-        const qtyEl = document.querySelector('#q_' + id.slice(2)); // expects pattern p_xxx -> q_xxx
-        // fallback robust lookup if pattern mismatches
-        let foundQty = qtyEl;
-        if (!foundQty) {
-          // try to find sibling with class qty
-          foundQty = ch.closest('.item-row') ? ch.closest('.item-row').querySelector('.qty') : null;
-        }
-        const val = foundQty ? (foundQty.value || "").toString().trim() : "";
+      const validationList = validateMainSubSelection();
+      if (validationList.length > 0) { alert(validationList.join('\n')); return; }
+
+      // verify each selected subitem has qty > 0
+      const selectedSubboxes = Array.from(document.querySelectorAll('.subitem')).filter(s => s.checked);
+      for (let sb of selectedSubboxes) {
+        const qid = 'q' + sb.id.slice(3); // e.g. sub_floor_ceramic -> q_floor_ceramic
+        const qEl = document.getElementById(qid);
+        const val = qEl ? (String(qEl.value || "").trim()) : "";
         if (!val || isNaN(Number(val)) || Number(val) <= 0) {
-          alert("Please enter a valid quantity (>0) for the selected item: " + (ch.nextSibling ? ch.nextSibling.textContent : ch.value || "Item"));
+          alert('Please enter a valid quantity (>0) for: ' + (sb.value || 'selected item'));
           return;
         }
       }
 
-      if (payment.trim() === "") { alert("Payment paid is required."); return; }
-      if (!modeChecked) { alert("Please select a mode of payment."); return; }
+      // for Others main, if used ensure qty >0
+      if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
+        const q = (document.getElementById('q_other') || {}).value || "";
+        if (!q || isNaN(Number(q)) || Number(q) <= 0) {
+          alert('Please enter a valid quantity (>0) for Others or uncheck Others.');
+          return;
+        }
+      }
 
-      // collect
+      // payment & mode validations
+      const payment = (document.getElementById('paymentPaid') || {}).value || "";
+      const modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
+      if (!modeChecked) { alert('Please select a mode of payment.'); return; }
+      if (!payment || isNaN(Number(payment)) ) { alert('Please enter a valid payment amount.'); return; }
+
+      // collect form
       var formData = collectFormData();
-
-      // assign a submissionId
-      if (!formData.submissionId) formData.submissionId = makeSubmissionId();
-
-      // if this id is already active (somehow), stop
-      if (activeSubmissions.has(formData.submissionId)) {
-        console.log('[SUBMIT] submission already in-flight id=', formData.submissionId);
-        showMessage('Submission in progress — please wait');
+      // ensure we did actually collect at least one sub-entry
+      if (!formData.purchasedItem || formData.purchasedItem.trim() === "") {
+        alert('No sub-item selected. Please select at least one specific item and quantity.');
         return;
       }
 
-      // mark active so we don't double-send same id
+      // assign submission id
+      if (!formData.submissionId) formData.submissionId = makeSubmissionId();
+      if (activeSubmissions.has(formData.submissionId)) {
+        showMessage('Submission in progress — please wait');
+        return;
+      }
       activeSubmissions.add(formData.submissionId);
 
-      // immediate visible feedback
+      // UI feedback
       submitBtn.disabled = true;
       const origLabel = submitBtn.textContent;
       submitBtn.textContent = 'Saving...';
-
-      // clear UI immediately
       showMessage('Submitting — please wait...');
+      // clear UI immediately (we keep formData local)
       clearForm();
 
-      // background send (online)
-      (async function backgroundSend(localForm) {
+      // send
+      (async function(backgroundForm){
         try {
-          // Attempt send current item (direct submit)
           const clientTs = Date.now();
-          try {
-            const resp = await sendToServerJSONP(localForm, clientTs);
-            if (resp && resp.success) {
-              showMessage('Saved — Serial: ' + resp.serial);
-            } else if (resp && resp.error) {
-              // server validation error -> inform user
-              alert('Server rejected submission: ' + resp.error);
-            } else {
-              // unknown server response
-              alert('Unexpected server response. Please retry while online.');
-            }
-          } catch (errSend) {
-            // network/JSONP error -> report to user (do NOT queue)
-            console.error('send failed; not queuing (offline not allowed)', errSend);
-            alert('Network error occurred. Please ensure you are online and try again.');
+          const resp = await sendToServerJSONP(backgroundForm, clientTs);
+          if (resp && resp.success) {
+            showMessage('Saved — Serial: ' + resp.serial);
+          } else if (resp && resp.error) {
+            alert('Server rejected submission: ' + resp.error);
+          } else {
+            alert('Unexpected server response. Please retry while online.');
           }
-
-        } catch (bgErr) {
-          console.error('backgroundSend unexpected', bgErr);
-          alert('Unexpected error occurred. Please retry.');
+        } catch (errSend) {
+          console.error('send failed', errSend);
+          alert('Network error occurred. Please ensure you are online and try again.');
         } finally {
-          // done processing this id
-          try { activeSubmissions.delete(localForm.submissionId); } catch(e){}
-          // restore button label
+          try { activeSubmissions.delete(backgroundForm.submissionId); } catch(e){}
           try { submitBtn.disabled = false; submitBtn.textContent = origLabel || 'Submit'; } catch(e){}
           updateStatus();
         }
@@ -289,45 +331,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // touchend handler to support mobile taps
-  function onTouchEndSubmit(ev) {
-    if (!ev) return;
-    ev.preventDefault && ev.preventDefault();
-    ev.stopPropagation && ev.stopPropagation();
-    ignoreNextClick = true;
-    setTimeout(()=>{ ignoreNextClick = false; }, 800);
-    doSubmitFlow();
-  }
-  function onClickSubmit(ev) {
-    if (ignoreNextClick) { ev && ev.preventDefault(); console.log('[APP] ignored click after touch'); return; }
-    doSubmitFlow();
-  }
+  // touch & click wiring
+  function onTouchEndSubmit(ev) { if (!ev) return; ev.preventDefault && ev.preventDefault(); ev.stopPropagation && ev.stopPropagation(); ignoreNextClick = true; setTimeout(()=>{ ignoreNextClick = false; }, 800); doSubmitFlow(); }
+  function onClickSubmit(ev) { if (ignoreNextClick) { ev && ev.preventDefault(); return; } doSubmitFlow(); }
 
-  // Attach event listeners (touch first, then click)
   submitBtn.addEventListener('touchend', onTouchEndSubmit, { passive:false });
   submitBtn.addEventListener('click', onClickSubmit, { passive:false });
 
-  // Clear button
+  // clear button
   if (clearBtn) {
     clearBtn.addEventListener('touchend', function(ev){ ev && ev.preventDefault(); clearForm(); showMessage('Form cleared'); }, { passive:false });
     clearBtn.addEventListener('click', function(ev){ clearForm(); showMessage('Form cleared'); }, { passive:false });
   }
 
-  // unregister any existing service workers so cached SW can't re-enable offline writes
+  // unregister service workers & clear caches as previously
   if ('serviceWorker' in navigator) {
-    try {
-      navigator.serviceWorker.getRegistrations().then(function(regs){
-        regs.forEach(r => { r.unregister().catch(()=>{}); });
-      }).catch(()=>{});
-    } catch(e){ console.warn('sw unregister err', e); }
+    try { navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(r => { r.unregister().catch(()=>{}); }); }).catch(()=>{}); } catch(e){ console.warn('sw unregister err', e); }
   }
-
-  // clear caches if available
   if ('caches' in window) {
-    try {
-      caches.keys().then(keys => { keys.forEach(k => caches.delete(k)); }).catch(()=>{});
-    } catch(e){ console.warn('cache clear err', e); }
+    try { caches.keys().then(keys => { keys.forEach(k => caches.delete(k)); }).catch(()=>{}); } catch(e){ console.warn('cache clear err', e); }
   }
 
-  // No offline queueing or flush attempts — offline entries are not supported.
 }); // DOMContentLoaded end
