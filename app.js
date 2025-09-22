@@ -1,5 +1,5 @@
-// Configuration
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbz_en97Cbnw4pH0kCGAARYguDUNQ77KXFk6-Upqszz-BTToDnm8spzl0FsCU6U7DuQy-g/exec";
+// Configuration — set this to your deployed Apps Script web app URL (do not leave the placeholder)
+const ENDPOINT = "https://script.google.com/macros/s/PUT_YOUR_DEPLOYED_SCRIPT_ID_HERE/exec";
 const SHARED_TOKEN = "shopSecret2025";
 
 // Tunables
@@ -33,47 +33,6 @@ function updateStatus() {
 window.addEventListener('online', ()=>{ updateStatus(); /* do not queue or flush */ });
 window.addEventListener('offline', ()=>{ updateStatus(); });
 
-// Uppercase except services (do not touch services array)
-function uppercaseExceptServices(fd) {
-  try {
-    fd.carRegistrationNo = (fd.carRegistrationNo || "").toString().toUpperCase();
-    fd.carName = (fd.carName || "").toString().toUpperCase();
-    if (Array.isArray(fd.modeOfPayment)) fd.modeOfPayment = fd.modeOfPayment.map(s => (s||"").toString().toUpperCase());
-    else fd.modeOfPayment = (fd.modeOfPayment || "").toString().toUpperCase();
-    fd.adviceToCustomer = (fd.adviceToCustomer || "").toString().toUpperCase();
-    fd.otherInfo = (fd.otherInfo || "").toString().toUpperCase();
-  } catch(e){ console.warn('uppercaseExceptServices err', e); }
-  return fd;
-}
-
-// Format car registration: try to produce "AA NNXXX NNNN" style
-function formatCarRegistration(raw) {
-  if (!raw) return raw;
-  var s = raw.toString().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  var re = /^([A-Z]{1,2})(\d{1,2})([A-Z0-9]{0,6})(\d{4})$/;
-  var m = s.match(re);
-  if (m) {
-    var part1 = m[1];
-    var part2 = m[2] + (m[3] || "");
-    var part3 = m[4];
-    return part1 + " " + part2 + " " + part3;
-  }
-  var last4 = s.match(/(\d{4})$/);
-  if (last4) {
-    var last4Digits = last4[1];
-    var rest = s.slice(0, s.length - 4);
-    if (rest.length >= 2) {
-      var st = rest.slice(0, 2);
-      var mid = rest.slice(2);
-      if (mid.length > 0) return st + " " + mid + " " + last4Digits;
-      return st + " " + last4Digits;
-    } else if (rest.length > 0) {
-      return rest + " " + last4Digits;
-    }
-  }
-  return s;
-}
-
 // JSONP helper (returns Promise)
 function jsonpRequest(url, timeoutMs) {
   timeoutMs = timeoutMs || JSONP_TIMEOUT_MS;
@@ -106,36 +65,20 @@ function jsonpRequest(url, timeoutMs) {
   });
 }
 
-// Build JSONP URL and call — includes both submissionId and clientId for server compatibility
+// Build JSONP URL and call
 function sendToServerJSONP(formData, clientTs, opts) {
   var params = [];
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
   add("token", SHARED_TOKEN);
 
-  // If opts.action is provided (e.g. processStaging), we'll only send action + token
-  if (opts && opts.action) {
-    add("action", opts.action);
-    var base = ENDPOINT;
-    var url = base + (base.indexOf('?') === -1 ? '?' : '&') + params.join("&");
-    return jsonpRequest(url, JSONP_TIMEOUT_MS);
-  }
-
-  add("carRegistrationNo", formData.carRegistrationNo || "");
-  add("carName", formData.carName || "");
-  if (Array.isArray(formData.services)) add("services", formData.services.join(", "));
-  else add("services", formData.services || "");
-  // Make sure numbers are sent as strings to avoid client-side coercion later
-  add("qtyTiresWheelCoverSold", formData.qtyTiresWheelCoverSold === undefined ? "" : String(formData.qtyTiresWheelCoverSold));
-  add("amountPaid", formData.amountPaid === undefined ? "" : String(formData.amountPaid));
-  if (Array.isArray(formData.modeOfPayment)) add("modeOfPayment", formData.modeOfPayment.join(", "));
-  else add("modeOfPayment", formData.modeOfPayment || "");
-  add("kmsTravelled", formData.kmsTravelled === undefined ? "" : String(formData.kmsTravelled));
-  add("adviceToCustomer", formData.adviceToCustomer || "");
+  add("purchasedItem", formData.purchasedItem || "");
+  add("qtyPurchased", formData.qtyPurchased === undefined ? "" : String(formData.qtyPurchased));
+  add("purchasedFrom", formData.purchasedFrom || "");
+  add("modeOfPayment", formData.modeOfPayment || "");
+  add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
-  // include submissionId for server-side dedupe, also include clientId (server expects clientId)
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
   if (clientTs) add("clientTs", String(clientTs));
-  if (opts && opts.staging) add("staging", "1");
 
   var base = ENDPOINT;
   var url = base + (base.indexOf('?') === -1 ? '?' : '&') + params.join("&");
@@ -145,17 +88,14 @@ function sendToServerJSONP(formData, clientTs, opts) {
 
 // collect data from DOM
 function collectFormData(){
-  var services = Array.from(document.querySelectorAll('.service:checked')).map(i=>i.value);
-  var mode = Array.from(document.querySelectorAll('.mode:checked')).map(i=>i.value);
+  // Mode is a radio (single)
+  var modeEl = document.querySelector('input[name="modeOfPayment"]:checked');
   return {
-    carRegistrationNo: document.getElementById('carRegistrationNo').value.trim(),
-    carName: document.getElementById('carName').value.trim(),
-    services: services,
-    qtyTiresWheelCoverSold: document.getElementById('qtyTiresWheelCoverSold').value,
-    amountPaid: document.getElementById('amountPaid').value,
-    modeOfPayment: mode,
-    kmsTravelled: document.getElementById('kmsTravelled').value,
-    adviceToCustomer: document.getElementById('adviceToCustomer').value.trim(),
+    purchasedItem: document.getElementById('purchasedItem').value.trim(),
+    qtyPurchased: document.getElementById('qtyPurchased').value,
+    purchasedFrom: document.getElementById('purchasedFrom').value.trim(),
+    modeOfPayment: modeEl ? modeEl.value : "",
+    paymentPaid: document.getElementById('paymentPaid').value,
     otherInfo: document.getElementById('otherInfo').value.trim()
   };
 }
@@ -169,20 +109,13 @@ function showMessage(text){
 }
 function clearForm(){
   try {
-    document.getElementById('carRegistrationNo').value='';
-    document.getElementById('carName').value='';
-    document.querySelectorAll('.service').forEach(ch=>ch.checked=false);
-    document.getElementById('qtyTiresWheelCoverSold').value='';
-    document.getElementById('amountPaid').value='';
-    document.querySelectorAll('.mode').forEach(ch=>ch.checked=false);
-    document.getElementById('kmsTravelled').value='';
-    document.getElementById('adviceToCustomer').value='';
+    document.getElementById('purchasedItem').value='';
+    document.getElementById('qtyPurchased').value='';
+    document.getElementById('purchasedFrom').value='';
+    var modeEls = document.querySelectorAll('input[name="modeOfPayment"]');
+    modeEls.forEach(m=>m.checked=false);
+    document.getElementById('paymentPaid').value='';
     document.getElementById('otherInfo').value='';
-    // hide qty if needed
-    const showQty = Array.from(document.querySelectorAll('.service')).some(el =>
-      el.checked && (el.value === "Tires sold" || el.value === "Wheel Cover sold")
-    );
-    document.getElementById('qtyWrapper').style.display = showQty ? 'block' : 'none';
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -204,10 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const submitBtn = document.getElementById('submitBtn');
   const clearBtn = document.getElementById('clearBtn');
-
-  // Hide/disable any leftover Sync button if present
-  const syncBtn  = document.getElementById('syncBtn');
-  if (syncBtn) { try { syncBtn.style.display = 'none'; } catch(e){} }
 
   // disable submit immediately if offline
   if (submitBtn && !navigator.onLine) {
@@ -235,17 +164,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       // Basic client validation
-      var carRegEl = document.getElementById('carRegistrationNo');
-      var carReg = carRegEl ? carRegEl.value.trim() : "";
-      var servicesChecked = document.querySelectorAll('.service:checked');
-      var amountEl = document.getElementById('amountPaid');
-      var amount = amountEl ? amountEl.value.trim() : "";
-      var modeChecked = document.querySelectorAll('.mode:checked');
+      var purchased = (document.getElementById('purchasedItem') || {}).value || "";
+      var payment = (document.getElementById('paymentPaid') || {}).value || "";
+      var modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
 
-      if (carReg === "") { alert("Car registration number is required."); return; }
-      if (!servicesChecked || servicesChecked.length === 0) { alert("Please select at least one service."); return; }
-      if (amount === "") { alert("Amount paid by customer is required."); return; }
-      if (!modeChecked || modeChecked.length === 0) { alert("Please select at least one mode of payment."); return; }
+      if (purchased.trim() === "") { alert("Purchased item is required."); return; }
+      if (payment.trim() === "") { alert("Payment paid is required."); return; }
+      if (!modeChecked) { alert("Please select a mode of payment."); return; }
 
       // collect
       var formData = collectFormData();
@@ -259,11 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showMessage('Submission in progress — please wait');
         return;
       }
-
-      // format car registration (client-side)
-      formData.carRegistrationNo = formatCarRegistration(formData.carRegistrationNo);
-      // uppercase except services
-      formData = uppercaseExceptServices(formData);
 
       // mark active so we don't double-send same id
       activeSubmissions.add(formData.submissionId);
@@ -360,7 +280,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // No offline queueing or flush attempts — offline entries are not supported.
 }); // DOMContentLoaded end
-
-
-
-
