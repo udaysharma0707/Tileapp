@@ -104,6 +104,7 @@
     #customPanel .panel-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
     #customPanel .panel-row .note { flex:1; font-size:14px; color:#333; }
     #customPanel .panel-actions { display:flex; gap:8px; }
+    #customPanel .close-x { position:absolute; right:10px; top:8px; background:transparent; border:none; font-size:20px; cursor:pointer; }
 
     /* small top-right badge showing Customize mode on */
     .custom-mode-badge {
@@ -129,7 +130,8 @@
     <div class="custom-mode-badge">Customize mode</div>
 
     <!-- Customize panel (hidden by default) -->
-    <div id="customPanel" role="dialog" aria-modal="true">
+    <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
+      <button class="close-x" id="panelCloseX" title="Close (Esc)">×</button>
       <strong>Customize form text</strong>
       <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
       <div class="panel-row">
@@ -351,7 +353,7 @@
   <script>
     // --- Config / server endpoint detection ---
     // prefer global ENDPOINT & SHARED_TOKEN from app.js if present
-    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzscPoB_TYIrk-Dad6byZy1v7wmbD0nN5rblLDvmOimEAX8yzGAA8KhF6hZHI7jDkfFNQ/exec";
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbx5dSy-BDR_tr5bERsjYTx3YaefNKJv_DPIADdhV0mkNPlm1uaSEYa4szxkIJd2EjB81w/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
     // small JSONP helper used for config save/load
@@ -379,8 +381,10 @@
       const saveServerBtn = document.getElementById('saveServerBtn');
       const cancelCustomBtn = document.getElementById('cancelCustomBtn');
       const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+      const panelCloseX = document.getElementById('panelCloseX');
 
       let customizeMode = false;
+      let editingSession = false;
 
       // collect all editable spans
       const editableEls = Array.from(document.querySelectorAll('.editable'));
@@ -389,52 +393,91 @@
       function setCustomizeMode(on) {
         customizeMode = !!on;
         container.classList.toggle('customize-mode', customizeMode);
+
         // disable pointer events for inputs & checkboxes to avoid accidental changes
         const interactive = container.querySelectorAll('input, textarea, button');
         interactive.forEach(el => {
+          // keep the gear button & customization panel controls active
+          if (el.id === 'gearBtn' || el.closest('#customPanel')) return;
           if (customizeMode) {
-            // keep the gear button & customization panel controls active
-            if (el.id === 'gearBtn' || el.closest('#customPanel')) return;
             el.classList.add('no-pointer');
           } else {
             el.classList.remove('no-pointer');
           }
         });
-        // when turning off, ensure no element left contentEditable
-        if (!customizeMode) {
-          editableEls.forEach(e => { e.contentEditable = "false"; e.removeAttribute('data-editing'); });
-          customPanel.style.display = 'none';
-        } else {
+
+        if (customizeMode) {
+          // show panel
           customPanel.style.display = 'block';
-          // make sure panel is visible and focused
+        } else {
+          customPanel.style.display = 'none';
+          // ensure we are not leaving editable state active
+          endEditingSession();
         }
       }
 
       gear.addEventListener('click', function() {
-        setCustomizeMode(!customizeMode);
-        if (customizeMode) {
-          customPanel.style.display = 'block';
+        // toggle panel visibility / mode
+        if (!customizeMode) {
+          setCustomizeMode(true);
         } else {
-          customPanel.style.display = 'none';
+          // if already in customize mode but not editing, close panel and exit
+          setCustomizeMode(false);
         }
       });
 
-      // Clicking an editable span starts editing (only in customize mode)
+      // start editing session: make labels contentEditable and hide panel
+      function startEditingSession() {
+        editingSession = true;
+        // make labels editable
+        editableEls.forEach(el => {
+          el.contentEditable = "true";
+          el.classList.add('editing');
+          // remove no-pointer on editable spans so they remain clickable even though inputs are blocked
+          el.classList.remove('no-pointer');
+        });
+        // hide the panel so user can interact with labels
+        customPanel.style.display = 'none';
+        // put focus in first editable
+        const first = editableEls[0];
+        if (first) {
+          first.focus();
+          // place caret at end
+          try {
+            if (document.createRange && window.getSelection) {
+              const range = document.createRange();
+              range.selectNodeContents(first);
+              range.collapse(false);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          } catch (e){}
+        }
+      }
+
+      // end editing session: make labels non-editable
+      function endEditingSession() {
+        editingSession = false;
+        editableEls.forEach(el => {
+          try { el.contentEditable = "false"; } catch(e){}
+          el.classList.remove('editing');
+        });
+      }
+
+      // Clicking an editable span starts inline editing only when in customizeMode AND editingSession active (we trigger editingSession via Apply Preview)
       editableEls.forEach(el => {
         el.setAttribute('contenteditable','false');
         el.addEventListener('click', function(ev) {
           if (!customizeMode) return;
-          ev.stopPropagation();
-          // start edit mode
-          el.contentEditable = "true";
-          el.setAttribute('data-editing','1');
-          // focus & place caret at end
-          const range = document.createRange();
-          range.selectNodeContents(el);
-          range.collapse(false);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
+          // if the user already applied preview (editingSession true), allow inline click (we already set contentEditable)
+          if (editingSession) {
+            // nothing — element is already editable
+            return;
+          }
+          // if panel is open, clicking the label should not start edit. We expect user to press Apply Preview first.
+          // Give a hint:
+          alert('Click "Apply Preview" in the customization panel to start editing labels.');
         });
         // finish editing on blur
         el.addEventListener('blur', function() {
@@ -443,7 +486,7 @@
             el.removeAttribute('data-editing');
           }
         });
-        // when pressing Enter, finish editing
+        // Enter to finish editing
         el.addEventListener('keydown', function(e) {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -452,24 +495,57 @@
         });
       });
 
-      // Apply Preview: read current texts and apply (they are already applied in DOM)
+      // Apply Preview: enter editing session (close panel, allow inline edits)
       applyPreviewBtn.addEventListener('click', function() {
-        // nothing special to do because edits already changed DOM text
-        alert('Preview applied locally. Click Save (server) to persist for future visits.');
+        // ensure customize mode is on
+        if (!customizeMode) setCustomizeMode(true);
+        startEditingSession();
+        alert('Preview: labels are now editable inline. Click any label to edit. When done click Save (server) to persist or Cancel to exit.');
       });
 
-      // Load Default: reload page (simple way to return to original static markup)
+      // Load Default: reload page to restore defaults
       loadDefaultBtn.addEventListener('click', function(){
-        if (!confirm('Reload page and discard local edits?')) return;
+        if (!confirm('Reload page to restore defaults? Unsaved edits will be lost.')) return;
         window.location.reload();
       });
 
-      // Cancel customization
+      // Cancel customization: exit customize mode (and editing)
       cancelCustomBtn.addEventListener('click', function() {
-        if (!confirm('Exit customization mode? Unsaved changes will remain only locally if applied.')) {
+        if (!confirm('Exit customization mode? Unsaved edits will be lost.')) {
           return;
         }
+        endEditingSession();
         setCustomizeMode(false);
+      });
+
+      // panel close X (same as cancel)
+      panelCloseX.addEventListener('click', function() {
+        // if currently in editing session, closing panel shouldn't kill edits; instead ask user
+        if (editingSession) {
+          if (!confirm('Editing in progress. Close panel but keep edit mode? (Choose Cancel in panel to abort edits)')) {
+            return;
+          }
+        }
+        // close panel but keep customize mode on (so user can re-open)
+        customPanel.style.display = 'none';
+      });
+
+      // Escape key handling: close panel or exit editing
+      document.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Escape') {
+          if (customPanel.style.display === 'block') {
+            // close the panel (but keep customizeMode active)
+            customPanel.style.display = 'none';
+            return;
+          }
+          if (editingSession) {
+            // exit editing session
+            if (confirm('Exit edit mode? Unsaved changes remain only locally.')) {
+              endEditingSession();
+              setCustomizeMode(false);
+            }
+          }
+        }
       });
 
       // Build config object from current DOM (map by data-config-id -> text)
@@ -480,15 +556,15 @@
           const key = el.getAttribute('data-config-id') || el.id || null;
           if (key) cfg.labels[key] = el.textContent.trim();
         });
-        // you can extend cfg with other fields if needed later
         return cfg;
       }
 
-      // Save (server) using JSONP to Apps Script action=saveConfig
+      // Save server: send config via JSONP action=saveConfig
       saveServerBtn.addEventListener('click', async function(){
+        // finish any inline editing first
+        endEditingSession();
         const cfg = buildConfigObject();
         const cfgStr = JSON.stringify(cfg);
-        // prefer server endpoint from app.js if present
         const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
         try {
           saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
@@ -519,7 +595,6 @@
             // no config found or error; ignore
           }
         } catch (e) {
-          // silent fail (server may not be reachable, or endpoint differs)
           console.warn('Could not load config:', e);
         }
       })();
@@ -533,19 +608,14 @@
         }
         if (cfg.labels) {
           Object.keys(cfg.labels).forEach(key => {
-            // find element by data-config-id or id
             const sel = '[data-config-id="' + key + '"]';
             const el = document.querySelector(sel) || document.getElementById(key);
-            if (el) {
-              el.textContent = cfg.labels[key];
-            } else {
-              // not found - ignore
-            }
+            if (el) el.textContent = cfg.labels[key];
           });
         }
       }
 
-      // Expose a small helper to extract current mapping (useful for debugging)
+      // Expose helper for debugging
       window.getCurrentCustomization = function(){ return buildConfigObject(); };
 
       // make nested sublists show/hide when main toggles (existing behavior)
