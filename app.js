@@ -1,5 +1,5 @@
 // Configuration — set this to your deployed Apps Script web app URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbwt15RIFFKsrBYfIfA0p4zmM81youahT85dQQeECyk-9LWuZLsVTepILdevoIvl_N1hlA/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbw6EPl2pchabhY6UTCxJ70JSxNklks-1Y06J6B_CmyV-zJPywb6HvdfsBPrMPk_3bJiog/exec";
 const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
@@ -547,4 +547,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
+
 
