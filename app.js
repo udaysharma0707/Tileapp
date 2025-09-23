@@ -1,15 +1,10 @@
 // Configuration — set this to your deployed Apps Script web app URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbwBqdE5aDrRr-79SOE31rzvhT0QfSxQJdcGa9lXqlZVhauBzVdQUoylHmP8-arl7Ep69Q/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzscPoB_TYIrk-Dad6byZy1v7wmbD0nN5rblLDvmOimEAX8yzGAA8KhF6hZHI7jDkfFNQ/exec";
 const SHARED_TOKEN = "shopSecret2025";
+const JSONP_TIMEOUT_MS = 20000;
+const activeSubmissions = new Set();
 
-// Tunables
-const JSONP_TIMEOUT_MS = 20000;   // JSONP timeout
-
-// runtime
-const activeSubmissions = new Set(); // submissionIds being processed
-
-// ---------- helpers ----------
-function updateStatus() {
+function updateStatus(){ /* same as before - unchanged */ 
   const s = document.getElementById('status');
   const s2 = document.getElementById('status-duplicate');
   const offlineNotice = document.getElementById('offlineNotice');
@@ -31,7 +26,6 @@ function updateStatus() {
 window.addEventListener('online', ()=>{ updateStatus(); });
 window.addEventListener('offline', ()=>{ updateStatus(); });
 
-// JSONP helper (returns Promise)
 function jsonpRequest(url, timeoutMs) {
   timeoutMs = timeoutMs || JSONP_TIMEOUT_MS;
   return new Promise(function(resolve, reject) {
@@ -63,7 +57,6 @@ function jsonpRequest(url, timeoutMs) {
   });
 }
 
-// Build JSONP URL and call
 function sendToServerJSONP(formData, clientTs, opts) {
   var params = [];
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
@@ -72,7 +65,7 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("purchasedItem", formData.purchasedItem || "");
   add("purchasedFrom", formData.purchasedFrom || "");
   add("modeOfPayment", formData.modeOfPayment || "");
-  // send breakdown so server can attach a comment/note
+  // extra breakdown for comment/note
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
@@ -85,11 +78,10 @@ function sendToServerJSONP(formData, clientTs, opts) {
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
-// collect data from DOM — collects selected subitems with qtys and mode breakdown
+/* ---------- MAIN: collectFormData (updated) ---------- */
 function collectFormData(){
   const selectedParts = [];
 
-  // helper - push if checked
   function pushIfSub(checkboxId, qtyId, labelOverride) {
     const cb = document.getElementById(checkboxId);
     if (!cb || !cb.checked) return;
@@ -103,7 +95,7 @@ function collectFormData(){
     }
   }
 
-  // Floor subitems
+  // floor
   if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
     pushIfSub('sub_floor_vitrified','q_floor_vitrified','Vitrified tiles');
     pushIfSub('sub_floor_ceramic','q_floor_ceramic','Ceramic tiles');
@@ -111,22 +103,19 @@ function collectFormData(){
     pushIfSub('sub_floor_marble','q_floor_marble','Marble finish tiles');
     pushIfSub('sub_floor_granite','q_floor_granite','Granite finish tiles');
   }
-
-  // Wall subitems
+  // wall
   if (document.getElementById('p_wall') && document.getElementById('p_wall').checked) {
     pushIfSub('sub_wall_kitchen','q_wall_kitchen','Kitchen wall tiles (backsplash)');
     pushIfSub('sub_wall_bath','q_wall_bath','Bathroom wall tiles (glazed/anti-skid)');
     pushIfSub('sub_wall_decor','q_wall_decor','Decorative / designer wall tiles');
   }
-
-  // Sanitary subitems
+  // sanitary
   if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
     pushIfSub('sub_san_wash','q_san_wash','Washbasins');
     pushIfSub('sub_san_wc','q_san_wc','WC');
     pushIfSub('sub_san_urinal','q_san_urinal','Urinals');
   }
-
-  // Accessories subitems
+  // accessories
   if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
     pushIfSub('sub_acc_grout','q_acc_grout','Tile grout & adhesives');
     pushIfSub('sub_acc_spacers','q_acc_spacers','Spacers');
@@ -135,8 +124,7 @@ function collectFormData(){
     pushIfSub('sub_acc_skirting','q_acc_skirting','Skirting & border tiles');
     pushIfSub('sub_acc_mosaic','q_acc_mosaic','Mosaic tiles for decoration');
   }
-
-  // Others main: if checked, we allow a custom text with qty
+  // others main
   if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
     const otherTxt = (document.getElementById('purchasedOtherText') || {}).value || "";
     const otherQty = (document.getElementById('q_other') || {}).value || "";
@@ -145,30 +133,74 @@ function collectFormData(){
     else selectedParts.push(label);
   }
 
-  // collect modeOfPayment as a comma-separated string (robust, in case index.html didn't set first-checked)
-  const selectedModes = [];
-  const modeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
-  modeEls.forEach(m => { if (m.checked) selectedModes.push((m.value || "").toString()); });
-  const modeStr = selectedModes.join(", ");
+  // --------- MODE handling (dedupe + canonicalize) ----------
+  // collect all elements named modeOfPayment (works for radio or checkbox)
+  const rawModeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
+  const rawSelected = rawModeEls.filter(m=>m.checked).map(m=> (m.value || "").toString().trim() ).filter(x=>x!=="");
 
-  // build mode breakdown: Cash Rs.x, Online Rs.y, Credit Rs.z (only include checked entries)
-  const parts = [];
-  const amtCash = document.getElementById('amt_cash');
-  const amtOnline = document.getElementById('amt_online');
-  const amtCredit = document.getElementById('amt_credit');
-  if (document.getElementById('mode_cash') && document.getElementById('mode_cash').checked) {
-    const v = (amtCash && amtCash.value) ? Number(amtCash.value) : 0;
-    parts.push('Cash Rs.' + (v || 0));
+  // canonicalizer for common labels
+  function canonicalLabel(v){
+    if(!v) return v;
+    const s = v.toString().toLowerCase();
+    if (s.indexOf('cash') !== -1) return 'Cash';
+    if (s.indexOf('online') !== -1) return 'Online';
+    if (s.indexOf('credit') !== -1) return 'Credit';
+    // return as-is (but trim)
+    return v.trim();
   }
-  if (document.getElementById('mode_online') && document.getElementById('mode_online').checked) {
-    const v = (amtOnline && amtOnline.value) ? Number(amtOnline.value) : 0;
-    parts.push('Online Rs.' + (v || 0));
-  }
-  if (document.getElementById('mode_credit') && document.getElementById('mode_credit').checked) {
-    const v = (amtCredit && amtCredit.value) ? Number(amtCredit.value) : 0;
-    parts.push('Credit Rs.' + (v || 0));
-  }
-  const modeBreakdown = parts.join(', ');
+
+  // preferred order for canonical modes
+  const preferred = ['Cash','Online','Credit'];
+  const present = new Set();
+  const orderedModes = [];
+
+  // add canonical modes in preferred order if present among rawSelected
+  const rawLower = rawSelected.map(s=>s.toLowerCase());
+  preferred.forEach(pref => {
+    if (rawLower.some(r => r.indexOf(pref.toLowerCase()) !== -1)) {
+      orderedModes.push(pref);
+      present.add(pref);
+    }
+  });
+  // append any remaining (non-canonical or custom) in the order they were selected (deduped)
+  rawSelected.forEach(r => {
+    const can = canonicalLabel(r);
+    if (!present.has(can)) { orderedModes.push(can); present.add(can); }
+  });
+
+  const modeStr = orderedModes.join(', ');
+
+  // --------- modeBreakdown: look for specific amount inputs (robust fallback) ----------
+  // Try id-based amounts if present (amt_cash, amt_online, amt_credit) or fallback to elements with data-amt
+  const breakdownParts = [];
+  try {
+    const amtCashEl = document.getElementById('amt_cash');
+    const amtOnlineEl = document.getElementById('amt_online');
+    const amtCreditEl = document.getElementById('amt_credit');
+    if (document.getElementById('mode_cash') && document.getElementById('mode_cash').checked) {
+      const v = amtCashEl && amtCashEl.value ? Number(amtCashEl.value) : 0;
+      breakdownParts.push('Cash Rs.' + (v || 0));
+    }
+    if (document.getElementById('mode_online') && document.getElementById('mode_online').checked) {
+      const v = amtOnlineEl && amtOnlineEl.value ? Number(amtOnlineEl.value) : 0;
+      breakdownParts.push('Online Rs.' + (v || 0));
+    }
+    if (document.getElementById('mode_credit') && document.getElementById('mode_credit').checked) {
+      const v = amtCreditEl && amtCreditEl.value ? Number(amtCreditEl.value) : 0;
+      breakdownParts.push('Credit Rs.' + (v || 0));
+    }
+    // fallback: if none of the specific amount ids exist, look for inputs with [data-mode-amount] attribute (optional)
+    if (breakdownParts.length === 0) {
+      const amtEls = Array.from(document.querySelectorAll('input[data-mode-amount]'));
+      amtEls.forEach(el => {
+        const modeName = el.getAttribute('data-mode-amount') || '';
+        const val = el.value ? Number(el.value) : 0;
+        if (modeName && val) breakdownParts.push(modeName + ' Rs.' + val);
+      });
+    }
+  } catch (e) { /* ignore and proceed */ }
+
+  const modeBreakdown = breakdownParts.join(', ');
 
   return {
     purchasedItem: selectedParts.join(", "),
@@ -180,6 +212,7 @@ function collectFormData(){
   };
 }
 
+/* showMessage, clearForm, makeSubmissionId - keep same semantics as before (clearForm also clears amt inputs if present) */
 function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
@@ -188,57 +221,45 @@ function showMessage(text){
 }
 function clearForm(){
   try {
-    // uncheck main and sub checkboxes
     document.querySelectorAll('.purchased').forEach(ch => { ch.checked = false; });
     document.querySelectorAll('.subitem').forEach(ch => { ch.checked = false; });
-    // clear all qtys and disable sub qtys
     document.querySelectorAll('.qty').forEach(q => { q.value = ''; q.disabled = true; });
-    // hide all sublists
     document.querySelectorAll('.sublist').forEach(s => s.style.display = 'none');
-    // clear others text and other fields
     const otherEl = document.getElementById('purchasedOtherText'); if (otherEl) otherEl.value = '';
     document.getElementById('purchasedFrom').value = '';
+    // clear mode checkboxes/radios
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>{ el.checked=false; });
-    // clear mode amounts
-    const amts = ['amt_cash','amt_online','amt_credit'];
-    amts.forEach(id => { const el = document.getElementById(id); if (el) { el.value=''; el.disabled = true; }});
+    // clear amount fields (if present)
+    ['amt_cash','amt_online','amt_credit'].forEach(id=>{
+      const e = document.getElementById(id);
+      if (e) { e.value=''; e.disabled = true; }
+    });
     document.getElementById('paymentPaid').value = '';
     document.getElementById('otherInfo').value = '';
   } catch(e){ console.warn('clearForm error', e); }
 }
+function makeSubmissionId() { return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000); }
 
-// small generator for submissionId
-function makeSubmissionId() {
-  return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000);
-}
-
-// Expose submitForm global so index.html's inline call works
 window.submitForm = async function() {
   const btn = document.getElementById('submitBtn');
   if (btn) btn.click();
   else await doSubmitFlow();
 };
 
-// ---------- DOM bindings (no offline queueing) ----------
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
   const submitBtn = document.getElementById('submitBtn');
   const clearBtn = document.getElementById('clearBtn');
 
-  if (submitBtn && !navigator.onLine) {
-    try { submitBtn.disabled = true; } catch(e){}
-  }
+  if (submitBtn && !navigator.onLine) try { submitBtn.disabled = true; } catch(e){}
 
   if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
   try { submitBtn.setAttribute('type','button'); } catch(e){}
 
-  // Prevent double-handling between touchend and click
   let ignoreNextClick = false;
 
-  // Helper to validate: for each checked main category ensure at least one subitem is selected
   function validateMainSubSelection() {
     const errors = [];
-    // floor
     if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
       const any = Array.from(document.querySelectorAll('#sublist_floor .subitem')).some(s=>s.checked);
       if (!any) errors.push('Floor Tiles: select at least one sub-item and enter quantity.');
@@ -267,23 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function doSubmitFlow() {
     try {
-      if (!navigator.onLine) {
-        alert('Connect to internet. Your entry cannot be saved while offline.');
-        updateStatus();
-        return;
-      }
-
-      // basic checks
+      if (!navigator.onLine) { alert('Connect to internet. Your entry cannot be saved while offline.'); updateStatus(); return; }
       const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
       if (!anyMainChecked) { alert('Please select at least one purchased main category.'); return; }
-
       const validationList = validateMainSubSelection();
       if (validationList.length > 0) { alert(validationList.join('\n')); return; }
 
-      // verify each selected subitem has qty > 0
       const selectedSubboxes = Array.from(document.querySelectorAll('.subitem')).filter(s => s.checked);
       for (let sb of selectedSubboxes) {
-        const qid = 'q' + sb.id.slice(3); // e.g. sub_floor_ceramic -> q_floor_ceramic
+        const qid = 'q' + sb.id.slice(3);
         const qEl = document.getElementById(qid);
         const val = qEl ? (String(qEl.value || "").trim()) : "";
         if (!val || isNaN(Number(val)) || Number(val) <= 0) {
@@ -292,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
 
-      // for Others main, if used ensure qty >0
       if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
         const q = (document.getElementById('q_other') || {}).value || "";
         if (!q || isNaN(Number(q)) || Number(q) <= 0) {
@@ -301,37 +313,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
 
-      // payment & mode validations
       const payment = (document.getElementById('paymentPaid') || {}).value || "";
-      const modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
+      const modeChecked = Array.from(document.querySelectorAll('input[name="modeOfPayment"]')).some(m=>m.checked);
       if (!modeChecked) { alert('Please select a mode of payment.'); return; }
       if (!payment || isNaN(Number(payment)) ) { alert('Please enter a valid payment amount.'); return; }
 
-      // collect form
       var formData = collectFormData();
-      // ensure we did actually collect at least one sub-entry
       if (!formData.purchasedItem || formData.purchasedItem.trim() === "") {
         alert('No sub-item selected. Please select at least one specific item and quantity.');
         return;
       }
 
-      // assign submission id
       if (!formData.submissionId) formData.submissionId = makeSubmissionId();
-      if (activeSubmissions.has(formData.submissionId)) {
-        showMessage('Submission in progress — please wait');
-        return;
-      }
+      if (activeSubmissions.has(formData.submissionId)) { showMessage('Submission in progress — please wait'); return; }
       activeSubmissions.add(formData.submissionId);
 
-      // UI feedback
       submitBtn.disabled = true;
       const origLabel = submitBtn.textContent;
       submitBtn.textContent = 'Saving...';
       showMessage('Submitting — please wait...');
-      // clear UI immediately (we keep formData local)
       clearForm();
 
-      // send
       (async function(backgroundForm){
         try {
           const clientTs = Date.now();
@@ -360,20 +362,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // touch & click wiring
   function onTouchEndSubmit(ev) { if (!ev) return; ev.preventDefault && ev.preventDefault(); ev.stopPropagation && ev.stopPropagation(); ignoreNextClick = true; setTimeout(()=>{ ignoreNextClick = false; }, 800); doSubmitFlow(); }
   function onClickSubmit(ev) { if (ignoreNextClick) { ev && ev.preventDefault(); return; } doSubmitFlow(); }
 
   submitBtn.addEventListener('touchend', onTouchEndSubmit, { passive:false });
   submitBtn.addEventListener('click', onClickSubmit, { passive:false });
 
-  // clear button
   if (clearBtn) {
     clearBtn.addEventListener('touchend', function(ev){ ev && ev.preventDefault(); clearForm(); showMessage('Form cleared'); }, { passive:false });
     clearBtn.addEventListener('click', function(ev){ clearForm(); showMessage('Form cleared'); }, { passive:false });
   }
 
-  // unregister service workers & clear caches as previously
+  // unregister service workers & clear caches (as before)
   if ('serviceWorker' in navigator) {
     try { navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(r => { r.unregister().catch(()=>{}); }); }).catch(()=>{}); } catch(e){ console.warn('sw unregister err', e); }
   }
@@ -382,4 +382,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
