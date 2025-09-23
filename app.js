@@ -1,5 +1,5 @@
 // Configuration — set this to your deployed Apps Script web app URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbwDfzRbGjlI91FU53Ui8eG2rmki2Zm7gj8mMO0JYaEtLQ9zZvlpt_HdlmSRQcw7diXuaQ/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwLFofBS12F8XH1Yntzpkwgttn4R4pRRn0iQ9DU72sAdJVglXua37ze0Qf9Mgjs8jX76Q/exec";
 const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
@@ -79,27 +79,57 @@ function sendToServerJSONP(formData, clientTs, opts) {
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
   if (clientTs) add("clientTs", String(clientTs));
 
+  // NEW: include structured items JSON so server records edited labels
+  try {
+    if (formData.items && Array.isArray(formData.items)) {
+      add("itemsJSON", JSON.stringify(formData.items));
+    }
+  } catch (e) {
+    // ignore if JSON stringify fails
+    console.warn('itemsJSON stringify failed', e);
+  }
+
   var base = ENDPOINT;
   var url = base + (base.indexOf('?') === -1 ? '?' : '&') + params.join("&");
   if (url.length > 1900) return Promise.reject(new Error("Payload too large for JSONP"));
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
-// ---------- MAIN: collectFormData (unchanged logic, returns purchasedItem string, modeBreakdown, etc.) ----------
+// ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
 function collectFormData(){
   const selectedParts = [];
+  const items = []; // structured items: { id, qty, label }
 
-  function pushIfSub(checkboxId, qtyId, labelOverride) {
+  // helper to fetch the editable label for a checkbox/subitem by id
+  function getLabelFor(checkboxId, fallback) {
+    try {
+      // first try data-config-id pattern: checkboxId + "_label"
+      var cfgSel = '[data-config-id="' + checkboxId + '_label"]';
+      var el = document.querySelector(cfgSel);
+      if (!el) {
+        // fallback: element with id "label_" + checkboxId
+        el = document.getElementById('label_' + checkboxId);
+      }
+      if (el && (el.textContent || el.innerText)) {
+        return (el.textContent || el.innerText).toString().trim();
+      }
+    } catch (e) { /* ignore */ }
+    return (fallback || "").toString().trim();
+  }
+
+  function pushIfSub(checkboxId, qtyId, labelFallback) {
     const cb = document.getElementById(checkboxId);
     if (!cb || !cb.checked) return;
     const qtyEl = document.getElementById(qtyId);
     const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
-    const label = labelOverride || cb.value || "";
+    const label = getLabelFor(checkboxId, labelFallback || cb.value || "");
     if (qtyVal !== "") {
       selectedParts.push(qtyVal + " " + label);
     } else {
       selectedParts.push(label);
     }
+    // add structured item
+    items.push({ id: checkboxId, qty: qtyVal || "", label: label });
   }
 
   // floor
@@ -135,9 +165,12 @@ function collectFormData(){
   if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
     const otherTxt = (document.getElementById('purchasedOtherText') || {}).value || "";
     const otherQty = (document.getElementById('q_other') || {}).value || "";
-    const label = otherTxt.trim() !== "" ? otherTxt.trim() : "Others";
+    // for Others label, prefer the editable label for the main 'p_other' if present
+    const mainOtherLabel = getLabelFor('p_other', 'Others');
+    const label = otherTxt.trim() !== "" ? otherTxt.trim() : mainOtherLabel;
     if (otherQty !== "") selectedParts.push(otherQty + " " + label);
     else selectedParts.push(label);
+    items.push({ id: 'p_other', qty: otherQty || "", label: label });
   }
 
   // --------- MODE handling (dedupe + canonicalize) ----------
@@ -200,11 +233,13 @@ function collectFormData(){
 
   return {
     purchasedItem: selectedParts.join(", "),
-    purchasedFrom: document.getElementById('purchasedFrom').value.trim(),
+    purchasedFrom: (document.getElementById('purchasedFrom') || {}).value ? document.getElementById('purchasedFrom').value.trim() : '',
     modeOfPayment: modeStr,
     modeBreakdown: modeBreakdown,
-    paymentPaid: document.getElementById('paymentPaid').value,
-    otherInfo: document.getElementById('otherInfo').value.trim()
+    paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
+    otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
+    // Structured items array - server will prefer this if present
+    items: items
   };
 }
 
@@ -222,14 +257,14 @@ function clearForm(){
     document.querySelectorAll('.qty').forEach(q => { q.value = ''; q.disabled = true; });
     document.querySelectorAll('.sublist').forEach(s => s.style.display = 'none');
     const otherEl = document.getElementById('purchasedOtherText'); if (otherEl) otherEl.value = '';
-    document.getElementById('purchasedFrom').value = '';
+    const fromEl = document.getElementById('purchasedFrom'); if (fromEl) fromEl.value = '';
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>{ el.checked=false; });
     ['amt_cash','amt_online','amt_credit'].forEach(id=>{
       const e = document.getElementById(id);
       if (e) { e.value=''; e.disabled = true; }
     });
-    document.getElementById('paymentPaid').value = '';
-    document.getElementById('otherInfo').value = '';
+    const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
+    const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
   } catch(e){ console.warn('clearForm error', e); }
 }
 function makeSubmissionId() { return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000); }
@@ -465,5 +500,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
-
