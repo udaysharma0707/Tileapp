@@ -1,5 +1,5 @@
 // Configuration — set this to your deployed Apps Script web app URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbyLNi2uoDJj7kvm26JxmO29C10K0_x4t6rtaTJoUFwmdCCZVvPqAnegFQ3e8zCFUSfaCg/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwgH_3gK4eIWKoSSjCvNFm1vXnixEkdpHnBwv2CCtblZv-Bk2Hc2P2I4aAau6DC_bWl8A/exec";
 const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
@@ -175,7 +175,7 @@ function collectFormData(){
 
   // --------- MODE handling (dedupe + canonicalize) ----------
   const rawModeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
-  const rawSelected = rawModeEls.filter(m=>m.checked).map(m=> (m.value || "").toString().trim() ).filter(x=>x!=="");
+  const rawSelected = rawModeEls.filter(m=>m.checked).map(m=> (m.value || "").toString().trim() ).filter(x=>x!="");
 
   function canonicalLabel(v){
     if(!v) return v;
@@ -268,6 +268,40 @@ function clearForm(){
   } catch(e){ console.warn('clearForm error', e); }
 }
 function makeSubmissionId() { return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000); }
+
+// small helper to show last serial prominently (creates/updates a floating badge)
+function updateSerialBadge(serial) {
+  try {
+    if (!serial && serial !== 0) return;
+    var existing = document.getElementById('lastSerialBadge');
+    if (existing) {
+      existing.textContent = 'Last Serial: ' + String(serial);
+      return;
+    }
+    var badge = document.createElement('div');
+    badge.id = 'lastSerialBadge';
+    badge.style.position = 'fixed';
+    badge.style.right = '18px';
+    badge.style.bottom = '18px';
+    badge.style.background = '#2c7be5';
+    badge.style.color = '#fff';
+    badge.style.padding = '8px 12px';
+    badge.style.borderRadius = '8px';
+    badge.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
+    badge.style.zIndex = 2000;
+    badge.style.cursor = 'pointer';
+    badge.title = 'Click to copy serial to clipboard';
+    badge.textContent = 'Last Serial: ' + String(serial);
+    badge.addEventListener('click', function(){
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(String(serial)).then(function(){ showMessage('Serial copied to clipboard'); }).catch(function(){ showMessage('Could not copy'); });
+      } else {
+        showMessage('Copy not supported');
+      }
+    });
+    document.body.appendChild(badge);
+  } catch (e) { console.warn('updateSerialBadge err', e); }
+}
 
 window.submitForm = async function() {
   const btn = document.getElementById('submitBtn');
@@ -457,7 +491,20 @@ document.addEventListener('DOMContentLoaded', function() {
           const clientTs = Date.now();
           const resp = await sendToServerJSONP(backgroundForm, clientTs);
           if (resp && resp.success) {
-            showMessage('Saved — Serial: ' + resp.serial);
+            // Prefer explicit serial returned by server. If not present, show row or debug to help troubleshooting.
+            const serial = (resp.serial !== undefined && resp.serial !== null) ? resp.serial : null;
+            if (serial !== null) {
+              showMessage('Saved — Serial: ' + serial);
+              updateSerialBadge(serial);
+            } else {
+              // serial not returned — surface helpful info
+              if (resp.row) {
+                showMessage('Saved (row: ' + resp.row + '). Serial not returned by server.');
+              } else {
+                showMessage('Saved — (serial not returned).');
+              }
+              console.warn('Server response missing serial', resp);
+            }
           } else if (resp && resp.error) {
             alert('Server rejected submission: ' + resp.error);
           } else {
@@ -500,4 +547,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
