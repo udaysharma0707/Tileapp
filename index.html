@@ -29,6 +29,26 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
+    /* gear (customize) button in header */
+    .gear-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding:8px;
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .gear-btn:hover { background: rgba(0,0,0,0.04); }
+    .gear-icon {
+      width:22px; height:22px; display:block;
+      fill: #2c7be5;
+    }
+
     h1{font-size:20px;margin:0 0 10px 0}
     .q-label{display:block;margin-top:10px;font-weight:600}
     input[type="text"], input[type="number"], select, textarea {
@@ -64,34 +84,79 @@
       .total-row { flex-direction:column; align-items:stretch }
     }
     /* make touch targets larger for checkboxes (and slightly larger radios) */
-input[type="checkbox"] {
-  transform: scale(1.45);
-  margin-right: 10px;
-  -webkit-transform: scale(1.45);
-  -webkit-margin-end: 10px;
-}
-input[type="radio"] {
-  transform: scale(1.25);
-  margin-right: 8px;
-  -webkit-transform: scale(1.25);
-}
-.cb input[type="checkbox"], .cb input[type="radio"] {
-  vertical-align: middle;
-}
+    input[type="checkbox"] {
+      transform: scale(1.45);
+      margin-right: 10px;
+      -webkit-transform: scale(1.45);
+      -webkit-margin-end: 10px;
+    }
+    input[type="radio"] {
+      transform: scale(1.25);
+      margin-right: 8px;
+      -webkit-transform: scale(1.25);
+    }
+    .cb input[type="checkbox"], .cb input[type="radio"] {
+      vertical-align: middle;
+    }
+
+    /* ===== modal editor styles ===== */
+    .modal-backdrop {
+      position: fixed;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal {
+      width: 96%;
+      max-width: 900px;
+      max-height: 90vh;
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+    .modal h2 { margin: 6px 0 10px 0; font-size:18px; }
+    .modal .editor {
+      width: 100%;
+      height: 420px;
+      box-sizing: border-box;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre;
+      overflow: auto;
+    }
+    .modal .modal-actions { display:flex; gap:8px; margin-top:10px; align-items:center; }
+    .help-note { font-size:13px; color:#555; margin-top:8px; }
+    .small-info { font-size:12px; color:#666; margin-top:6px; }
 
   </style>
 </head>
 <body>
   <div class="container">
+    <button class="gear-btn" id="openConfigBtn" title="Customize form">
+      <!-- simple gear SVG -->
+      <svg class="gear-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.43-2.06l1.77-1.02a0.5 0.5 0 0 0 .18-0.66l-1.68-2.91a0.5 0.5 0 0 0-0.6-0.2l-2.09.84a7.61 7.61 0 0 0-1.6-0.93l-0.32-2.24A0.5 0.5 0 0 0 14.9 3h-3.8a0.5 0.5 0 0 0-0.49.41l-0.32 2.24c-0.58.24-1.12.54-1.62.9l-2.1-.84a0.5 0.5 0 0 0-0.6.2L2.62 9.8a0.5 0.5 0 0 0 .18.66l1.77 1.02c-0.02.3-0.03.61-0.03.92s0.01.62.03.92L2.8 14.86a0.5 0.5 0 0 0-0.18.66l1.68 2.91c0.14.25.43.37.7.31l2.1-.84c0.5.36 1.04.66 1.62.9l0.32 2.24c0.06.27.29.47.57.47h3.8c0.28 0 0.51-0.2 0.57-0.47l0.32-2.24c0.57-0.24 1.12-0.54 1.6-0.93l2.09.84c0.28.06.56-0.06.7-0.31l1.68-2.91a0.5 0.5 0 0 0-0.18-0.66l-1.76-1.02c0.03-0.3 0.04-0.6 0.04-0.91s-0.01-0.61-0.04-0.91z"/>
+      </svg>
+    </button>
+
      <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
-    <h1>Tile Purchase Entry</h1>
+    <h1 id="appTitle">Tile Purchase Entry</h1>
 
     <!-- Purchased items with inline qty and nested subitems -->
-    <label class="q-label">1. Purchased what (check items and enter quantity for specific sub-items)</label>
+    <label class="q-label" id="labelPurchasedWhat">1. Purchased what (check items and enter quantity for specific sub-items)</label>
     <div class="checkbox-row" id="purchasedList">
-      <!-- ... (same items block as before) ... -->
       <!-- FLOOR TILES -->
       <div class="item-row">
         <label class="cb">
@@ -210,11 +275,11 @@ input[type="radio"] {
     </div>
 
     <!-- Purchased from -->
-    <label class="q-label">Purchased from</label>
+    <label class="q-label" id="labelPurchasedFrom">Purchased from</label>
     <input id="purchasedFrom" type="text" placeholder="Vendor name">
 
     <!-- Mode of payment (checkboxes with inline amounts) -->
-    <label class="q-label">Mode of payment (check modes and enter amounts for each)</label>
+    <label class="q-label" id="labelModeOfPayment">Mode of payment (check modes and enter amounts for each)</label>
     <div class="checkbox-row" id="modes">
       <div class="mode-row">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> Cash</label>
@@ -231,10 +296,10 @@ input[type="radio"] {
     </div>
 
     <!-- Total (editable) -->
-    <label class="q-label">Payment paid (₹) <span style="color:red">*</span></label>
+    <label class="q-label" id="labelPaymentPaid">Payment paid (₹) <span style="color:red">*</span></label>
     <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount" >
 
-    <label class="q-label">Any other information</label>
+    <label class="q-label" id="labelOtherInfo">Any other information</label>
     <textarea id="otherInfo" rows="2"></textarea>
 
     <div class="form-actions">
@@ -252,195 +317,252 @@ input[type="radio"] {
     <div class="small" style="margin-top:6px">Status: <span id="status-duplicate" style="display:inline"></span></div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- ===== Configuration modal ===== -->
+  <div class="modal-backdrop" id="configModalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+      <h2 id="configTitle">Customize form (JSON)</h2>
+      <div class="help-note">Edit the JSON below to rename questions, add/remove products or subitems. Use <strong>Apply Preview</strong> to immediately apply locally. Use <strong>Save (server)</strong> to persist (requires server hook in app.js).</div>
+      <textarea id="configEditor" class="editor" spellcheck="false"></textarea>
+      <div class="modal-actions">
+        <button id="loadDefaultBtn" type="button">Load Default</button>
+        <button id="applyPreviewBtn" type="button">Apply Preview</button>
+        <button id="saveConfigBtn" type="button">Save (server)</button>
+        <button id="cancelConfigBtn" type="button" style="background:#6c757d;">Cancel</button>
+      </div>
+      <div class="small-info" id="configModalStatus" aria-live="polite"></div>
+    </div>
+  </div>
 
   <script>
-    // Wiring for showing nested sublists and enabling sub-qty fields
-    document.addEventListener('DOMContentLoaded', function() {
-      // map main checkbox id -> sublist id
-      const mainToSub = {
-        'p_floor': 'sublist_floor',
-        'p_wall': 'sublist_wall',
-        'p_san':  'sublist_san',
-        'p_acc':  'sublist_acc'
-      };
-
-      // show/hide sublist when main toggles
-      Object.keys(mainToSub).forEach(mainId => {
-        const mainCb = document.getElementById(mainId);
-        const subDiv = document.getElementById(mainToSub[mainId]);
-        if (!mainCb || !subDiv) return;
-        function update() {
-          subDiv.style.display = mainCb.checked ? 'block' : 'none';
-          // if hidden, also clear any sub-checkboxes and qtys
-          if (!mainCb.checked) {
-            subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
-            subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
-          }
+    /************************************************************************
+     * DEFAULT_CONFIG
+     * This object is a workable default config and also a template your
+     * app.js can use to render from server-saved config.
+     ************************************************************************/
+    const DEFAULT_CONFIG = {
+      version: 1,
+      title: "Tile Purchase Entry",
+      intro: "",
+      labels: {
+        purchasedWhat: "1. Purchased what (check items and enter quantity for specific sub-items)",
+        purchasedFrom: "Purchased from",
+        modeOfPayment: "Mode of payment (check modes and enter amounts for each)",
+        paymentPaid: "Payment paid (₹)",
+        otherInfo: "Any other information"
+      },
+      purchased: [
+        {
+          id: "floor",
+          name: "Floor Tiles",
+          type: "main",
+          enabled: true,
+          subitems: [
+            { id: "floor_vitrified", name: "Vitrified tiles", enabled: true },
+            { id: "floor_ceramic", name: "Ceramic tiles", enabled: true },
+            { id: "floor_porcelain", name: "Porcelain tiles", enabled: true },
+            { id: "floor_marble", name: "Marble finish tiles", enabled: true },
+            { id: "floor_granite", name: "Granite finish tiles", enabled: true }
+          ]
+        },
+        {
+          id: "wall",
+          name: "Wall Tiles",
+          type: "main",
+          enabled: true,
+          subitems: [
+            { id: "wall_kitchen", name: "Kitchen wall tiles (backsplash)", enabled: true },
+            { id: "wall_bath", name: "Bathroom wall tiles (glazed/anti-skid)", enabled: true },
+            { id: "wall_decor", name: "Decorative / designer wall tiles", enabled: true }
+          ]
+        },
+        {
+          id: "san",
+          name: "Sanitaryware",
+          type: "main",
+          enabled: true,
+          subitems: [
+            { id: "san_wash", name: "Washbasins", enabled: true },
+            { id: "san_wc", name: "WC", enabled: true },
+            { id: "san_urinal", name: "Urinals", enabled: true }
+          ]
+        },
+        {
+          id: "acc",
+          name: "Accessories",
+          type: "main",
+          enabled: true,
+          subitems: [
+            { id: "acc_grout", name: "Tile grout & adhesives", enabled: true },
+            { id: "acc_spacers", name: "Spacers", enabled: true },
+            { id: "acc_sealants", name: "Sealants", enabled: true },
+            { id: "acc_chem", name: "Chemicals", enabled: true },
+            { id: "acc_skirting", name: "Skirting & border tiles", enabled: true },
+            { id: "acc_mosaic", name: "Mosaic tiles for decoration", enabled: true }
+          ]
+        },
+        {
+          id: "other",
+          name: "Others",
+          type: "standalone",
+          enabled: true
         }
-        mainCb.addEventListener('change', update);
-        update();
+      ],
+      modes: [
+        { id: "cash", name: "Cash", enabled: true },
+        { id: "online", name: "Online", enabled: true },
+        { id: "credit", name: "Credit", enabled: true }
+      ]
+    };
+
+    // modal wiring
+    (function(){
+      const openBtn = document.getElementById('openConfigBtn');
+      const backdrop = document.getElementById('configModalBackdrop');
+      const editor = document.getElementById('configEditor');
+      const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+      const applyPreviewBtn = document.getElementById('applyPreviewBtn');
+      const saveConfigBtn = document.getElementById('saveConfigBtn');
+      const cancelBtn = document.getElementById('cancelConfigBtn');
+      const statusEl = document.getElementById('configModalStatus');
+
+      function prettyJSON(obj) {
+        try { return JSON.stringify(obj, null, 2); } catch(e) { return String(obj); }
+      }
+      function setStatus(msg, isError) {
+        statusEl.textContent = msg || "";
+        statusEl.style.color = isError ? '#b71c1c' : '#2c7be5';
+      }
+
+      // open modal and populate with current (or default) config
+      function openConfigModal(initialConfig) {
+        const cfg = initialConfig || window.__ACTIVE_CONFIG__ || DEFAULT_CONFIG;
+        editor.value = prettyJSON(cfg);
+        backdrop.style.display = 'flex';
+        backdrop.setAttribute('aria-hidden','false');
+        setStatus('');
+        // focus editor after small delay
+        setTimeout(()=> editor.focus(), 120);
+      }
+
+      function closeConfigModal() {
+        backdrop.style.display = 'none';
+        backdrop.setAttribute('aria-hidden','true');
+        setStatus('');
+      }
+
+      // attempt to parse editor content, return {ok:true,cfg:...} or {ok:false,err:...}
+      function getEditorConfig() {
+        const txt = editor.value || "";
+        try {
+          const parsed = JSON.parse(txt);
+          // Minimal sanity: must have purchased array and modes array
+          if (!parsed || typeof parsed !== 'object') throw new Error('Config must be a JSON object');
+          if (!Array.isArray(parsed.purchased)) parsed.purchased = parsed.purchased || [];
+          if (!Array.isArray(parsed.modes)) parsed.modes = parsed.modes || [];
+          return { ok: true, cfg: parsed };
+        } catch (err) {
+          return { ok: false, err: err.toString() };
+        }
+      }
+
+      // Set editor content to DEFAULT
+      loadDefaultBtn.addEventListener('click', function() {
+        editor.value = prettyJSON(DEFAULT_CONFIG);
+        setStatus('Loaded default configuration (unsaved)', false);
       });
 
-      // generic subitem checkbox -> enable its qty input
-      document.querySelectorAll('.subitem').forEach(function(subCb) {
-        const id = subCb.id; // e.g. sub_floor_ceramic
-        const qtyId = 'q' + id.slice(3); // 'q_floor_ceramic'
-        const qtyEl = document.getElementById(qtyId);
-        subCb.addEventListener('change', function() {
-          if (qtyEl) {
-            qtyEl.disabled = !subCb.checked;
-            if (!subCb.checked) qtyEl.value = '';
-          }
-        });
-        // initial
-        if (qtyEl) qtyEl.disabled = !subCb.checked;
-      });
-
-      // Others main checkbox -> enable its qty and optionally focus the other-text
-      const otherMain = document.getElementById('p_other');
-      const otherQty = document.getElementById('q_other');
-      const otherText = document.getElementById('purchasedOtherText');
-      if (otherMain && otherQty) {
-        function updOther() {
-          otherQty.disabled = !otherMain.checked;
-          if (!otherMain.checked) otherQty.value = '';
-        }
-        otherMain.addEventListener('change', updOther);
-        updOther();
-      }
-
-      // --- Payment mode handling (checkboxes + amounts + total) ---
-      const modeCash = document.getElementById('mode_cash');
-      const modeOnline = document.getElementById('mode_online');
-      const modeCredit = document.getElementById('mode_credit');
-      const amtCash = document.getElementById('amt_cash');
-      const amtOnline = document.getElementById('amt_online');
-      const amtCredit = document.getElementById('amt_credit');
-      const totalInput = document.getElementById('paymentPaid');
-      const otherInfo = document.getElementById('otherInfo');
-
-      // track if user manually edited total (true => preserve until amounts change)
-      let manualTotalOverride = false;
-
-      function recomputeTotalFromParts() {
-        // if manual override is active, do not auto-update
-        if (manualTotalOverride) return;
-        const v1 = parseFloat(amtCash.value) || 0;
-        const v2 = parseFloat(amtOnline.value) || 0;
-        const v3 = parseFloat(amtCredit.value) || 0;
-        const sum = (v1 + v2 + v3);
-        // set total input (to 2 decimals)
-        totalInput.value = (Math.round(sum * 100) / 100) || (sum === 0 ? '' : sum);
-      }
-
-      function updateModeEnabled(cb, amtEl) {
-        if (!cb || !amtEl) return;
-        amtEl.disabled = !cb.checked;
-        if (!cb.checked) amtEl.value = '';
-        // changing an amount should clear manual override and recompute
-        amtEl.addEventListener('input', function() {
-          manualTotalOverride = false;
-          recomputeTotalFromParts();
-        });
-      }
-
-      [modeCash, modeOnline, modeCredit].forEach((cb, idx) => {
-        const amtEl = (idx === 0 ? amtCash : (idx === 1 ? amtOnline : amtCredit));
-        if (!cb) return;
-        // when checkbox toggled, enable/disable its amount and recompute
-        cb.addEventListener('change', function() {
-          updateModeEnabled(cb, amtEl);
-          // changing modes clears manual override
-          manualTotalOverride = false;
-          recomputeTotalFromParts();
-          // set combined mode string into first checked element's value so existing app.js picks combined modes
-          writeCombinedModeValue();
-        });
-        // also update initial state
-        updateModeEnabled(cb, amtEl);
-      });
-
-      // When user edits total directly, mark override so amounts won't clobber their edit
-      totalInput.addEventListener('input', function() {
-        manualTotalOverride = true;
-      });
-
-      // write combined mode string into the first-checked mode input's value (so collectFormData sees combined string)
-      function writeCombinedModeValue() {
-        const selected = [];
-        if (modeCash.checked) selected.push('Cash');
-        if (modeOnline.checked) selected.push('Online');
-        if (modeCredit.checked) selected.push('Credit');
-        const combined = selected.join(', ');
-        // reset values to defaults first
-        if (modeCash) modeCash.value = 'Cash';
-        if (modeOnline) modeOnline.value = 'Online';
-        if (modeCredit) modeCredit.value = 'Credit';
-        if (selected.length === 0) return;
-        // set the first checked checkbox's value attr to combined string
-        const firstChecked = document.querySelector('input[name="modeOfPayment"]:checked');
-        if (firstChecked) firstChecked.value = combined;
-      }
-
-      // also, before submit, assemble a breakdown string and put it into otherInfo (if empty)
-      // e.g. "Cash Rs.3000, Online Rs.5000, Credit Rs.15000"
-      function buildPaymentBreakdownString() {
-        const parts = [];
-        if (modeCash.checked) {
-          const v = (amtCash.value && amtCash.value.toString().trim() !== '') ? Number(amtCash.value) : 0;
-          parts.push('Cash Rs.' + (v || 0));
-        }
-        if (modeOnline.checked) {
-          const v = (amtOnline.value && amtOnline.value.toString().trim() !== '') ? Number(amtOnline.value) : 0;
-          parts.push('Online Rs.' + (v || 0));
-        }
-        if (modeCredit.checked) {
-          const v = (amtCredit.value && amtCredit.value.toString().trim() !== '') ? Number(amtCredit.value) : 0;
-          parts.push('Credit Rs.' + (v || 0));
-        }
-        return parts.join(', ');
-      }
-
-      // initial combined write
-      writeCombinedModeValue();
-
-      // Hook into submit to ensure total is correct and combined mode value is applied
-      const submitBtn = document.getElementById('submitBtn');
-      if (submitBtn) {
-        submitBtn.addEventListener('click', function() {
-          // If user has not manually edited total, compute final total from amounts
-          if (!manualTotalOverride) recomputeTotalFromParts();
-
-          // If user did edit total, keep it as-is (but still compute a breakdown for otherInfo)
-          const finalTotalStr = (totalInput.value && totalInput.value.toString().trim() !== '') ? totalInput.value : '';
-          // If no total but there are mode amounts, recompute now
-          if (!finalTotalStr) recomputeTotalFromParts();
-
-          // ensure combined mode value present on first checked field
-          writeCombinedModeValue();
-
-          // ensure at least one mode is checked (app.js validation expects this)
-          const modeChecked = document.querySelector('input[name="modeOfPayment"]:checked');
-          if (!modeChecked) {
-            alert('Please select a mode of payment.');
-            return;
-          }
-
-          // Put the breakdown into otherInfo only if user didn't type anything there
+      // Apply preview — apply config locally. This will call window.renderFromConfig(cfg)
+      // if available; otherwise it dispatches a "configApplied" event for app.js to catch.
+      applyPreviewBtn.addEventListener('click', function() {
+        const res = getEditorConfig();
+        if (!res.ok) { setStatus('JSON parse error: ' + res.err, true); return; }
+        const cfg = res.cfg;
+        // store active config in a global so external scripts can access
+        window.__ACTIVE_CONFIG__ = cfg;
+        // if renderFromConfig exists, call it (app.js should implement dynamic rendering from config)
+        if (typeof window.renderFromConfig === 'function') {
           try {
-            const breakdown = buildPaymentBreakdownString();
-            if (otherInfo && (!otherInfo.value || otherInfo.value.trim() === '')) {
-              otherInfo.value = breakdown;
+            window.renderFromConfig(cfg);
+            setStatus('Preview applied locally (renderFromConfig executed)', false);
+          } catch (err) {
+            setStatus('renderFromConfig threw: ' + err.toString(), true);
+          }
+        } else {
+          // dispatch custom event so app.js can react
+          const ev = new CustomEvent('configApplied', { detail: cfg });
+          window.dispatchEvent(ev);
+          setStatus('Preview applied locally (event dispatched). Implement window.renderFromConfig(cfg) or listen for "configApplied".', false);
+        }
+      });
+
+      // Save config to server: requires your app.js to provide window.saveConfigToServer(cfg)
+      saveConfigBtn.addEventListener('click', function() {
+        const res = getEditorConfig();
+        if (!res.ok) { setStatus('JSON parse error: ' + res.err, true); return; }
+        const cfg = res.cfg;
+        // prefer a function provided by app.js
+        if (typeof window.saveConfigToServer === 'function') {
+          setStatus('Saving configuration to server...', false);
+          try {
+            // saveConfigToServer should return a Promise
+            const p = window.saveConfigToServer(cfg);
+            if (p && typeof p.then === 'function') {
+              p.then(function(resp){
+                setStatus('Configuration saved on server.', false);
+                // update the active config global
+                window.__ACTIVE_CONFIG__ = cfg;
+                // notify other parts
+                const ev = new CustomEvent('configSaved', { detail: cfg });
+                window.dispatchEvent(ev);
+                // close after short delay
+                setTimeout(closeConfigModal, 600);
+              }).catch(function(err){
+                setStatus('Server save failed: ' + (err && err.toString ? err.toString() : err), true);
+              });
+            } else {
+              // if function did not return promise, assume synchronous
+              setStatus('Configuration saved (saveConfigToServer executed synchronously).', false);
+              window.__ACTIVE_CONFIG__ = cfg;
+              window.dispatchEvent(new CustomEvent('configSaved', { detail: cfg }));
+              setTimeout(closeConfigModal, 600);
             }
-          } catch(e){ /* ignore */ }
+          } catch (err) {
+            setStatus('saveConfigToServer threw: ' + err.toString(), true);
+          }
+        } else {
+          setStatus('No server save hook found. Provide window.saveConfigToServer(cfg) in app.js to persist config.', true);
+          // still keep active config for local preview
+          window.__ACTIVE_CONFIG__ = cfg;
+          window.dispatchEvent(new CustomEvent('configSavedLocal', { detail: cfg }));
+        }
+      });
 
-          // after this, the existing app.js will collect form fields as usual and submit
-        });
-      }
+      // open modal button
+      openBtn.addEventListener('click', function(){ openConfigModal(); });
 
-    });
+      // cancel/close
+      cancelBtn.addEventListener('click', function(){ closeConfigModal(); });
+
+      // close when backdrop clicked (but not when clicking modal itself)
+      backdrop.addEventListener('click', function(ev){
+        if (ev.target === backdrop) closeConfigModal();
+      });
+
+      // expose functions globally so app.js can call them
+      window.openConfigModal = openConfigModal;
+      window.closeConfigModal = closeConfigModal;
+      window.getConfigFromEditor = function(){ const r = getEditorConfig(); if (r.ok) return r.cfg; return null; };
+      window.setConfigEditor = function(cfg){ editor.value = prettyJSON(cfg); };
+      // expose default config
+      window.DEFAULT_CONFIG = DEFAULT_CONFIG;
+      // allow external scripts to open modal with a specific config quickly
+      window.openConfigWith = function(cfg){ openConfigModal(cfg || DEFAULT_CONFIG); };
+
+    })();
+
   </script>
+
+  <!-- load your app script (unchanged) -->
+  <script src="app.js"></script>
 </body>
 </html>
-
