@@ -21,7 +21,7 @@
     }
     .container {
       width:100%;
-      max-width:720px;
+      max-width:920px;
       background: rgba(255,255,255,0.98);
       border-radius:10px;
       padding:14px;
@@ -29,27 +29,10 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
-    /* gear (customize) button in header */
-    .gear-btn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      padding:8px;
-      border-radius:8px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+    h1{font-size:20px;margin:0 0 10px 0; display:flex; align-items:center; gap:8px;}
+    .gear {
+      margin-left:auto; cursor:pointer; font-size:18px; color:#2c7be5;
     }
-    .gear-btn:hover { background: rgba(0,0,0,0.04); }
-    .gear-icon {
-      width:22px; height:22px; display:block;
-      fill: #2c7be5;
-    }
-
-    h1{font-size:20px;margin:0 0 10px 0}
     .q-label{display:block;margin-top:10px;font-weight:600}
     input[type="text"], input[type="number"], select, textarea {
       width:100%; padding:8px; font-size:15px; margin-top:6px; box-sizing:border-box;
@@ -64,17 +47,23 @@
     .sub-item label { flex:1; display:flex; align-items:center; gap:8px; }
     .checkbox-row { margin-top:6px; padding:0; }
     .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
+
     /* payment inline controls */
     .mode-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
     .mode-row .mode-label { flex:1; display:flex; align-items:center; gap:8px; }
     .mode-amount { width:160px; flex:0 0 160px; }
     .total-row { margin-top:8px; display:flex; gap:12px; align-items:center; }
     .total-row label { font-weight:600; }
+
     button{ margin-top:12px; padding:10px 14px; font-size:16px; border-radius:6px; border: none; background:#2c7be5; color:white; cursor:pointer; }
     button#clearBtn { background:#6c757d; }
     .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px; }
     .small{font-size:13px;color:#666;margin-top:6px}
     .form-actions { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+
+    @media (max-width:920px){
+      .container { padding:10px; }
+    }
     @media (max-width:620px){
       .item-row { flex-direction:column; align-items:flex-start }
       .qty { width:100%; flex:0 0 auto }
@@ -83,6 +72,7 @@
       .mode-amount { width:100%; flex:auto }
       .total-row { flex-direction:column; align-items:stretch }
     }
+
     /* make touch targets larger for checkboxes (and slightly larger radios) */
     input[type="checkbox"] {
       transform: scale(1.45);
@@ -99,89 +89,100 @@
       vertical-align: middle;
     }
 
-    /* ===== modal editor styles ===== */
-    .modal-backdrop {
-      position: fixed;
-      left: 0; top: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.35);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
+    /* editable label visuals */
+    .editable { padding:2px 6px; border-radius:4px; cursor:text; display:inline-block; }
+    .customize-mode .editable { background: #fffbe6; border:1px dashed #ffd966; }
+    .editable[contenteditable="true"] { outline: 2px solid #2c7be5; background: #ffffff; }
+
+    /* small modal panel for customization instructions & buttons */
+    #customPanel {
+      position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
+      width: 760px; max-width:calc(100% - 24px);
+      background: white; border-radius:8px; box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+      padding:12px; z-index: 1200; display:none;
     }
-    .modal {
-      width: 96%;
-      max-width: 900px;
-      max-height: 90vh;
-      background: #fff;
-      border-radius: 8px;
-      padding: 12px;
-      box-sizing: border-box;
-      overflow: auto;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    #customPanel .panel-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+    #customPanel .panel-row .note { flex:1; font-size:14px; color:#333; }
+    #customPanel .panel-actions { display:flex; gap:8px; }
+
+    /* small top-right badge showing Customize mode on */
+    .custom-mode-badge {
+      position: absolute; right: 16px; top: 12px; padding:6px 8px; background:#fff4cc; border-radius:6px; color:#6a4f00; font-weight:700; display:none;
     }
-    .modal h2 { margin: 6px 0 10px 0; font-size:18px; }
-    .modal .editor {
-      width: 100%;
-      height: 420px;
-      box-sizing: border-box;
-      font-family: monospace;
-      font-size: 13px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      resize: vertical;
-      white-space: pre;
-      overflow: auto;
-    }
-    .modal .modal-actions { display:flex; gap:8px; margin-top:10px; align-items:center; }
-    .help-note { font-size:13px; color:#555; margin-top:8px; }
-    .small-info { font-size:12px; color:#666; margin-top:6px; }
+    .customize-mode .custom-mode-badge { display:block; }
+
+    /* prevent pointer interactions for inputs while editing (applied when customization active) */
+    .customize-mode .no-pointer { pointer-events: none; opacity: 0.7; }
 
   </style>
 </head>
 <body>
-  <div class="container">
-    <button class="gear-btn" id="openConfigBtn" title="Customize form">
-      <!-- simple gear SVG -->
-      <svg class="gear-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.43-2.06l1.77-1.02a0.5 0.5 0 0 0 .18-0.66l-1.68-2.91a0.5 0.5 0 0 0-0.6-0.2l-2.09.84a7.61 7.61 0 0 0-1.6-0.93l-0.32-2.24A0.5 0.5 0 0 0 14.9 3h-3.8a0.5 0.5 0 0 0-0.49.41l-0.32 2.24c-0.58.24-1.12.54-1.62.9l-2.1-.84a0.5 0.5 0 0 0-0.6.2L2.62 9.8a0.5 0.5 0 0 0 .18.66l1.77 1.02c-0.02.3-0.03.61-0.03.92s0.01.62.03.92L2.8 14.86a0.5 0.5 0 0 0-0.18.66l1.68 2.91c0.14.25.43.37.7.31l2.1-.84c0.5.36 1.04.66 1.62.9l0.32 2.24c0.06.27.29.47.57.47h3.8c0.28 0 0.51-0.2 0.57-0.47l0.32-2.24c0.57-0.24 1.12-0.54 1.6-0.93l2.09.84c0.28.06.56-0.06.7-0.31l1.68-2.91a0.5 0.5 0 0 0-0.18-0.66l-1.76-1.02c0.03-0.3 0.04-0.6 0.04-0.91s-0.01-0.61-0.04-0.91z"/>
-      </svg>
-    </button>
-
+  <div class="container" id="appContainer">
      <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
-    <h1 id="appTitle">Tile Purchase Entry</h1>
+    <h1>
+      <span id="appTitle">Tile Purchase Entry</span>
+      <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
+    </h1>
+
+    <div class="custom-mode-badge">Customize mode</div>
+
+    <!-- Customize panel (hidden by default) -->
+    <div id="customPanel" role="dialog" aria-modal="true">
+      <strong>Customize form text</strong>
+      <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
+      <div class="panel-row">
+        <div class="note">When customizing, form controls are temporarily disabled to avoid accidental clicks. Only text labels are editable.</div>
+        <div class="panel-actions">
+          <button id="loadDefaultBtn" type="button">Load Default</button>
+          <button id="applyPreviewBtn" type="button">Apply Preview</button>
+          <button id="saveServerBtn" type="button">Save (server)</button>
+          <button id="cancelCustomBtn" type="button" style="background:#6c757d">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Purchased items with inline qty and nested subitems -->
-    <label class="q-label" id="labelPurchasedWhat">1. Purchased what (check items and enter quantity for specific sub-items)</label>
+    <label class="q-label">1. <span id="qPurchasedLabel">Purchased what (check items and enter quantity for specific sub-items)</span></label>
     <div class="checkbox-row" id="purchasedList">
+
       <!-- FLOOR TILES -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_floor" value="Floor Tiles"> Floor Tiles
+          <input type="checkbox" class="purchased" id="p_floor" value="Floor Tiles">
+          <span class="editable" data-config-id="p_floor_label" id="label_p_floor">Floor Tiles</span>
         </label>
       </div>
       <div class="sublist" id="sublist_floor">
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles"> Vitrified tiles (most popular for homes/offices)</label>
+          <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
+            <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
+          </label>
           <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles"> Ceramic tiles</label>
+          <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
+            <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
+          </label>
           <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles"> Porcelain tiles</label>
+          <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
+            <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
+          </label>
           <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles"> Marble finish tiles</label>
+          <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
+            <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
+          </label>
           <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles"> Granite finish tiles</label>
+          <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
+            <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
+          </label>
           <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="How many" disabled>
         </div>
       </div>
@@ -189,20 +190,27 @@
       <!-- WALL TILES -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_wall" value="Wall Tiles"> Wall Tiles
+          <input type="checkbox" class="purchased" id="p_wall" value="Wall Tiles">
+          <span class="editable" data-config-id="p_wall_label" id="label_p_wall">Wall Tiles</span>
         </label>
       </div>
       <div class="sublist" id="sublist_wall">
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)"> Kitchen wall tiles (backsplash)</label>
+          <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
+            <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
+          </label>
           <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)"> Bathroom wall tiles (glazed/anti-skid)</label>
+          <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
+            <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
+          </label>
           <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles"> Decorative / designer wall tiles</label>
+          <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
+            <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
+          </label>
           <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="How many" disabled>
         </div>
       </div>
@@ -210,20 +218,27 @@
       <!-- SANITARYWARE -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_san" value="Sanitaryware"> Sanitaryware
+          <input type="checkbox" class="purchased" id="p_san" value="Sanitaryware">
+          <span class="editable" data-config-id="p_san_label" id="label_p_san">Sanitaryware</span>
         </label>
       </div>
       <div class="sublist" id="sublist_san">
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins"> Washbasins</label>
+          <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
+            <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
+          </label>
           <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC"> WC</label>
+          <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
+            <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
+          </label>
           <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals"> Urinals</label>
+          <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
+            <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
+          </label>
           <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="How many" disabled>
         </div>
       </div>
@@ -231,32 +246,45 @@
       <!-- ACCESSORIES -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_acc" value="Accessories"> Accessories
+          <input type="checkbox" class="purchased" id="p_acc" value="Accessories">
+          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">Accessories</span>
         </label>
       </div>
       <div class="sublist" id="sublist_acc">
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives"> Tile grout & adhesives</label>
+          <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
+            <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
+          </label>
           <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers"> Spacers</label>
+          <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
+            <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
+          </label>
           <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants"> Sealants</label>
+          <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
+            <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
+          </label>
           <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals"> Chemicals</label>
+          <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
+            <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
+          </label>
           <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles"> Skirting & border tiles</label>
+          <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
+            <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
+          </label>
           <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="How many" disabled>
         </div>
         <div class="sub-item">
-          <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration"> Mosaic tiles for decoration</label>
+          <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
+            <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
+          </label>
           <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="How many" disabled>
         </div>
       </div>
@@ -264,7 +292,8 @@
       <!-- OTHERS (main) — keep simple: checked + custom name + qty -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_other" value="Others"> Others
+          <input type="checkbox" class="purchased" id="p_other" value="Others">
+          <span class="editable" data-config-id="p_other_label" id="label_p_other">Others</span>
         </label>
         <input type="number" min="0" step="1" id="q_other" class="qty" placeholder="How many" disabled>
       </div>
@@ -275,31 +304,31 @@
     </div>
 
     <!-- Purchased from -->
-    <label class="q-label" id="labelPurchasedFrom">Purchased from</label>
+    <label class="q-label">Purchased from</label>
     <input id="purchasedFrom" type="text" placeholder="Vendor name">
 
     <!-- Mode of payment (checkboxes with inline amounts) -->
-    <label class="q-label" id="labelModeOfPayment">Mode of payment (check modes and enter amounts for each)</label>
+    <label class="q-label">Mode of payment (check modes and enter amounts for each)</label>
     <div class="checkbox-row" id="modes">
       <div class="mode-row">
-        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> Cash</label>
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> <span class="editable" data-config-id="mode_cash_label" id="label_mode_cash">Cash</span></label>
         <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled>
       </div>
       <div class="mode-row">
-        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> Online</label>
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> <span class="editable" data-config-id="mode_online_label" id="label_mode_online">Online</span></label>
         <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled>
       </div>
       <div class="mode-row">
-        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> Credit</label>
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> <span class="editable" data-config-id="mode_credit_label" id="label_mode_credit">Credit</span></label>
         <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled>
       </div>
     </div>
 
     <!-- Total (editable) -->
-    <label class="q-label" id="labelPaymentPaid">Payment paid (₹) <span style="color:red">*</span></label>
+    <label class="q-label">Payment paid (₹) <span style="color:red">*</span></label>
     <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount" >
 
-    <label class="q-label" id="labelOtherInfo">Any other information</label>
+    <label class="q-label">Any other information</label>
     <textarea id="otherInfo" rows="2"></textarea>
 
     <div class="form-actions">
@@ -317,252 +346,257 @@
     <div class="small" style="margin-top:6px">Status: <span id="status-duplicate" style="display:inline"></span></div>
   </div>
 
-  <!-- ===== Configuration modal ===== -->
-  <div class="modal-backdrop" id="configModalBackdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="configTitle">
-      <h2 id="configTitle">Customize form (JSON)</h2>
-      <div class="help-note">Edit the JSON below to rename questions, add/remove products or subitems. Use <strong>Apply Preview</strong> to immediately apply locally. Use <strong>Save (server)</strong> to persist (requires server hook in app.js).</div>
-      <textarea id="configEditor" class="editor" spellcheck="false"></textarea>
-      <div class="modal-actions">
-        <button id="loadDefaultBtn" type="button">Load Default</button>
-        <button id="applyPreviewBtn" type="button">Apply Preview</button>
-        <button id="saveConfigBtn" type="button">Save (server)</button>
-        <button id="cancelConfigBtn" type="button" style="background:#6c757d;">Cancel</button>
-      </div>
-      <div class="small-info" id="configModalStatus" aria-live="polite"></div>
-    </div>
-  </div>
+  <script src="app.js"></script> <!-- keep your existing app.js for submission logic -->
 
   <script>
-    /************************************************************************
-     * DEFAULT_CONFIG
-     * This object is a workable default config and also a template your
-     * app.js can use to render from server-saved config.
-     ************************************************************************/
-    const DEFAULT_CONFIG = {
-      version: 1,
-      title: "Tile Purchase Entry",
-      intro: "",
-      labels: {
-        purchasedWhat: "1. Purchased what (check items and enter quantity for specific sub-items)",
-        purchasedFrom: "Purchased from",
-        modeOfPayment: "Mode of payment (check modes and enter amounts for each)",
-        paymentPaid: "Payment paid (₹)",
-        otherInfo: "Any other information"
-      },
-      purchased: [
-        {
-          id: "floor",
-          name: "Floor Tiles",
-          type: "main",
-          enabled: true,
-          subitems: [
-            { id: "floor_vitrified", name: "Vitrified tiles", enabled: true },
-            { id: "floor_ceramic", name: "Ceramic tiles", enabled: true },
-            { id: "floor_porcelain", name: "Porcelain tiles", enabled: true },
-            { id: "floor_marble", name: "Marble finish tiles", enabled: true },
-            { id: "floor_granite", name: "Granite finish tiles", enabled: true }
-          ]
-        },
-        {
-          id: "wall",
-          name: "Wall Tiles",
-          type: "main",
-          enabled: true,
-          subitems: [
-            { id: "wall_kitchen", name: "Kitchen wall tiles (backsplash)", enabled: true },
-            { id: "wall_bath", name: "Bathroom wall tiles (glazed/anti-skid)", enabled: true },
-            { id: "wall_decor", name: "Decorative / designer wall tiles", enabled: true }
-          ]
-        },
-        {
-          id: "san",
-          name: "Sanitaryware",
-          type: "main",
-          enabled: true,
-          subitems: [
-            { id: "san_wash", name: "Washbasins", enabled: true },
-            { id: "san_wc", name: "WC", enabled: true },
-            { id: "san_urinal", name: "Urinals", enabled: true }
-          ]
-        },
-        {
-          id: "acc",
-          name: "Accessories",
-          type: "main",
-          enabled: true,
-          subitems: [
-            { id: "acc_grout", name: "Tile grout & adhesives", enabled: true },
-            { id: "acc_spacers", name: "Spacers", enabled: true },
-            { id: "acc_sealants", name: "Sealants", enabled: true },
-            { id: "acc_chem", name: "Chemicals", enabled: true },
-            { id: "acc_skirting", name: "Skirting & border tiles", enabled: true },
-            { id: "acc_mosaic", name: "Mosaic tiles for decoration", enabled: true }
-          ]
-        },
-        {
-          id: "other",
-          name: "Others",
-          type: "standalone",
-          enabled: true
-        }
-      ],
-      modes: [
-        { id: "cash", name: "Cash", enabled: true },
-        { id: "online", name: "Online", enabled: true },
-        { id: "credit", name: "Credit", enabled: true }
-      ]
-    };
+    // --- Config / server endpoint detection ---
+    // prefer global ENDPOINT & SHARED_TOKEN from app.js if present
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzscPoB_TYIrk-Dad6byZy1v7wmbD0nN5rblLDvmOimEAX8yzGAA8KhF6hZHI7jDkfFNQ/exec";
+    const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
-    // modal wiring
-    (function(){
-      const openBtn = document.getElementById('openConfigBtn');
-      const backdrop = document.getElementById('configModalBackdrop');
-      const editor = document.getElementById('configEditor');
-      const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+    // small JSONP helper used for config save/load
+    function jsonpCall(url, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+        window[cbName] = function(data) {
+          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
+        };
+        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+        const script = document.createElement('script');
+        script.src = full;
+        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
+        document.body.appendChild(script);
+        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
+      });
+    }
+
+    // --- customization logic ---
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('appContainer');
+      const gear = document.getElementById('gearBtn');
+      const customPanel = document.getElementById('customPanel');
       const applyPreviewBtn = document.getElementById('applyPreviewBtn');
-      const saveConfigBtn = document.getElementById('saveConfigBtn');
-      const cancelBtn = document.getElementById('cancelConfigBtn');
-      const statusEl = document.getElementById('configModalStatus');
+      const saveServerBtn = document.getElementById('saveServerBtn');
+      const cancelCustomBtn = document.getElementById('cancelCustomBtn');
+      const loadDefaultBtn = document.getElementById('loadDefaultBtn');
 
-      function prettyJSON(obj) {
-        try { return JSON.stringify(obj, null, 2); } catch(e) { return String(obj); }
-      }
-      function setStatus(msg, isError) {
-        statusEl.textContent = msg || "";
-        statusEl.style.color = isError ? '#b71c1c' : '#2c7be5';
-      }
+      let customizeMode = false;
 
-      // open modal and populate with current (or default) config
-      function openConfigModal(initialConfig) {
-        const cfg = initialConfig || window.__ACTIVE_CONFIG__ || DEFAULT_CONFIG;
-        editor.value = prettyJSON(cfg);
-        backdrop.style.display = 'flex';
-        backdrop.setAttribute('aria-hidden','false');
-        setStatus('');
-        // focus editor after small delay
-        setTimeout(()=> editor.focus(), 120);
-      }
+      // collect all editable spans
+      const editableEls = Array.from(document.querySelectorAll('.editable'));
 
-      function closeConfigModal() {
-        backdrop.style.display = 'none';
-        backdrop.setAttribute('aria-hidden','true');
-        setStatus('');
-      }
-
-      // attempt to parse editor content, return {ok:true,cfg:...} or {ok:false,err:...}
-      function getEditorConfig() {
-        const txt = editor.value || "";
-        try {
-          const parsed = JSON.parse(txt);
-          // Minimal sanity: must have purchased array and modes array
-          if (!parsed || typeof parsed !== 'object') throw new Error('Config must be a JSON object');
-          if (!Array.isArray(parsed.purchased)) parsed.purchased = parsed.purchased || [];
-          if (!Array.isArray(parsed.modes)) parsed.modes = parsed.modes || [];
-          return { ok: true, cfg: parsed };
-        } catch (err) {
-          return { ok: false, err: err.toString() };
+      // helper to toggle UI interactivity while customizing
+      function setCustomizeMode(on) {
+        customizeMode = !!on;
+        container.classList.toggle('customize-mode', customizeMode);
+        // disable pointer events for inputs & checkboxes to avoid accidental changes
+        const interactive = container.querySelectorAll('input, textarea, button');
+        interactive.forEach(el => {
+          if (customizeMode) {
+            // keep the gear button & customization panel controls active
+            if (el.id === 'gearBtn' || el.closest('#customPanel')) return;
+            el.classList.add('no-pointer');
+          } else {
+            el.classList.remove('no-pointer');
+          }
+        });
+        // when turning off, ensure no element left contentEditable
+        if (!customizeMode) {
+          editableEls.forEach(e => { e.contentEditable = "false"; e.removeAttribute('data-editing'); });
+          customPanel.style.display = 'none';
+        } else {
+          customPanel.style.display = 'block';
+          // make sure panel is visible and focused
         }
       }
 
-      // Set editor content to DEFAULT
-      loadDefaultBtn.addEventListener('click', function() {
-        editor.value = prettyJSON(DEFAULT_CONFIG);
-        setStatus('Loaded default configuration (unsaved)', false);
+      gear.addEventListener('click', function() {
+        setCustomizeMode(!customizeMode);
+        if (customizeMode) {
+          customPanel.style.display = 'block';
+        } else {
+          customPanel.style.display = 'none';
+        }
       });
 
-      // Apply preview — apply config locally. This will call window.renderFromConfig(cfg)
-      // if available; otherwise it dispatches a "configApplied" event for app.js to catch.
+      // Clicking an editable span starts editing (only in customize mode)
+      editableEls.forEach(el => {
+        el.setAttribute('contenteditable','false');
+        el.addEventListener('click', function(ev) {
+          if (!customizeMode) return;
+          ev.stopPropagation();
+          // start edit mode
+          el.contentEditable = "true";
+          el.setAttribute('data-editing','1');
+          // focus & place caret at end
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        });
+        // finish editing on blur
+        el.addEventListener('blur', function() {
+          if (el.getAttribute('data-editing')) {
+            el.contentEditable = "false";
+            el.removeAttribute('data-editing');
+          }
+        });
+        // when pressing Enter, finish editing
+        el.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+          }
+        });
+      });
+
+      // Apply Preview: read current texts and apply (they are already applied in DOM)
       applyPreviewBtn.addEventListener('click', function() {
-        const res = getEditorConfig();
-        if (!res.ok) { setStatus('JSON parse error: ' + res.err, true); return; }
-        const cfg = res.cfg;
-        // store active config in a global so external scripts can access
-        window.__ACTIVE_CONFIG__ = cfg;
-        // if renderFromConfig exists, call it (app.js should implement dynamic rendering from config)
-        if (typeof window.renderFromConfig === 'function') {
-          try {
-            window.renderFromConfig(cfg);
-            setStatus('Preview applied locally (renderFromConfig executed)', false);
-          } catch (err) {
-            setStatus('renderFromConfig threw: ' + err.toString(), true);
+        // nothing special to do because edits already changed DOM text
+        alert('Preview applied locally. Click Save (server) to persist for future visits.');
+      });
+
+      // Load Default: reload page (simple way to return to original static markup)
+      loadDefaultBtn.addEventListener('click', function(){
+        if (!confirm('Reload page and discard local edits?')) return;
+        window.location.reload();
+      });
+
+      // Cancel customization
+      cancelCustomBtn.addEventListener('click', function() {
+        if (!confirm('Exit customization mode? Unsaved changes will remain only locally if applied.')) {
+          return;
+        }
+        setCustomizeMode(false);
+      });
+
+      // Build config object from current DOM (map by data-config-id -> text)
+      function buildConfigObject() {
+        const cfg = { labels: {}, title: '' };
+        cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
+        editableEls.forEach(el => {
+          const key = el.getAttribute('data-config-id') || el.id || null;
+          if (key) cfg.labels[key] = el.textContent.trim();
+        });
+        // you can extend cfg with other fields if needed later
+        return cfg;
+      }
+
+      // Save (server) using JSONP to Apps Script action=saveConfig
+      saveServerBtn.addEventListener('click', async function(){
+        const cfg = buildConfigObject();
+        const cfgStr = JSON.stringify(cfg);
+        // prefer server endpoint from app.js if present
+        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
+        try {
+          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
+          const resp = await jsonpCall(url, 20000);
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+          if (resp && resp.success) {
+            alert('Customization saved on server.');
+            setCustomizeMode(false);
+          } else {
+            console.error('save resp', resp);
+            alert('Save failed. Server returned error. Check console.');
           }
-        } else {
-          // dispatch custom event so app.js can react
-          const ev = new CustomEvent('configApplied', { detail: cfg });
-          window.dispatchEvent(ev);
-          setStatus('Preview applied locally (event dispatched). Implement window.renderFromConfig(cfg) or listen for "configApplied".', false);
+        } catch (err) {
+          console.error('save err', err);
+          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
         }
       });
 
-      // Save config to server: requires your app.js to provide window.saveConfigToServer(cfg)
-      saveConfigBtn.addEventListener('click', function() {
-        const res = getEditorConfig();
-        if (!res.ok) { setStatus('JSON parse error: ' + res.err, true); return; }
-        const cfg = res.cfg;
-        // prefer a function provided by app.js
-        if (typeof window.saveConfigToServer === 'function') {
-          setStatus('Saving configuration to server...', false);
-          try {
-            // saveConfigToServer should return a Promise
-            const p = window.saveConfigToServer(cfg);
-            if (p && typeof p.then === 'function') {
-              p.then(function(resp){
-                setStatus('Configuration saved on server.', false);
-                // update the active config global
-                window.__ACTIVE_CONFIG__ = cfg;
-                // notify other parts
-                const ev = new CustomEvent('configSaved', { detail: cfg });
-                window.dispatchEvent(ev);
-                // close after short delay
-                setTimeout(closeConfigModal, 600);
-              }).catch(function(err){
-                setStatus('Server save failed: ' + (err && err.toString ? err.toString() : err), true);
-              });
+      // On load: try to fetch saved config and apply
+      (async function tryLoadConfig(){
+        try {
+          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const resp = await jsonpCall(url, 15000);
+          if (resp && resp.success && resp.config) {
+            applyConfig(resp.config);
+          } else {
+            // no config found or error; ignore
+          }
+        } catch (e) {
+          // silent fail (server may not be reachable, or endpoint differs)
+          console.warn('Could not load config:', e);
+        }
+      })();
+
+      // apply config object (labels map)
+      function applyConfig(cfg) {
+        if (!cfg) return;
+        if (cfg.title) {
+          const t = document.getElementById('appTitle');
+          if (t) t.textContent = cfg.title;
+        }
+        if (cfg.labels) {
+          Object.keys(cfg.labels).forEach(key => {
+            // find element by data-config-id or id
+            const sel = '[data-config-id="' + key + '"]';
+            const el = document.querySelector(sel) || document.getElementById(key);
+            if (el) {
+              el.textContent = cfg.labels[key];
             } else {
-              // if function did not return promise, assume synchronous
-              setStatus('Configuration saved (saveConfigToServer executed synchronously).', false);
-              window.__ACTIVE_CONFIG__ = cfg;
-              window.dispatchEvent(new CustomEvent('configSaved', { detail: cfg }));
-              setTimeout(closeConfigModal, 600);
+              // not found - ignore
             }
-          } catch (err) {
-            setStatus('saveConfigToServer threw: ' + err.toString(), true);
-          }
-        } else {
-          setStatus('No server save hook found. Provide window.saveConfigToServer(cfg) in app.js to persist config.', true);
-          // still keep active config for local preview
-          window.__ACTIVE_CONFIG__ = cfg;
-          window.dispatchEvent(new CustomEvent('configSavedLocal', { detail: cfg }));
+          });
         }
+      }
+
+      // Expose a small helper to extract current mapping (useful for debugging)
+      window.getCurrentCustomization = function(){ return buildConfigObject(); };
+
+      // make nested sublists show/hide when main toggles (existing behavior)
+      const mainToSub = {
+        'p_floor': 'sublist_floor',
+        'p_wall': 'sublist_wall',
+        'p_san':  'sublist_san',
+        'p_acc':  'sublist_acc'
+      };
+      Object.keys(mainToSub).forEach(mainId => {
+        const mainCb = document.getElementById(mainId);
+        const subDiv = document.getElementById(mainToSub[mainId]);
+        if (!mainCb || !subDiv) return;
+        function update() {
+          subDiv.style.display = mainCb.checked ? 'block' : 'none';
+          if (!mainCb.checked) {
+            subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
+            subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
+          }
+        }
+        mainCb.addEventListener('change', update);
+        update();
       });
 
-      // open modal button
-      openBtn.addEventListener('click', function(){ openConfigModal(); });
-
-      // cancel/close
-      cancelBtn.addEventListener('click', function(){ closeConfigModal(); });
-
-      // close when backdrop clicked (but not when clicking modal itself)
-      backdrop.addEventListener('click', function(ev){
-        if (ev.target === backdrop) closeConfigModal();
+      // generic subitem checkbox -> enable its qty input
+      document.querySelectorAll('.subitem').forEach(function(subCb) {
+        const id = subCb.id;
+        const qtyId = 'q' + id.slice(3);
+        const qtyEl = document.getElementById(qtyId);
+        subCb.addEventListener('change', function() {
+          if (qtyEl) {
+            qtyEl.disabled = !subCb.checked;
+            if (!subCb.checked) qtyEl.value = '';
+          }
+        });
+        if (qtyEl) qtyEl.disabled = !subCb.checked;
       });
 
-      // expose functions globally so app.js can call them
-      window.openConfigModal = openConfigModal;
-      window.closeConfigModal = closeConfigModal;
-      window.getConfigFromEditor = function(){ const r = getEditorConfig(); if (r.ok) return r.cfg; return null; };
-      window.setConfigEditor = function(cfg){ editor.value = prettyJSON(cfg); };
-      // expose default config
-      window.DEFAULT_CONFIG = DEFAULT_CONFIG;
-      // allow external scripts to open modal with a specific config quickly
-      window.openConfigWith = function(cfg){ openConfigModal(cfg || DEFAULT_CONFIG); };
+      // Others main checkbox -> enable its qty
+      const otherMain = document.getElementById('p_other');
+      const otherQty = document.getElementById('q_other');
+      if (otherMain && otherQty) {
+        function updOther() {
+          otherQty.disabled = !otherMain.checked;
+          if (!otherMain.checked) otherQty.value = '';
+        }
+        otherMain.addEventListener('change', updOther);
+        updOther();
+      }
 
-    })();
-
+    }); // DOMContentLoaded end
   </script>
-
-  <!-- load your app script (unchanged) -->
-  <script src="app.js"></script>
 </body>
 </html>
