@@ -99,6 +99,9 @@ function collectFormData(){
   const selectedParts = [];
   const items = []; // structured items: { id, qty, label }
 
+  // track which sub ids we've explicitly pushed (to avoid duplicates when scanning generic subitems)
+  const addedSubIds = new Set();
+
   // helper to fetch the editable label for a checkbox/subitem by id
   function getLabelFor(checkboxId, fallback) {
     try {
@@ -129,9 +132,10 @@ function collectFormData(){
     }
     // add structured item
     items.push({ id: checkboxId, qty: qtyVal || "", label: label });
+    addedSubIds.add(checkboxId);
   }
 
-  // floor
+  // floor (hard-coded ones kept for backward-compatibility)
   if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
     pushIfSub('sub_floor_vitrified','q_floor_vitrified','Vitrified tiles');
     pushIfSub('sub_floor_ceramic','q_floor_ceramic','Ceramic tiles');
@@ -170,35 +174,33 @@ function collectFormData(){
     if (otherQty !== "") selectedParts.push(otherQty + " " + label);
     else selectedParts.push(label);
     items.push({ id: 'p_other', qty: otherQty || "", label: label });
+    addedSubIds.add('p_other');
   }
 
-  // --------- NEW: Generic pass to pick up any dynamically added/removed subitems ----------
-  // This ensures customization UI that creates additional checkboxes (with class "subitem")
-  // are included in the submission without changing the rest of the logic.
+  // ----- NEW: generic scan for any dynamic .subitem elements not covered above -----
   try {
     const allSubitems = Array.from(document.querySelectorAll('.subitem'));
-    allSubitems.forEach(cb => {
-      if (!cb || !cb.checked) return;
-      // if already recorded via hard-coded pushIfSub above, skip to avoid duplicates
-      if (items.some(it => it.id === cb.id)) return;
-
-      // Determine qty id - allow authoring to set a data-qty-id attribute on checkbox for flexibility
-      const dataQty = cb.getAttribute && cb.getAttribute('data-qty-id');
-      const qid = dataQty || ('q' + (cb.id && cb.id.slice ? cb.id.slice(3) : cb.id));
-      const qtyEl = document.getElementById(qid);
-      const qtyVal = qtyEl ? String(qtyEl.value || "").trim() : "";
+    allSubitems.forEach(function(cb) {
+      if (!cb || !cb.id) return;
+      if (addedSubIds.has(cb.id)) return; // already processed
+      if (!cb.checked) return;
+      // qty id uses same convention: 'q' + checkboxId.slice(3)
+      const qtyId = 'q' + cb.id.slice(3);
+      const qtyEl = document.getElementById(qtyId);
+      const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
       const label = getLabelFor(cb.id, cb.value || "");
       if (qtyVal !== "") selectedParts.push(qtyVal + " " + label);
       else selectedParts.push(label);
       items.push({ id: cb.id, qty: qtyVal || "", label: label });
+      addedSubIds.add(cb.id);
     });
-  } catch(e) {
-    console.warn('dynamic subitems pass failed', e);
+  } catch (e) {
+    console.warn('generic subitem scan failed', e);
   }
 
   // --------- MODE handling (dedupe + canonicalize) ----------
   const rawModeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
-  const rawSelected = rawModeEls.filter(m=>m.checked).map(m=> (m.value || "").toString().trim() ).filter(x=>x!="");
+  const rawSelected = rawModeEls.filter(m=>m.checked).map(m=> (m.value || "").toString().trim() ).filter(x=>x!=="");
 
   function canonicalLabel(v){
     if(!v) return v;
