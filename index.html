@@ -1,322 +1,868 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Tile Purchase Entry</title>
+  <link rel="manifest" href="manifest.json">
   <style>
-    body{font-family: Arial, Helvetica, sans-serif; padding:18px;}
-    .grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
-    .card{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px}
-    .sublist{margin-left:18px;margin-top:6px}
-    .subitem-row{display:flex;align-items:center;margin-bottom:6px}
-    .subitem-row input[type="checkbox"]{margin-right:8px}
-    .editable{padding:2px 4px;border-radius:3px}
-    #customPanel{position:fixed;right:18px;top:18px;width:360px;max-height:80vh;overflow:auto}
-    .custom-section{border-top:1px dashed #eee;padding-top:10px;margin-top:10px}
-    .small{font-size:13px;color:#666}
-    .btn{background:#1f73ff;color:#fff;border:none;padding:8px 10px;border-radius:4px;cursor:pointer}
-    .btn-secondary{background:#eee;color:#333}
-    .remove-btn{background:transparent;border:none;color:#c33;cursor:pointer;margin-left:8px}
-    .inline-input{padding:6px;border-radius:4px;border:1px solid #ccc}
+    html,body { height:100%; margin:0; padding:0; }
+    body {
+      background-image: url('./background.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      font-family: Arial, sans-serif;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:20px;
+      box-sizing:border-box;
+    }
+    .container {
+      width:100%;
+      max-width:920px;
+      background: rgba(255,255,255,0.98);
+      border-radius:10px;
+      padding:14px;
+      box-sizing:border-box;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    h1{font-size:20px;margin:0 0 10px 0; display:flex; align-items:center; gap:8px;}
+    .gear {
+      margin-left:auto; cursor:pointer; font-size:18px; color:#2c7be5;
+    }
+    .q-label{display:block;margin-top:10px;font-weight:600}
+    input[type="text"], input[type="number"], select, textarea {
+      width:100%; padding:8px; font-size:15px; margin-top:6px; box-sizing:border-box;
+      border:1px solid #ccc; border-radius:4px;
+    }
+    /* main item row and nested sublist */
+    .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
+    .qty { width:110px; flex:0 0 110px; }
+    .sublist { margin-left:28px; margin-top:6px; padding-left:6px; border-left:2px solid rgba(0,0,0,0.04); display:none; }
+    .sub-item { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .sub-item label { flex:1; display:flex; align-items:center; gap:8px; }
+    .checkbox-row { margin-top:6px; padding:0; }
+    .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
+
+    /* payment inline controls */
+    .mode-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
+    .mode-row .mode-label { flex:1; display:flex; align-items:center; gap:8px; }
+    .mode-amount { width:160px; flex:0 0 160px; }
+    .total-row { margin-top:8px; display:flex; gap:12px; align-items:center; }
+    .total-row label { font-weight:600; }
+
+    button{ margin-top:12px; padding:10px 14px; font-size:16px; border-radius:6px; border: none; background:#2c7be5; color:white; cursor:pointer; }
+    button#clearBtn { background:#6c757d; }
+    .offline-msg { margin-top:10px; color:#b71c1c; font-weight:700; font-size:15px; }
+    .small{font-size:13px;color:#666;margin-top:6px}
+    .form-actions { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+
+    @media (max-width:920px){
+      .container { padding:10px; }
+    }
+    @media (max-width:620px){
+      .item-row { flex-direction:column; align-items:flex-start }
+      .qty { width:100%; flex:0 0 auto }
+      .sub-item { flex-direction:column; align-items:flex-start }
+      .mode-row { flex-direction:column; align-items:stretch }
+      .mode-amount { width:100%; flex:auto }
+      .total-row { flex-direction:column; align-items:stretch }
+    }
+
+    /* make touch targets larger for checkboxes (and slightly larger radios) */
+    input[type="checkbox"] {
+      transform: scale(1.45);
+      margin-right: 10px;
+      -webkit-transform: scale(1.45);
+      -webkit-margin-end: 10px;
+    }
+    input[type="radio"] {
+      transform: scale(1.25);
+      margin-right: 8px;
+      -webkit-transform: scale(1.25);
+    }
+    .cb input[type="checkbox"], .cb input[type="radio"] {
+      vertical-align: middle;
+    }
+
+    /* editable label visuals */
+    .editable { padding:2px 6px; border-radius:4px; cursor:text; display:inline-block; }
+    .customize-mode .editable { background: #fffbe6; border:1px dashed #ffd966; }
+    .editable[contenteditable="true"] { outline: 2px solid #2c7be5; background: #ffffff; }
+
+    /* small modal panel for customization instructions & buttons */
+    #customPanel {
+      position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
+      width: 760px; max-width:calc(100% - 24px);
+      background: white; border-radius:8px; box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+      padding:12px; z-index: 1200; display:none;
+    }
+    #customPanel .panel-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+    #customPanel .panel-row .note { flex:1; font-size:14px; color:#333; }
+    #customPanel .panel-actions { display:flex; gap:8px; }
+    #customPanel .close-x { position:absolute; right:10px; top:8px; background:transparent; border:none; font-size:20px; cursor:pointer; }
+
+    /* small top-right badge showing Customize mode on */
+    .custom-mode-badge {
+      position: absolute; right: 16px; top: 12px; padding:6px 8px; background:#fff4cc; border-radius:6px; color:#6a4f00; font-weight:700; display:none;
+    }
+    .customize-mode .custom-mode-badge { display:block; }
+
+    /* prevent pointer interactions for inputs while editing (applied when customization active) */
+    .customize-mode .no-pointer { pointer-events: none; opacity: 0.7; }
+
+    /* remove button for subitems in customize mode */
+    .remove-btn {
+      display:none;
+      background:transparent;
+      border:none;
+      font-size:16px;
+      cursor:pointer;
+      margin-left:4px;
+      color:#b71c1c;
+    }
+    .customize-mode .remove-btn { display:inline-block; }
+    .remove-btn:focus { outline:1px solid #b71c1c; }
+
+    /* small add controls */
+    .add-controls { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .add-controls select, .add-controls input[type="text"] { width:auto; min-width:160px; }
   </style>
 </head>
 <body>
-  <h2 id="appTitle" data-config-id="appTitle">Tile Purchase - Entry</h2>
+  <div class="container" id="appContainer">
+     <a class="sheet-link"
+       href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
+       target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
+    <h1>
+      <span id="appTitle">Tile Purchase Entry</span>
+      <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
+    </h1>
 
-  <div class="grid">
-    <div>
-      <div class="card">
-        <h3>Choose items</h3>
+    <div class="custom-mode-badge">Customize mode</div>
 
-        <label><input id="p_floor" class="purchased" type="checkbox"> <span class="editable" data-config-id="p_floor_label">Floor Tiles</span></label>
-        <div id="sublist_floor" class="sublist" style="display:block">
-          <div class="subitem-row">
-            <input id="sub_floor_vitrified" class="subitem" type="checkbox" value="Vitrified tiles">
-            <span id="label_sub_floor_vitrified" class="editable" data-config-id="sub_floor_vitrified_label">Vitrified tiles</span>
-            <input id="q_floor_vitrified" class="qty" type="text" placeholder="qty" style="width:60px;margin-left:8px">
-          </div>
+    <!-- Customize panel (hidden by default) -->
+    <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
+      <button class="close-x" id="panelCloseX" title="Close (Esc)">×</button>
+      <strong>Customize form text</strong>
+      <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
 
-          <div class="subitem-row">
-            <input id="sub_floor_ceramic" class="subitem" type="checkbox" value="Ceramic tiles">
-            <span id="label_sub_floor_ceramic" class="editable" data-config-id="sub_floor_ceramic_label">Ceramic tiles</span>
-            <input id="q_floor_ceramic" class="qty" type="text" placeholder="qty" style="width:60px;margin-left:8px">
-          </div>
+      <!-- NEW: Add/Remove subitem controls -->
+      <div class="panel-row" style="margin-top:12px;">
+        <div class="note">Add or remove sub-items for categories. Choose a category, enter label, then Add Sub-item. Remove uses trash icon near each sub-item (visible in Customize mode).</div>
+      </div>
 
-          <!-- dynamic custom subitems for floor will be injected here -->
-          <div id="sublist_floor_custom"></div>
+      <div class="panel-row">
+        <div class="add-controls">
+          <label for="addCategory">Category</label>
+          <select id="addCategory">
+            <option value="floor">Floor Tiles</option>
+            <option value="wall">Wall Tiles</option>
+            <option value="san">Sanitaryware</option>
+            <option value="acc">Accessories</option>
+          </select>
+          <input id="newSubLabel" type="text" placeholder="New sub-item label (e.g. 'New Tile')" />
+          <button id="addSubBtn" type="button">Add Sub-item</button>
         </div>
-
-        <label><input id="p_wall" class="purchased" type="checkbox"> <span class="editable" data-config-id="p_wall_label">Wall Tiles</span></label>
-        <div id="sublist_wall" class="sublist" style="display:block">
-          <div class="subitem-row">
-            <input id="sub_wall_kitchen" class="subitem" type="checkbox" value="Kitchen wall tiles">
-            <span id="label_sub_wall_kitchen" class="editable" data-config-id="sub_wall_kitchen_label">Kitchen wall tiles (backsplash)</span>
-            <input id="q_wall_kitchen" class="qty" type="text" placeholder="qty" style="width:60px;margin-left:8px">
-          </div>
-          <div id="sublist_wall_custom"></div>
+        <div style="margin-left:auto" class="panel-actions">
+          <button id="loadDefaultBtn" type="button">Load Default</button>
+          <button id="applyPreviewBtn" type="button">Apply Preview</button>
+          <button id="saveServerBtn" type="button">Save (server)</button>
+          <button id="cancelCustomBtn" type="button" style="background:#6c757d">Cancel</button>
         </div>
-
-        <label><input id="p_san" class="purchased" type="checkbox"> <span class="editable" data-config-id="p_san_label">Sanitaryware</span></label>
-        <div id="sublist_san" class="sublist" style="display:block">
-          <div class="subitem-row">
-            <input id="sub_san_wash" class="subitem" type="checkbox" value="Washbasins">
-            <span id="label_sub_san_wash" class="editable" data-config-id="sub_san_wash_label">Washbasins</span>
-            <input id="q_san_wash" class="qty" type="text" placeholder="qty" style="width:60px;margin-left:8px">
-          </div>
-          <div id="sublist_san_custom"></div>
-        </div>
-
-        <label><input id="p_acc" class="purchased" type="checkbox"> <span class="editable" data-config-id="p_acc_label">Accessories</span></label>
-        <div id="sublist_acc" class="sublist" style="display:block">
-          <div class="subitem-row">
-            <input id="sub_acc_grout" class="subitem" type="checkbox" value="Tile grout & adhesives">
-            <span id="label_sub_acc_grout" class="editable" data-config-id="sub_acc_grout_label">Tile grout & adhesives</span>
-            <input id="q_acc_grout" class="qty" type="text" placeholder="qty" style="width:60px;margin-left:8px">
-          </div>
-          <div id="sublist_acc_custom"></div>
-        </div>
-
-        <label><input id="p_other" class="purchased" type="checkbox"> <span class="editable" data-config-id="p_other_label">Others</span></label>
-        <div id="sublist_other" class="sublist" style="display:block">
-          <input id="purchasedOtherText" placeholder="Describe other" style="width:60%">
-          <input id="q_other" class="qty" type="text" placeholder="qty" style="width:60px;margin-left:8px">
-        </div>
-
-        <hr>
-        <div>
-          <label>Purchased from: <input id="purchasedFrom" type="text"></label>
-        </div>
-        <div style="margin-top:8px">
-          Mode of payment: <label><input name="modeOfPayment" id="mode_cash" type="checkbox" value="Cash"> Cash</label>
-          <label><input name="modeOfPayment" id="mode_online" type="checkbox" value="Online"> Online</label>
-          <label><input name="modeOfPayment" id="mode_credit" type="checkbox" value="Credit"> Credit</label>
-        </div>
-        <div style="margin-top:8px">
-          Payment paid: <input id="paymentPaid" type="text">
-        </div>
-        <div style="margin-top:8px">
-          Other info: <input id="otherInfo" type="text" style="width:60%">
-        </div>
-        <div style="margin-top:12px">
-          <button id="submitBtn" class="btn">Submit</button>
-          <button id="clearBtn" class="btn btn-secondary" type="button">Clear</button>
-        </div>
-        <div id="msg" class="small" style="display:none;margin-top:8px"></div>
       </div>
     </div>
 
-    <!-- Customization panel (right column) -->
-    <div id="customPanel" class="card">
-      <h3>Customization</h3>
-      <div class="small">Edit labels inline. Add or remove extra sub-items for each category below. Click <strong>Save Config</strong> to persist.</div>
+    <!-- Purchased items with inline qty and nested subitems -->
+    <label class="q-label">1. <span id="qPurchasedLabel">Purchased what (check items and enter quantity for specific sub-items)</span></label>
+    <div class="checkbox-row" id="purchasedList">
 
-      <div class="custom-section" data-category="floor">
-        <h4>Floor - extra subitems</h4>
-        <div id="customList_floor"></div>
-        <div style="margin-top:8px">
-          <input id="new_floor_label" class="inline-input" placeholder="New sub-item label (e.g. Porcelain)" />
-          <button class="btn" onclick="addCustomFor('floor')">Add</button>
+      <!-- FLOOR TILES -->
+      <div class="item-row">
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_floor" value="Floor Tiles">
+          <span class="editable" data-config-id="p_floor_label" id="label_p_floor">Floor Tiles</span>
+        </label>
+      </div>
+      <div class="sublist" id="sublist_floor">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
+            <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
+            <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
+            <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
+            <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
+            <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
         </div>
       </div>
 
-      <div class="custom-section" data-category="wall">
-        <h4>Wall - extra subitems</h4>
-        <div id="customList_wall"></div>
-        <div style="margin-top:8px">
-          <input id="new_wall_label" class="inline-input" placeholder="New sub-item label" />
-          <button class="btn" onclick="addCustomFor('wall')">Add</button>
+      <!-- WALL TILES -->
+      <div class="item-row">
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_wall" value="Wall Tiles">
+          <span class="editable" data-config-id="p_wall_label" id="label_p_wall">Wall Tiles</span>
+        </label>
+      </div>
+      <div class="sublist" id="sublist_wall">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
+            <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
+            <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
+            <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
         </div>
       </div>
 
-      <div class="custom-section" data-category="san">
-        <h4>Sanitary - extra subitems</h4>
-        <div id="customList_san"></div>
-        <div style="margin-top:8px">
-          <input id="new_san_label" class="inline-input" placeholder="New sub-item label" />
-          <button class="btn" onclick="addCustomFor('san')">Add</button>
+      <!-- SANITARYWARE -->
+      <div class="item-row">
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_san" value="Sanitaryware">
+          <span class="editable" data-config-id="p_san_label" id="label_p_san">Sanitaryware</span>
+        </label>
+      </div>
+      <div class="sublist" id="sublist_san">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
+            <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
+            <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
+            <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
         </div>
       </div>
 
-      <div class="custom-section" data-category="acc">
-        <h4>Accessories - extra subitems</h4>
-        <div id="customList_acc"></div>
-        <div style="margin-top:8px">
-          <input id="new_acc_label" class="inline-input" placeholder="New sub-item label" />
-          <button class="btn" onclick="addCustomFor('acc')">Add</button>
+      <!-- ACCESSORIES -->
+      <div class="item-row">
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_acc" value="Accessories">
+          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">Accessories</span>
+        </label>
+      </div>
+      <div class="sublist" id="sublist_acc">
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
+            <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
+            <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
+            <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
+            <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
+            <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
+        </div>
+        <div class="sub-item">
+          <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
+            <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
+          </label>
+          <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="How many" disabled>
+          <button class="remove-btn" title="Remove sub-item">🗑</button>
         </div>
       </div>
 
-      <div style="margin-top:12px">
-        <button id="saveConfigBtn" class="btn">Save Config</button>
-        <button id="loadConfigBtn" class="btn btn-secondary" type="button">Load Config</button>
+      <!-- OTHERS (main) — keep simple: checked + custom name + qty -->
+      <div class="item-row">
+        <label class="cb">
+          <input type="checkbox" class="purchased" id="p_other" value="Others">
+          <span class="editable" data-config-id="p_other_label" id="label_p_other">Others</span>
+        </label>
+        <input type="number" min="0" step="1" id="q_other" class="qty" placeholder="How many" disabled>
+      </div>
+      <div style="margin-top:6px; margin-left:6px;">
+        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
+      </div>
+
+    </div>
+
+    <!-- Purchased from -->
+    <label class="q-label">Purchased from</label>
+    <input id="purchasedFrom" type="text" placeholder="Vendor name">
+
+    <!-- Mode of payment (checkboxes with inline amounts) -->
+    <label class="q-label">Mode of payment (check modes and enter amounts for each)</label>
+    <div class="checkbox-row" id="modes">
+      <div class="mode-row">
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> <span class="editable" data-config-id="mode_cash_label" id="label_mode_cash">Cash</span></label>
+        <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled>
+      </div>
+      <div class="mode-row">
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> <span class="editable" data-config-id="mode_online_label" id="label_mode_online">Online</span></label>
+        <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled>
+      </div>
+      <div class="mode-row">
+        <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> <span class="editable" data-config-id="mode_credit_label" id="label_mode_credit">Credit</span></label>
+        <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled>
       </div>
     </div>
+
+    <!-- Total (editable) -->
+    <label class="q-label">Payment paid (₹) <span style="color:red">*</span></label>
+    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount" >
+
+    <label class="q-label">Any other information</label>
+    <textarea id="otherInfo" rows="2"></textarea>
+
+    <div class="form-actions">
+      <button id="submitBtn" type="button">Submit</button>
+      <button id="clearBtn" type="button">Clear</button>
+
+      <div style="margin-left:auto;font-weight:600; display:flex; gap:8px; align-items:center;">
+        <div>Online:</div>
+        <div id="status">online</div>
+      </div>
+    </div>
+
+    <div id="msg" style="display:none"></div>
+    <div id="offlineNotice" class="offline-msg" style="display:none">Connect to internet</div>
+    <div class="small" style="margin-top:6px">Status: <span id="status-duplicate" style="display:inline"></span></div>
   </div>
 
+  <script src="app.js"></script> <!-- keep your existing app.js for submission logic -->
+
   <script>
-    // Utility: generate safe unique id for custom subitems
-    function makeCustomId(prefix){
-      return prefix + '_custom_' + Date.now().toString(36) + '_' + Math.floor(Math.random()*9999);
-    }
+    // --- Config / server endpoint detection ---
+    // prefer global ENDPOINT & SHARED_TOKEN from app.js if present
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwTwqZ-xoxJAhBpcYVXOkgdLcgV3o0LCibZKUKWfeQiPp90anzYJa8q7vwlgcDABP2MIg/exec";
+    const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
-    // Add a custom subitem under a main category (floor, wall, san, acc)
-    function addCustomFor(cat, labelProvided){
-      var labelText = labelProvided || (document.getElementById('new_' + cat + '_label') || {}).value || '';
-      labelText = labelText.toString().trim();
-      if (!labelText) { alert('Enter label for new sub-item'); return; }
-      var id = makeCustomId(cat);
-      var checkboxId = 'sub_' + id;
-      var qtyId = 'q_' + id;
-
-      // create DOM elements
-      var row = document.createElement('div'); row.className = 'subitem-row'; row.id = 'row_' + id;
-      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'subitem'; cb.id = checkboxId; cb.value = labelText;
-      var span = document.createElement('span'); span.className = 'editable'; span.setAttribute('data-config-id', checkboxId + '_label');
-      span.id = 'label_' + checkboxId; span.textContent = labelText;
-      var qty = document.createElement('input'); qty.type = 'text'; qty.className = 'qty'; qty.id = qtyId; qty.placeholder = 'qty'; qty.style.width='60px'; qty.style.marginLeft='8px';
-      var rem = document.createElement('button'); rem.type='button'; rem.className='remove-btn'; rem.textContent='✕'; rem.title='Remove';
-      rem.onclick = function(){ removeCustomItem(id); };
-
-      row.appendChild(cb); row.appendChild(span); row.appendChild(qty); row.appendChild(rem);
-
-      var container = document.getElementById('sublist_' + cat + '_custom');
-      if (!container) container = document.getElementById('sublist_' + cat);
-      container.appendChild(row);
-
-      // Also show in customization list
-      renderCustomLists();
-
-      // clear input
-      var inp = document.getElementById('new_' + cat + '_label'); if (inp) inp.value='';
-    }
-
-    function removeCustomItem(id){
-      var row = document.getElementById('row_' + id);
-      if (row) row.parentNode.removeChild(row);
-      renderCustomLists();
-    }
-
-    // Render the small management lists in customization panel
-    function renderCustomLists(){
-      ['floor','wall','san','acc'].forEach(function(cat){
-        var listEl = document.getElementById('customList_' + cat);
-        if (!listEl) return;
-        listEl.innerHTML = '';
-        var container = document.getElementById('sublist_' + cat + '_custom');
-        if (!container) return;
-        var rows = container.querySelectorAll('.subitem-row');
-        rows.forEach(function(r){
-          var cb = r.querySelector('input[type="checkbox"]');
-          var lbl = r.querySelector('.editable');
-          var id = r.id ? r.id.replace(/^row_/,'') : '';
-          var div = document.createElement('div');
-          div.style.display='flex'; div.style.alignItems='center'; div.style.marginBottom='6px';
-          var name = document.createElement('div'); name.textContent = (lbl && lbl.textContent) ? lbl.textContent : (cb && cb.value ? cb.value : ''); name.style.flex='1';
-          var del = document.createElement('button'); del.className='remove-btn'; del.textContent='Remove'; del.onclick = function(){ removeCustomItem(id); };
-          div.appendChild(name); div.appendChild(del);
-          listEl.appendChild(div);
-        });
+    // small JSONP helper used for config save/load
+    function jsonpCall(url, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+        window[cbName] = function(data) {
+          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
+        };
+        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+        const script = document.createElement('script');
+        script.src = full;
+        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
+        document.body.appendChild(script);
+        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
       });
     }
 
-    // Collect editable labels and dynamic items to build config object compatible with app.js
-    async function saveCustomization(){
-      try {
-        var cfg = { title: '', labels: {} };
-        cfg.title = (document.getElementById('appTitle') || {textContent:''}).textContent.trim();
-        document.querySelectorAll('.editable').forEach(function(el){
-          var key = el.getAttribute('data-config-id') || el.id || null;
-          if (key) cfg.labels[key] = (el.textContent || '').toString().trim();
-        });
+    // --- customization logic ---
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('appContainer');
+      const gear = document.getElementById('gearBtn');
+      const customPanel = document.getElementById('customPanel');
+      const applyPreviewBtn = document.getElementById('applyPreviewBtn');
+      const saveServerBtn = document.getElementById('saveServerBtn');
+      const cancelCustomBtn = document.getElementById('cancelCustomBtn');
+      const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+      const panelCloseX = document.getElementById('panelCloseX');
 
-        // Build items array for dynamic ones so server can reconstruct if needed
-        cfg.items = [];
-        var allSub = document.querySelectorAll('.subitem-row');
-        allSub.forEach(function(r){
-          var cb = r.querySelector('input[type="checkbox"]');
-          var lbl = r.querySelector('.editable');
-          var qty = r.querySelector('.qty');
-          if (cb && lbl) {
-            var id = cb.id || '';
-            var obj = { id: id, label: (lbl.textContent||'').trim(), qty: qty && qty.value ? qty.value.trim() : '' };
-            cfg.items.push(obj);
+      // NEW controls
+      const addCategory = document.getElementById('addCategory');
+      const newSubLabel = document.getElementById('newSubLabel');
+      const addSubBtn = document.getElementById('addSubBtn');
+
+      let customizeMode = false;
+      let editingSession = false;
+
+      // collect all editable spans (will be refreshed for dynamic elements)
+      let editableEls = Array.from(document.querySelectorAll('.editable'));
+
+      // helper to refresh editable list (call after adding/removing elements)
+      function refreshEditableList() {
+        editableEls = Array.from(document.querySelectorAll('.editable'));
+        // ensure newly-added editables have default attributes & event handlers similar to existing ones
+        editableEls.forEach(el => {
+          if (!el.hasAttribute('data-bound')) {
+            el.setAttribute('data-bound','1');
+            el.setAttribute('contenteditable','false');
+            el.addEventListener('click', function(ev) {
+              if (!customizeMode) return;
+              if (editingSession) return;
+              alert('Click "Apply Preview" in the customization panel to start editing labels.');
+            });
+            el.addEventListener('blur', function() {
+              if (el.getAttribute('data-editing')) {
+                el.contentEditable = "false";
+                el.removeAttribute('data-editing');
+              }
+            });
+            el.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                el.blur();
+              }
+            });
           }
         });
+      }
 
-        // If app.js exposes saveConfigToServer, use it. Otherwise persist to localStorage as fallback.
-        if (typeof saveConfigToServer === 'function') {
-          var resp = await saveConfigToServer(cfg);
-          if (resp && resp.success) {
-            alert('Configuration saved');
+      // helper to toggle UI interactivity while customizing
+      function setCustomizeMode(on) {
+        customizeMode = !!on;
+        container.classList.toggle('customize-mode', customizeMode);
+
+        // disable pointer events for inputs & checkboxes to avoid accidental changes
+        const interactive = container.querySelectorAll('input, textarea, button');
+        interactive.forEach(el => {
+          // keep the gear button & customization panel controls active
+          if (el.id === 'gearBtn' || el.closest('#customPanel')) return;
+          if (customizeMode) {
+            el.classList.add('no-pointer');
           } else {
-            alert('Save returned error. See console.'); console.warn('saveConfig resp', resp);
+            el.classList.remove('no-pointer');
           }
-        } else {
-          localStorage.setItem('localFormConfig', JSON.stringify(cfg));
-          alert('Configuration saved locally (app.js save function not found)');
-        }
-      } catch (e){ console.error('saveCustomization err', e); alert('Save failed: ' + e.toString()); }
-    }
+        });
 
-    // Load saved config (from server via app.js or localStorage)
-    async function loadCustomization(){
-      try {
-        var cfg = null;
-        if (typeof loadSavedConfig === 'function') {
-          cfg = await loadSavedConfig();
+        // toggle visibility for remove buttons
+        const removes = container.querySelectorAll('.remove-btn');
+        removes.forEach(btn => {
+          btn.style.display = customizeMode ? 'inline-block' : 'none';
+        });
+
+        if (customizeMode) {
+          // show panel
+          customPanel.style.display = 'block';
+        } else {
+          customPanel.style.display = 'none';
+          // ensure we are not leaving editable state active
+          endEditingSession();
         }
-        if (!cfg) {
-          var raw = localStorage.getItem('localFormConfig');
-          if (raw) try { cfg = JSON.parse(raw); } catch(e) { cfg = null; }
+      }
+
+      gear.addEventListener('click', function() {
+        // toggle panel visibility / mode
+        if (!customizeMode) {
+          setCustomizeMode(true);
+        } else {
+          // if already in customize mode but not editing, close panel and exit
+          setCustomizeMode(false);
         }
+      });
+
+      // start editing session: make labels contentEditable and hide panel
+      function startEditingSession() {
+        editingSession = true;
+        refreshEditableList();
+        // make labels editable
+        editableEls.forEach(el => {
+          el.contentEditable = "true";
+          el.classList.add('editing');
+          // remove no-pointer on editable spans so they remain clickable even though inputs are blocked
+          el.classList.remove('no-pointer');
+        });
+        // hide the panel so user can interact with labels
+        customPanel.style.display = 'none';
+        // put focus in first editable
+        const first = editableEls[0];
+        if (first) {
+          first.focus();
+          // place caret at end
+          try {
+            if (document.createRange && window.getSelection) {
+              const range = document.createRange();
+              range.selectNodeContents(first);
+              range.collapse(false);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          } catch (e){}
+        }
+      }
+
+      // end editing session: make labels non-editable
+      function endEditingSession() {
+        editingSession = false;
+        refreshEditableList();
+        editableEls.forEach(el => {
+          try { el.contentEditable = "false"; } catch(e){}
+          el.classList.remove('editing');
+        });
+      }
+
+      // Clicking an editable span starts inline editing only when in customizeMode AND editingSession active (we trigger editingSession via Apply Preview)
+      refreshEditableList();
+
+      // Apply Preview: enter editing session (close panel, allow inline edits)
+      applyPreviewBtn.addEventListener('click', function() {
+        // ensure customize mode is on
+        if (!customizeMode) setCustomizeMode(true);
+        startEditingSession();
+        alert('Preview: labels are now editable inline. Click any label to edit. When done click Save (server) to persist or Cancel to exit.');
+      });
+
+      // Load Default: reload page to restore defaults
+      loadDefaultBtn.addEventListener('click', function(){
+        if (!confirm('Reload page to restore defaults? Unsaved edits will be lost.')) return;
+        window.location.reload();
+      });
+
+      // Cancel customization: exit customize mode (and editing)
+      cancelCustomBtn.addEventListener('click', function() {
+        if (!confirm('Exit customization mode? Unsaved edits will be lost.')) {
+          return;
+        }
+        endEditingSession();
+        setCustomizeMode(false);
+      });
+
+      // panel close X (same as cancel)
+      panelCloseX.addEventListener('click', function() {
+        // if currently in editing session, closing panel shouldn't kill edits; instead ask user
+        if (editingSession) {
+          if (!confirm('Editing in progress. Close panel but keep edit mode? (Choose Cancel in panel to abort edits)')) {
+            return;
+          }
+        }
+        // close panel but keep customize mode on (so user can re-open)
+        customPanel.style.display = 'none';
+      });
+
+      // Escape key handling: close panel or exit editing
+      document.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Escape') {
+          if (customPanel.style.display === 'block') {
+            // close the panel (but keep customizeMode active)
+            customPanel.style.display = 'none';
+            return;
+          }
+          if (editingSession) {
+            // exit editing session
+            if (confirm('Exit edit mode? Unsaved changes remain only locally.')) {
+              endEditingSession();
+              setCustomizeMode(false);
+            }
+          }
+        }
+      });
+
+      // Build config object from current DOM (map by data-config-id -> text)
+      function buildConfigObject() {
+        const cfg = { labels: {}, title: '' };
+        cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
+        refreshEditableList();
+        editableEls.forEach(el => {
+          const key = el.getAttribute('data-config-id') || el.id || null;
+          if (key) cfg.labels[key] = el.textContent.trim();
+        });
+        return cfg;
+      }
+
+      // Save server: send config via JSONP action=saveConfig
+      saveServerBtn.addEventListener('click', async function(){
+        // finish any inline editing first
+        endEditingSession();
+        const cfg = buildConfigObject();
+        const cfgStr = JSON.stringify(cfg);
+        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
+        try {
+          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
+          const resp = await jsonpCall(url, 20000);
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+          if (resp && resp.success) {
+            alert('Customization saved on server.');
+            setCustomizeMode(false);
+          } else {
+            console.error('save resp', resp);
+            alert('Save failed. Server returned error. Check console.');
+          }
+        } catch (err) {
+          console.error('save err', err);
+          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+        }
+      });
+
+      // On load: try to fetch saved config and apply
+      (async function tryLoadConfig(){
+        try {
+          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const resp = await jsonpCall(url, 15000);
+          if (resp && resp.success && resp.config) {
+            applyConfig(resp.config);
+          } else {
+            // no config found or error; ignore
+          }
+        } catch (e) {
+          console.warn('Could not load config:', e);
+        }
+      })();
+
+      // apply config object (labels map)
+      function applyConfig(cfg) {
         if (!cfg) return;
-        // apply labels
         if (cfg.title) {
-          var t = document.getElementById('appTitle'); if (t) t.textContent = cfg.title;
+          const t = document.getElementById('appTitle');
+          if (t) t.textContent = cfg.title;
         }
         if (cfg.labels) {
-          Object.keys(cfg.labels).forEach(function(key){
-            var sel = '[data-config-id="' + key + '"]';
-            var el = document.querySelector(sel) || document.getElementById(key);
+          Object.keys(cfg.labels).forEach(key => {
+            const sel = '[data-config-id="' + key + '"]';
+            const el = document.querySelector(sel) || document.getElementById(key);
             if (el) el.textContent = cfg.labels[key];
           });
         }
-        // apply dynamic items: first clear any existing custom containers
-        ['floor','wall','san','acc'].forEach(function(cat){
-          var container = document.getElementById('sublist_' + cat + '_custom');
-          if (container) container.innerHTML = '';
-        });
-        if (cfg.items && Array.isArray(cfg.items)) {
-          cfg.items.forEach(function(it){
-            // only add items that look custom (id includes "custom") to avoid re-adding built-in items
-            try {
-              var label = it.label || '';
-              if (!label) return;
-              // try detect category from id or fallback to floor
-              var id = it.id || '';
-              var cat = 'floor';
-              if (id.indexOf('wall') !== -1) cat = 'wall';
-              else if (id.indexOf('san') !== -1) cat = 'san';
-              else if (id.indexOf('acc') !== -1) cat = 'acc';
-              // add
-              addCustomFor(cat, label);
-            } catch(e){}
-          });
+      }
+
+      // make nested sublists show/hide when main toggles (existing behavior)
+      const mainToSub = {
+        'p_floor': 'sublist_floor',
+        'p_wall': 'sublist_wall',
+        'p_san':  'sublist_san',
+        'p_acc':  'sublist_acc'
+      };
+      Object.keys(mainToSub).forEach(mainId => {
+        const mainCb = document.getElementById(mainId);
+        const subDiv = document.getElementById(mainToSub[mainId]);
+        if (!mainCb || !subDiv) return;
+        function update() {
+          subDiv.style.display = mainCb.checked ? 'block' : 'none';
+          if (!mainCb.checked) {
+            subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
+            subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
+          }
         }
-        renderCustomLists();
-      } catch(e){ console.error('loadCustomization err', e); }
-    }
+        mainCb.addEventListener('change', update);
+        update();
+      });
 
-    document.addEventListener('DOMContentLoaded', function(){
-      renderCustomLists();
-      // wire save/load buttons
-      document.getElementById('saveConfigBtn').addEventListener('click', function(){ saveCustomization(); });
-      document.getElementById('loadConfigBtn').addEventListener('click', function(){ loadCustomization(); });
+      // generic subitem checkbox -> enable its qty input
+      function bindSubitemBehaviour(subCb) {
+        const id = subCb.id;
+        const qtyId = 'q' + id.slice(3);
+        const qtyEl = document.getElementById(qtyId);
+        subCb.addEventListener('change', function() {
+          if (qtyEl) {
+            qtyEl.disabled = !subCb.checked;
+            if (!subCb.checked) qtyEl.value = '';
+          }
+        });
+        if (qtyEl) qtyEl.disabled = !subCb.checked;
+      }
 
-      // load on startup if possible
-      setTimeout(function(){ loadCustomization(); }, 300);
-    });
+      function bindAllSubitems() {
+        document.querySelectorAll('.subitem').forEach(function(subCb) {
+          // To avoid double-binding, use data-bound attribute
+          if (!subCb.hasAttribute('data-bound')) {
+            subCb.setAttribute('data-bound','1');
+            bindSubitemBehaviour(subCb);
+          }
+        });
+      }
+      bindAllSubitems();
+
+      // Others main checkbox -> enable its qty
+      const otherMain = document.getElementById('p_other');
+      const otherQty = document.getElementById('q_other');
+      if (otherMain && otherQty) {
+        function updOther() {
+          otherQty.disabled = !otherMain.checked;
+          if (!otherMain.checked) otherQty.value = '';
+        }
+        otherMain.addEventListener('change', updOther);
+        updOther();
+      }
+
+      // --- NEW: Add Sub-item button handler ---
+      function makeUniqueId(prefix) {
+        return prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*90000+10000);
+      }
+
+      addSubBtn.addEventListener('click', function() {
+        const cat = addCategory.value; // floor, wall, san, acc
+        const labelText = (newSubLabel.value || "").toString().trim();
+        if (!labelText) { alert('Enter label for new sub-item'); return; }
+        let targetSublistId = null;
+        if (cat === 'floor') targetSublistId = 'sublist_floor';
+        if (cat === 'wall') targetSublistId = 'sublist_wall';
+        if (cat === 'san') targetSublistId = 'sublist_san';
+        if (cat === 'acc') targetSublistId = 'sublist_acc';
+        if (!targetSublistId) { alert('Invalid category'); return; }
+        const subDiv = document.getElementById(targetSublistId);
+        if (!subDiv) { alert('Target sublist not found'); return; }
+
+        // create unique ids similar to existing pattern: sub_<cat>_<name>
+        const baseId = makeUniqueId('sub_dyn_' + cat);
+        const checkboxId = baseId;
+        const labelId = 'label_' + checkboxId;
+        const qtyId = 'q' + checkboxId.slice(3);
+
+        // build DOM
+        const wrapper = document.createElement('div');
+        wrapper.className = 'sub-item';
+
+        const lab = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'subitem';
+        cb.id = checkboxId;
+        cb.value = labelText;
+
+        const span = document.createElement('span');
+        span.className = 'editable';
+        span.id = labelId;
+        span.setAttribute('data-config-id', checkboxId + '_label');
+        span.textContent = labelText;
+
+        lab.appendChild(cb);
+        lab.appendChild(span);
+
+        const qty = document.createElement('input');
+        qty.type = 'number';
+        qty.min = '0';
+        qty.step = '1';
+        qty.id = qtyId;
+        qty.className = 'subqty qty';
+        qty.placeholder = 'How many';
+        qty.disabled = true;
+
+        const rem = document.createElement('button');
+        rem.type = 'button';
+        rem.className = 'remove-btn';
+        rem.title = 'Remove sub-item';
+        rem.textContent = '🗑';
+
+        // attach remove handler
+        rem.addEventListener('click', function(ev) {
+          ev.stopPropagation();
+          if (!confirm('Remove this sub-item?')) return;
+          wrapper.parentNode.removeChild(wrapper);
+          refreshEditableList();
+        });
+
+        // append children and to DOM
+        wrapper.appendChild(lab);
+        wrapper.appendChild(qty);
+        wrapper.appendChild(rem);
+        subDiv.appendChild(wrapper);
+
+        // bind behaviour to checkbox
+        bindSubitemBehaviour(cb);
+
+        // refresh editable list so new span participates in save/load
+        refreshEditableList();
+
+        // show sublist if not visible and check the main
+        const mainCheckbox = document.getElementById('p_' + cat);
+        if (mainCheckbox) { mainCheckbox.checked = true; mainCheckbox.dispatchEvent(new Event('change')); }
+
+        // clear input
+        newSubLabel.value = '';
+
+        // if in customize mode, ensure remove buttons visible
+        if (customizeMode) rem.style.display = 'inline-block';
+      });
+
+      // show remove buttons next to preexisting items as well (bind remove handlers)
+      (function bindExistingRemoveButtons(){
+        const exists = document.querySelectorAll('.sub-item');
+        exists.forEach(function(item){
+          const btn = item.querySelector('.remove-btn');
+          if (!btn) return;
+          if (!btn.hasAttribute('data-bound')) {
+            btn.setAttribute('data-bound','1');
+            btn.addEventListener('click', function(ev) {
+              ev.stopPropagation();
+              if (!confirm('Remove this sub-item?')) return;
+              item.parentNode.removeChild(item);
+              refreshEditableList();
+            });
+          }
+        });
+      })();
+
+      // Ensure remove buttons visibility initial state
+      document.querySelectorAll('.remove-btn').forEach(b => b.style.display = 'none');
+
+      // expose helper to refresh & rebind subitems (useful after dynamic changes)
+      window._refreshBindings = function() {
+        bindAllSubitems();
+        refreshEditableList();
+        // ensure remove buttons respect customize mode
+        const shows = customizeMode ? 'inline-block' : 'none';
+        document.querySelectorAll('.remove-btn').forEach(b => b.style.display = shows);
+      };
+
+      // initial binding refresh
+      window._refreshBindings();
+
+    }); // DOMContentLoaded end
   </script>
 </body>
 </html>
