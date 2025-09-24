@@ -147,6 +147,20 @@
       #customPanel .close-x { font-size:22px; right:6px; top:6px; }
     }
 
+    /* delete button next to labels (hidden by default, shown in customize mode) */
+    .del-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: #b71c1c;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 2px 6px;
+      margin-left: 6px;
+      border-radius: 4px;
+    }
+    .customize-mode .del-btn { display: inline-block; }
+
   </style>
 </head>
 <body>
@@ -175,6 +189,26 @@
           <button id="cancelCustomBtn" type="button" style="background:#6c757d">Cancel</button>
         </div>
       </div>
+
+      <!-- NEW: Add / Remove sub-item controls -->
+      <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
+        <strong>Add / Remove Sub-items</strong>
+        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red ✕ next to each sub-item label to remove it.</div>
+
+        <div class="panel-row" style="margin-top:8px; align-items:center;">
+          <select id="addCategorySelect" style="width:40%; padding:8px; font-size:14px;">
+            <option value="floor">Floor Tiles</option>
+            <option value="wall">Wall Tiles</option>
+            <option value="san">Sanitaryware</option>
+            <option value="acc">Accessories</option>
+          </select>
+          <input id="addSubLabelInput" type="text" placeholder="New sub-item label (e.g. 'Large format tiles')" style="flex:1; margin-left:8px;">
+          <button id="addSubBtn" type="button" style="margin-left:8px;">Add Sub-item</button>
+        </div>
+        <div class="panel-row" style="margin-top:8px;">
+          <div class="note">Note: IDs of dynamically added items start with <code>sub_</code> (e.g. <code>sub_floor_custom1</code>) so they integrate with the submission logic. Deleting an item removes it from the DOM immediately.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Purchased items with inline qty and nested subitems -->
@@ -189,33 +223,38 @@
         </label>
       </div>
       <div class="sublist" id="sublist_floor">
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="How many" disabled>
         </div>
@@ -229,21 +268,24 @@
         </label>
       </div>
       <div class="sublist" id="sublist_wall">
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="How many" disabled>
         </div>
@@ -257,21 +299,24 @@
         </label>
       </div>
       <div class="sublist" id="sublist_san">
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="How many" disabled>
         </div>
@@ -285,39 +330,45 @@
         </label>
       </div>
       <div class="sublist" id="sublist_acc">
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="How many" disabled>
         </div>
-        <div class="sub-item">
+        <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
           <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="How many" disabled>
         </div>
@@ -414,12 +465,42 @@
       const cancelCustomBtn = document.getElementById('cancelCustomBtn');
       const loadDefaultBtn = document.getElementById('loadDefaultBtn');
       const panelCloseX = document.getElementById('panelCloseX');
+      const addCategorySelect = document.getElementById('addCategorySelect');
+      const addSubLabelInput = document.getElementById('addSubLabelInput');
+      const addSubBtn = document.getElementById('addSubBtn');
 
       let customizeMode = false;
       let editingSession = false;
 
-      // collect all editable spans
+      // collect all editable spans (will be augmented when we add items)
       const editableEls = Array.from(document.querySelectorAll('.editable'));
+
+      // helper to register an editable element (so dynamically added ones behave like originals)
+      function registerEditable(el) {
+        if (!el) return;
+        if (editableEls.indexOf(el) === -1) editableEls.push(el);
+        el.setAttribute('contenteditable','false');
+        el.addEventListener('click', function(ev) {
+          if (!customizeMode) return;
+          if (editingSession) return;
+          alert('Click "Apply Preview" in the customization panel to start editing labels.');
+        });
+        el.addEventListener('blur', function() {
+          if (el.getAttribute('data-editing')) {
+            el.contentEditable = "false";
+            el.removeAttribute('data-editing');
+          }
+        });
+        el.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+          }
+        });
+      }
+
+      // register current editables (initial)
+      editableEls.forEach(registerEditable);
 
       // helper to toggle UI interactivity while customizing
       function setCustomizeMode(on) {
@@ -438,8 +519,8 @@
           }
         });
 
+        // show/hide delete buttons for subitems by CSS (uses .customize-mode)
         if (customizeMode) {
-          // show panel
           customPanel.style.display = 'block';
         } else {
           customPanel.style.display = 'none';
@@ -462,7 +543,7 @@
       function startEditingSession() {
         editingSession = true;
         // make labels editable
-        editableEls.forEach(el => {
+        Array.from(document.querySelectorAll('.editable')).forEach(el => {
           el.contentEditable = "true";
           el.classList.add('editing');
           // remove no-pointer on editable spans so they remain clickable even though inputs are blocked
@@ -471,7 +552,7 @@
         // hide the panel so user can interact with labels
         customPanel.style.display = 'none';
         // put focus in first editable
-        const first = editableEls[0];
+        const first = document.querySelector('.editable');
         if (first) {
           first.focus();
           // place caret at end
@@ -491,41 +572,14 @@
       // end editing session: make labels non-editable
       function endEditingSession() {
         editingSession = false;
-        editableEls.forEach(el => {
+        Array.from(document.querySelectorAll('.editable')).forEach(el => {
           try { el.contentEditable = "false"; } catch(e){}
           el.classList.remove('editing');
         });
       }
 
       // Clicking an editable span starts inline editing only when in customizeMode AND editingSession active (we trigger editingSession via Apply Preview)
-      editableEls.forEach(el => {
-        el.setAttribute('contenteditable','false');
-        el.addEventListener('click', function(ev) {
-          if (!customizeMode) return;
-          // if the user already applied preview (editingSession true), allow inline click (we already set contentEditable)
-          if (editingSession) {
-            // nothing — element is already editable
-            return;
-          }
-          // if panel is open, clicking the label should not start edit. We expect user to press Apply Preview first.
-          // Give a hint:
-          alert('Click "Apply Preview" in the customization panel to start editing labels.');
-        });
-        // finish editing on blur
-        el.addEventListener('blur', function() {
-          if (el.getAttribute('data-editing')) {
-            el.contentEditable = "false";
-            el.removeAttribute('data-editing');
-          }
-        });
-        // Enter to finish editing
-        el.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            el.blur();
-          }
-        });
-      });
+      // (initial registration done earlier)
 
       // Apply Preview: enter editing session (close panel, allow inline edits)
       applyPreviewBtn.addEventListener('click', function() {
@@ -584,7 +638,7 @@
       function buildConfigObject() {
         const cfg = { labels: {}, title: '' };
         cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
-        editableEls.forEach(el => {
+        Array.from(document.querySelectorAll('.editable')).forEach(el => {
           const key = el.getAttribute('data-config-id') || el.id || null;
           if (key) cfg.labels[key] = el.textContent.trim();
         });
@@ -672,8 +726,9 @@
         update();
       });
 
-      // generic subitem checkbox -> enable its qty input
-      document.querySelectorAll('.subitem').forEach(function(subCb) {
+      // generic subitem checkbox -> enable its qty input (works for dynamic items too)
+      function bindSubitemToggle(subCb) {
+        if (!subCb) return;
         const id = subCb.id;
         const qtyId = 'q' + id.slice(3);
         const qtyEl = document.getElementById(qtyId);
@@ -684,7 +739,117 @@
           }
         });
         if (qtyEl) qtyEl.disabled = !subCb.checked;
+      }
+      // register existing subitems
+      document.querySelectorAll('.subitem').forEach(bindSubitemToggle);
+
+      // delete-button handler (delegated)
+      document.body.addEventListener('click', function(ev) {
+        const btn = ev.target && ev.target.classList && ev.target.classList.contains('del-btn') ? ev.target : null;
+        if (!btn) return;
+        // ensure in customize mode
+        if (!container.classList.contains('customize-mode')) {
+          alert('Enter Customize mode to remove items.');
+          return;
+        }
+        // find enclosing .sub-item
+        const subItem = btn.closest('.sub-item');
+        if (!subItem) return;
+        const labelSpan = subItem.querySelector('.editable');
+        const labelText = labelSpan ? labelSpan.textContent.trim() : '';
+        if (!confirm('Remove sub-item "' + labelText + '"? This will delete it from the form.')) return;
+        // remove the node
+        try { subItem.parentNode.removeChild(subItem); } catch(e) { console.warn('remove failed', e); }
       });
+
+      // Add Sub-item button logic
+      addSubBtn.addEventListener('click', function() {
+        const cat = addCategorySelect.value || 'floor';
+        const rawLabel = (addSubLabelInput.value || "").trim();
+        if (!rawLabel) { alert('Enter a label for the new sub-item.'); return; }
+        // generate safe id: sub_<cat>_<slug or timestamp>
+        const slug = rawLabel.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+        // ensure uniqueness by suffixing counter if needed
+        let baseId = 'sub_' + cat + (slug ? '_' + slug : '') ;
+        let candidate = baseId;
+        let i = 1;
+        while (document.getElementById(candidate)) {
+          candidate = baseId + '_' + i;
+          i++;
+        }
+        const subId = candidate;
+        const qtyId = 'q' + subId.slice(3); // follow existing convention
+
+        // build DOM nodes
+        const subDiv = document.createElement('div');
+        subDiv.className = 'sub-item';
+        subDiv.setAttribute('data-generated','true');
+
+        const labelEl = document.createElement('label');
+        // checkbox
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'subitem';
+        cb.id = subId;
+        cb.value = rawLabel;
+        // editable span
+        const span = document.createElement('span');
+        span.className = 'editable';
+        span.setAttribute('data-config-id', subId + '_label');
+        span.id = 'label_' + subId;
+        span.textContent = rawLabel;
+        // delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = 'del-btn';
+        delBtn.type = 'button';
+        delBtn.title = 'Remove sub-item';
+        delBtn.setAttribute('aria-label','Remove');
+        delBtn.textContent = '✕';
+
+        labelEl.appendChild(cb);
+        labelEl.appendChild(span);
+        labelEl.appendChild(delBtn);
+
+        const qty = document.createElement('input');
+        qty.type = 'number';
+        qty.min = '0';
+        qty.step = '1';
+        qty.placeholder = 'How many';
+        qty.className = 'subqty qty';
+        qty.id = qtyId;
+        qty.disabled = true;
+
+        subDiv.appendChild(labelEl);
+        subDiv.appendChild(qty);
+
+        // append to correct sublist
+        const map = { floor: 'sublist_floor', wall: 'sublist_wall', san: 'sublist_san', acc: 'sublist_acc' };
+        const target = document.getElementById(map[cat] || 'sublist_floor');
+        if (!target) {
+          alert('Could not find category container. Aborting.');
+          return;
+        }
+        target.appendChild(subDiv);
+
+        // register new editable and bind checkbox->qty behavior
+        registerEditable(span);
+        bindSubitemToggle(cb);
+
+        // clear input and give small focus feedback
+        addSubLabelInput.value = '';
+        showTempMessage('Added: ' + rawLabel);
+
+        // if customize mode is off, briefly flash the delete button until user opens customization
+        // delete buttons are visible only when .customize-mode is active (CSS). nothing else required.
+      });
+
+      // small helper to show temporary message in #msg
+      function showTempMessage(text) {
+        const m = document.getElementById('msg');
+        if (!m) return;
+        m.textContent = text; m.style.display='block';
+        setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 2500);
+      }
 
       // Others main checkbox -> enable its qty
       const otherMain = document.getElementById('p_other');
