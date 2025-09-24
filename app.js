@@ -417,17 +417,80 @@ function saveConfigToServer(cfg) {
 window.loadSavedConfig = loadSavedConfig;
 window.saveConfigToServer = saveConfigToServer;
 window.getCurrentCustomization = function() {
-  // Build object matching what the customize panel expects: { title: "...", labels: { key: value } }
   try {
-    const cfg = { title: '', labels: {} };
-    cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
+    const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
+
+    // title + label map
+    cfg.title = (document.getElementById('appTitle') || { textContent: '' }).textContent.trim();
     Array.from(document.querySelectorAll('.editable')).forEach(el => {
       const key = el.getAttribute('data-config-id') || el.id || null;
       if (key) cfg.labels[key] = el.textContent.trim();
     });
+
+    // main items + subitems structure
+    const purchasedList = document.getElementById('purchasedList');
+    if (purchasedList) {
+      const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
+      itemRows.forEach(row => {
+        const cb = row.querySelector('input[type="checkbox"]');
+        if (!cb || !cb.id) return;
+        const mainId = cb.id;
+        const labelEl = row.querySelector('[data-config-id="' + mainId + '_label"]') || row.querySelector('#label_' + mainId) || row.querySelector('.editable');
+        const labelText = labelEl ? (labelEl.textContent || "").trim() : (cb.value || "");
+
+        // detect sublist id (convention or sibling)
+        let sublistId = null;
+        const parts = mainId.split('_');
+        const suffix = parts.length > 1 ? parts.slice(1).join('_') : mainId;
+        const candidateId = 'sublist_' + suffix;
+        if (document.getElementById(candidateId)) sublistId = candidateId;
+        else {
+          const next = row.nextElementSibling;
+          if (next && next.classList && next.classList.contains('sublist')) sublistId = next.id || null;
+        }
+
+        const mainObj = { id: mainId, label: labelText, sublistId: sublistId, subitems: [] };
+        if (mainObj.sublistId) {
+          const sl = document.getElementById(mainObj.sublistId);
+          if (sl) {
+            const subs = Array.from(sl.querySelectorAll('.sub-item'));
+            subs.forEach(si => {
+              const subCb = si.querySelector('input[type="checkbox"].subitem') || si.querySelector('input[type="checkbox"]');
+              if (!subCb || !subCb.id) return;
+              const subId = subCb.id;
+              const lab = si.querySelector('[data-config-id="' + subId + '_label"]') || si.querySelector('#label_' + subId) || si.querySelector('.editable');
+              const subLabel = lab ? (lab.textContent || "").trim() : (subCb.value || "");
+              mainObj.subitems.push({ id: subId, label: subLabel });
+            });
+          }
+        }
+        cfg.structure.mainItems.push(mainObj);
+      });
+    }
+
+    // payment modes structure
+    const modesContainer = document.getElementById('modes');
+    if (modesContainer) {
+      const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
+      modeRows.forEach(mr => {
+        const cb = mr.querySelector('input[type="checkbox"], input[type="radio"]');
+        if (!cb) return;
+        const id = cb.id || ('mode_' + Math.random().toString(36).slice(2,8));
+        const lab = mr.querySelector('[data-config-id="' + id + '_label"]') || mr.querySelector('#label_' + id) || mr.querySelector('.editable');
+        const labelText = lab ? (lab.textContent || "").trim() : (cb.value || "");
+        const amt = mr.querySelector('input[type="number"].mode-amount');
+        const amountInputId = amt ? (amt.id || null) : null;
+        const amountAttrName = amt ? (amt.getAttribute('data-mode-amount') || "") : "";
+        cfg.structure.modes.push({ id: id, label: labelText, amountInputId: amountInputId, amountAttrName: amountAttrName });
+      });
+    }
+
     return cfg;
-  } catch(e) { return { title: '', labels: {} }; }
+  } catch (e) {
+    return { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
+  }
 };
+
 
 // ---------- MAIN DOM bindings (unchanged submit flow, with small additions for auto-config load) ----------
 document.addEventListener('DOMContentLoaded', function() {
@@ -587,3 +650,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
+
