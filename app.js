@@ -199,8 +199,28 @@ function collectFormData(){
   }
 
   // --------- MODE handling (dedupe + canonicalize) ----------
+  // Build an array of mode objects (checkbox element, display label, amount if present)
   const rawModeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
-  const rawSelected = rawModeEls.filter(m=>m.checked).map(m=> (m.value || "").toString().trim() ).filter(x=>x!=="");
+  const modeObjs = rawModeEls.map(function(cb) {
+    const id = cb.id || '';
+    // prefer editable label span text if present
+    const displayLabel = getLabelFor(id, cb.value || '');
+    // amount input: try id 'amt_'+id, else first .mode-amount within same .mode-row, else input[data-mode-amount] with matching id
+    let amtInput = null;
+    if (id) amtInput = document.getElementById('amt_' + id);
+    if (!amtInput) {
+      const parent = cb.closest ? cb.closest('.mode-row') : null;
+      if (parent) amtInput = parent.querySelector('input.mode-amount');
+    }
+    if (!amtInput) {
+      // fallback: find any input with data-mode-amount that has attribute matching label (rare)
+      amtInput = document.querySelector('input[data-mode-amount][id="amt_' + id + '"]') || null;
+    }
+    const amtVal = amtInput && amtInput.value ? Number(amtInput.value) : 0;
+    return { el: cb, id: id, label: (displayLabel || '').toString().trim(), amountInput: amtInput, amount: amtVal };
+  });
+
+  const rawSelected = modeObjs.filter(m => m.el && m.el.checked).map(m => m.label).filter(Boolean);
 
   function canonicalLabel(v){
     if(!v) return v;
@@ -230,21 +250,16 @@ function collectFormData(){
   // --------- modeBreakdown: amounts ----------
   const breakdownParts = [];
   try {
-    const amtCashEl = document.getElementById('amt_cash');
-    const amtOnlineEl = document.getElementById('amt_online');
-    const amtCreditEl = document.getElementById('amt_credit');
-    if (document.getElementById('mode_cash') && document.getElementById('mode_cash').checked) {
-      const v = amtCashEl && amtCashEl.value ? Number(amtCashEl.value) : 0;
-      breakdownParts.push('Cash Rs.' + (v || 0));
-    }
-    if (document.getElementById('mode_online') && document.getElementById('mode_online').checked) {
-      const v = amtOnlineEl && amtOnlineEl.value ? Number(amtOnlineEl.value) : 0;
-      breakdownParts.push('Online Rs.' + (v || 0));
-    }
-    if (document.getElementById('mode_credit') && document.getElementById('mode_credit').checked) {
-      const v = amtCreditEl && amtCreditEl.value ? Number(amtCreditEl.value) : 0;
-      breakdownParts.push('Credit Rs.' + (v || 0));
-    }
+    // Use the modeObjs to gather amounts for checked modes (this covers dynamic/custom modes)
+    modeObjs.forEach(function(mo) {
+      if (mo && mo.el && mo.el.checked) {
+        // prefer numeric amount; if missing, treat as 0 (keep previous behavior)
+        const amt = (mo.amountInput && mo.amountInput.value) ? Number(mo.amountInput.value) : (mo.amount || 0);
+        breakdownParts.push((mo.label || mo.el.value || '').trim() + ' Rs.' + (amt || 0));
+      }
+    });
+
+    // If breakdownParts is still empty, fallback to scanning any inputs with data-mode-amount (non-checkbox-linked amounts)
     if (breakdownParts.length === 0) {
       const amtEls = Array.from(document.querySelectorAll('input[data-mode-amount]'));
       amtEls.forEach(el => {
