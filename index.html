@@ -166,6 +166,19 @@
       display:inline-flex;
     }
 
+    /* Purchased-from custom manager styling */
+    #customVendorManager {
+      border:1px dashed #cfcfcf;
+      padding:8px;
+      border-radius:6px;
+      background:#fafafa;
+      margin-top:8px;
+    }
+    #customVendorManager .vendor-list { max-height:160px; overflow:auto; margin-bottom:8px; }
+    #customVendorManager .vendor-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px; border-radius:4px; background:white; margin-bottom:6px; border:1px solid #eee; }
+    #customVendorManager .vendor-item button { background:#b71c1c; padding:6px 8px; border-radius:6px; border:none; font-weight:700; }
+    #customVendorManager .vendor-actions { display:flex; gap:8px; align-items:center; }
+    #customVendorManager input[type="text"] { margin-top:0; margin-bottom:0; }
   </style>
 </head>
 <body>
@@ -394,17 +407,30 @@
 
     </div>
 
-    <!-- Purchased from (changed to dropdown + optional input) -->
+    <!-- Purchased from (dropdown with Customised management) -->
     <label class="q-label">Purchased from</label>
     <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
       <select id="purchasedFromSelect" style="flex:1; padding:8px; font-size:15px;">
         <option value="Delhi Tiles Company">Delhi Tiles Company</option>
         <option value="Mumbai Tiles Company">Mumbai Tiles Company</option>
         <option value="Mumbai Marble Company">Mumbai Marble Company</option>
+        <!-- custom vendor options will be inserted here dynamically -->
+        <option value="Customised">Customised</option>
         <option value="Other">Other</option>
       </select>
       <!-- keep id 'purchasedFrom' so existing app.js keeps working; show only when Other selected -->
       <input id="purchasedFrom" type="text" placeholder="If Other — specify vendor name" style="flex:1; display:none;">
+    </div>
+
+    <!-- custom vendor manager (hidden by default) -->
+    <div id="customVendorManager" style="display:none;">
+      <div style="font-weight:700; margin-bottom:6px;">Manage custom vendors</div>
+      <div class="vendor-list" id="vendorList"></div>
+      <div class="vendor-actions">
+        <input id="newVendorInput" type="text" placeholder="Add new vendor name" style="flex:1;">
+        <button id="addVendorBtn" type="button">Add</button>
+      </div>
+      <div style="font-size:12px;color:#555;margin-top:8px">Fixed options (Delhi/Mumbai/Mumbai Marble/Other) cannot be removed. Use this panel to add vendors specific to your shop. Click Save (server) to persist changes to the system.</div>
     </div>
 
     <!-- Mode of payment (checkboxes with inline amounts) -->
@@ -614,7 +640,7 @@
         setCustomizeMode(false);
       });
 
-      // panel close X (same as cancel but leaves customize mode if editing)
+      // panel close X (same as cancel but leaves customise mode if editing)
       panelCloseX.addEventListener('click', function() {
         if (editingSession) {
           if (!confirm('Editing in progress. Close panel but keep edit mode? (Choose Cancel in panel to abort edits)')) {
@@ -1033,6 +1059,22 @@
           });
         }
 
+        // --- NEW: Purchased-from custom vendors capture ---
+        try {
+          const sel = document.getElementById('purchasedFromSelect');
+          const txt = document.getElementById('purchasedFrom');
+          const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
+          const items = [];
+          if (sel && sel.options) {
+            for (let i=0;i<sel.options.length;i++){
+              const o = sel.options[i];
+              if (fixed.indexOf(o.value) === -1) items.push(o.value);
+            }
+          }
+          const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
+          cfg.purchasedFromCustom = { items: items, selected: selectedValue };
+        } catch(e){ /* ignore */ }
+
         return cfg;
       }
 
@@ -1050,6 +1092,8 @@
           if (resp && resp.success) {
             alert('Customization saved on server.');
             setCustomizeMode(false);
+            // also persist locally (so dropdown updates instantly survive reloads before server sync)
+            try { localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom || {})); } catch(e){}
           } else {
             console.error('save resp', resp);
             alert('Save failed. Server returned error. Check console.');
@@ -1069,10 +1113,25 @@
           if (resp && resp.success && resp.config) {
             applyConfig(resp.config);
           } else {
-            // no config found or error; ignore
+            // no config found or error; fallback to localStorage for purchasedFromCustom
+            try {
+              const local = localStorage.getItem('purchasedFromCustom');
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+              }
+            } catch(e){}
           }
         } catch (e) {
           console.warn('Could not load config:', e);
+          // fallback to localStorage as above
+          try {
+            const local = localStorage.getItem('purchasedFromCustom');
+            if (local) {
+              const parsed = JSON.parse(local);
+              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+            }
+          } catch(e){}
         }
       })();
 
@@ -1302,6 +1361,11 @@
         bindSubitemHandlers();
         setupMainToSubBindings();
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+
+        // --- NEW: apply purchasedFrom custom data if present ---
+        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
+          applyPurchasedFromConfig(cfg.purchasedFromCustom.items, cfg.purchasedFromCustom.selected || '');
+        }
       } // end applyConfig
 
       // expose helper for debugging
@@ -1338,28 +1402,215 @@
       // initial: hide custom panel if not customizing
       customPanel.style.display = 'none';
 
-      // ----------------- NEW: Purchased From select + input sync ----------------
-      (function setupPurchasedFrom() {
+      // ----------------- NEW: Purchased From select + custom manager ----------------
+      (function setupPurchasedFromManager() {
         const sel = document.getElementById('purchasedFromSelect');
-        const txt = document.getElementById('purchasedFrom'); // keep id so app.js reads it unchanged
-        if (!sel || !txt) return;
-        function updateFromSelection() {
-          const v = sel.value || '';
-          if (v === 'Other') {
-            txt.style.display = ''; // show
-            txt.value = '';         // let user type
+        const txt = document.getElementById('purchasedFrom');
+        const manager = document.getElementById('customVendorManager');
+        const vendorListEl = document.getElementById('vendorList');
+        const newVendorInput = document.getElementById('newVendorInput');
+        const addVendorBtn = document.getElementById('addVendorBtn');
+
+        const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
+        let customVendors = []; // string array
+        let prevSelected = sel && sel.value ? sel.value : '';
+
+        // helper to rebuild select options based on fixed + custom + special options
+        function rebuildSelect(selectedVal) {
+          if (!sel) return;
+          // remember previous selection
+          const prev = sel.value;
+          sel.innerHTML = '';
+          // add fixed companies
+          ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company'].forEach(v => {
+            const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
+          });
+          // add custom vendors
+          customVendors.forEach(v => {
+            const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
+          });
+          // special Customised option (opens manager)
+          const oCust = document.createElement('option'); oCust.value = 'Customised'; oCust.textContent = 'Customised'; sel.appendChild(oCust);
+          // Other option
+          const oOther = document.createElement('option'); oOther.value = 'Other'; oOther.textContent = 'Other'; sel.appendChild(oOther);
+
+          // set selected
+          if (selectedVal) {
+            // prefer exact match
+            const match = Array.from(sel.options).find(opt => opt.value === selectedVal);
+            if (match) sel.value = selectedVal;
+            else {
+              // if selectedVal not found but non-fixed, insert it as a custom vendor so it can be selected
+              if (selectedVal && fixed.indexOf(selectedVal) === -1) {
+                customVendors.unshift(selectedVal);
+                rebuildSelect(selectedVal);
+                return;
+              } else {
+                // fallback to first option
+                sel.selectedIndex = 0;
+              }
+            }
+          } else {
+            // if prev was custom and still available, keep it
+            const m = Array.from(sel.options).find(opt => opt.value === prev);
+            if (m) sel.value = prev;
+            else sel.selectedIndex = 0;
+          }
+
+          // trigger change handling
+          handleSelectChange();
+        }
+
+        // render vendor manager UI list
+        function renderVendorList() {
+          if (!vendorListEl) return;
+          vendorListEl.innerHTML = '';
+          if (customVendors.length === 0) {
+            vendorListEl.innerHTML = '<div style="color:#666;font-size:13px">No custom vendors added yet.</div>';
+            return;
+          }
+          customVendors.forEach((v, idx) => {
+            const div = document.createElement('div');
+            div.className = 'vendor-item';
+            const left = document.createElement('div'); left.textContent = v;
+            const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Remove';
+            btn.addEventListener('click', function(){
+              if (!confirm('Remove custom vendor "' + v + '"?')) return;
+              customVendors.splice(idx,1);
+              renderVendorList();
+              rebuildSelect();
+              // if removed vendor was selected in main select, reset the purchasedFrom value
+              if (sel.value === v) {
+                sel.selectedIndex = 0;
+                handleSelectChange();
+              }
+            });
+            div.appendChild(left);
+            div.appendChild(btn);
+            vendorListEl.appendChild(div);
+          });
+        }
+
+        // add new vendor handler
+        function addVendorFromInput() {
+          const raw = (newVendorInput && newVendorInput.value) ? newVendorInput.value.trim() : '';
+          if (!raw) { alert('Enter a vendor name to add.'); return; }
+          if (fixed.indexOf(raw) !== -1) { alert('This name is reserved (fixed option).'); return; }
+          if (customVendors.indexOf(raw) !== -1) { alert('Vendor already exists in the custom list.'); return; }
+          customVendors.push(raw);
+          newVendorInput.value = '';
+          renderVendorList();
+          rebuildSelect(raw);
+          // make sure manager stays open so user can continue
+          manager.style.display = '';
+        }
+
+        if (addVendorBtn) addVendorBtn.addEventListener('click', addVendorFromInput);
+        if (newVendorInput) newVendorInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); addVendorFromInput(); } });
+
+        // when select changes
+        function handleSelectChange() {
+          if (!sel || !txt) return;
+          const val = sel.value;
+          // If user selected the special 'Customised' option: open manager, revert selection to previous
+          if (val === 'Customised') {
+            manager.style.display = '';
+            // restore previous selection (so clicking 'Customised' only opens manager)
+            if (prevSelected && prevSelected !== 'Customised') {
+              const match = Array.from(sel.options).find(o => o.value === prevSelected);
+              if (match) sel.value = prevSelected;
+            } else {
+              // if no prev, select first custom vendor or first fixed
+              if (customVendors.length > 0) {
+                sel.value = customVendors[0];
+              } else {
+                sel.selectedIndex = 0;
+              }
+            }
+            // ensure selected value reflects actual vendor
+            updateHiddenPurchasedFrom();
+            return;
+          }
+
+          // hide manager for other selections
+          manager.style.display = (val === 'Customised') ? '' : 'none';
+
+          // Other -> show text input for free entry
+          if (val === 'Other') {
+            txt.style.display = '';
+            txt.value = '';
             txt.focus && txt.focus();
             txt.disabled = false;
           } else {
-            // hide the text input but keep value in it for app.js to read
+            // normal vendor selected -> hide text input & set its value so app.js can read
             txt.style.display = 'none';
-            txt.value = v;
-            txt.disabled = false; // keep enabled so collectFormData can read it reliably
+            txt.value = val;
+            txt.disabled = false;
+          }
+          prevSelected = sel.value;
+          updateHiddenPurchasedFrom();
+        }
+
+        function updateHiddenPurchasedFrom() {
+          // ensure the hidden text field (purchasedFrom) contains the final vendor name for app.js to read
+          if (!sel || !txt) return;
+          if (sel.value === 'Other') {
+            // user must type into txt
+            // leave as-is
+          } else {
+            // set txt to selection value
+            txt.value = sel.value;
           }
         }
-        // initialize on load
-        updateFromSelection();
-        sel.addEventListener('change', updateFromSelection);
+
+        // apply initial custom vendors from localStorage if present
+        try {
+          const local = localStorage.getItem('purchasedFromCustom');
+          if (local) {
+            const parsed = JSON.parse(local);
+            if (parsed && Array.isArray(parsed.items)) {
+              customVendors = parsed.items.slice();
+              rebuildSelect(parsed.selected || '');
+              renderVendorList();
+            } else {
+              rebuildSelect();
+              renderVendorList();
+            }
+          } else {
+            rebuildSelect();
+            renderVendorList();
+          }
+        } catch(e){
+          rebuildSelect();
+          renderVendorList();
+        }
+
+        // attach events
+        sel.addEventListener('change', function(){ handleSelectChange(); });
+        // text input save on blur -> keep selection consistent
+        txt.addEventListener('input', function(){ /* no-op; app.js reads txt when submitting */ });
+
+        // public helper used in applyConfig path to set items & selection
+        window.__applyPurchasedFromConfig = function(items, selected) {
+          try {
+            customVendors = Array.isArray(items) ? items.slice() : [];
+            // store locally
+            try { localStorage.setItem('purchasedFromCustom', JSON.stringify({ items: customVendors, selected: selected || '' })); } catch(e){}
+            renderVendorList();
+            rebuildSelect(selected || '');
+          } catch(e){}
+        };
+
+        // expose a small local helper to let applyConfig call it
+        function loadFromConfig(cfgItems, cfgSelected) {
+          window.__applyPurchasedFromConfig(cfgItems, cfgSelected);
+        }
+
+        // also expose function used earlier in applyConfig
+        window.applyPurchasedFromConfig = function(items, selected) {
+          loadFromConfig(items, selected);
+        };
+
       })();
       // ----------------------------------------------------------------------
 
@@ -1367,4 +1618,3 @@
   </script>
 </body>
 </html>
-
