@@ -608,6 +608,238 @@
         setCustomizeMode(false);
       });
 
+      // ---------- REMOVE-button support for customization (paste into DOMContentLoaded) ----------
+
+/**
+ * Add small red remove buttons next to editable labels while in customize/edit mode.
+ * Buttons have class .remove-checkbox and are removed when customize mode ends.
+ */
+function addRemoveButtons() {
+  // remove existing first
+  hideRemoveButtons();
+
+  // helper to create button
+  function makeBtn() {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'remove-checkbox';
+    b.title = 'Remove this item';
+    b.textContent = '×';
+    // style inline so no external CSS edits required
+    b.style.marginLeft = '8px';
+    b.style.background = '#ff6b6b';
+    b.style.color = '#fff';
+    b.style.border = 'none';
+    b.style.borderRadius = '50%';
+    b.style.width = '26px';
+    b.style.height = '26px';
+    b.style.lineHeight = '20px';
+    b.style.padding = '0';
+    b.style.cursor = 'pointer';
+    b.style.fontWeight = '700';
+    b.style.display = 'inline-flex';
+    b.style.alignItems = 'center';
+    b.style.justifyContent = 'center';
+    b.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
+    return b;
+  }
+
+  // Add to main item rows (.item-row)
+  document.querySelectorAll('.item-row').forEach(function(row) {
+    // don't add multiple times
+    if (row.querySelector('.remove-checkbox')) return;
+    const btn = makeBtn();
+    // mark role
+    btn.setAttribute('data-remove-role', 'main');
+    row.appendChild(btn);
+  });
+
+  // Add to sub-items
+  document.querySelectorAll('.sub-item').forEach(function(si) {
+    if (si.querySelector('.remove-checkbox')) return;
+    const btn = makeBtn();
+    btn.setAttribute('data-remove-role', 'sub');
+    // place at end of sub-item
+    si.appendChild(btn);
+  });
+
+  // Add to each mode-row
+  document.querySelectorAll('.mode-row').forEach(function(mr){
+    if (mr.querySelector('.remove-checkbox')) return;
+    const btn = makeBtn();
+    btn.setAttribute('data-remove-role', 'mode');
+    mr.appendChild(btn);
+  });
+}
+
+/** Remove all visible remove buttons */
+function hideRemoveButtons() {
+  document.querySelectorAll('.remove-checkbox').forEach(function(b){ b.remove(); });
+}
+
+/**
+ * Remove wrapper: handles main item rows, sub-items and mode rows.
+ * Keeps things tidy (if main item removed, also removes its sublist)
+ */
+function removeWrapperForButton(btn) {
+  if (!btn) return;
+  // find the wrapper row for deletion
+  const subItem = btn.closest('.sub-item');
+  const itemRow = btn.closest('.item-row');
+  const modeRow = btn.closest('.mode-row');
+
+  if (subItem) {
+    if (!confirm('Remove this sub-item? This cannot be undone.')) return;
+    // If subitem contains a checkbox and qty, remove it
+    subItem.remove();
+  } else if (itemRow) {
+    if (!confirm('Remove this main item and its sub-items? This cannot be undone.')) return;
+    // if there's a main checkbox inside, attempt to find its id to remove sublist too
+    try {
+      const cb = itemRow.querySelector('input[type="checkbox"].purchased, input[type="checkbox"]');
+      if (cb && cb.id) {
+        // conventional mapping: main id like p_floor -> sublist_floor
+        const mainId = cb.id;
+        // derive suffix after first underscore, but also fallback
+        const parts = mainId.split('_');
+        const suffix = parts.length > 1 ? parts.slice(1).join('_') : mainId;
+        const sublistId = 'sublist_' + suffix;
+        const sublist = document.getElementById(sublistId);
+        if (sublist) sublist.remove();
+      }
+    } catch(e){ /* ignore */ }
+    itemRow.remove();
+  } else if (modeRow) {
+    if (!confirm('Remove this payment mode? This cannot be undone.')) return;
+    // remove the entire mode row
+    modeRow.remove();
+  } else {
+    // fallback: remove parent if safe
+    const parent = btn.parentElement;
+    if (parent) parent.remove();
+  }
+
+  // after removal, re-bind behaviors
+  bindSubitemHandlers();
+  setupMainToSubBindings();
+}
+
+/** Event delegation: listen for remove button clicks */
+container.addEventListener('click', function(ev) {
+  const btn = ev && ev.target && ev.target.closest && ev.target.closest('.remove-checkbox');
+  if (!btn) return;
+  // only allow removal while in customize mode
+  if (!customizeMode) {
+    alert('Enable Customize mode to remove items.');
+    return;
+  }
+  ev.stopPropagation();
+  ev.preventDefault();
+  removeWrapperForButton(btn);
+});
+
+/** Ensure remove buttons show when editing session is active; hide when customizing off */
+const origStartEditing = startEditingSession;
+startEditingSession = function() {
+  origStartEditing();
+  addRemoveButtons();
+};
+const origEndEditing = endEditingSession;
+endEditingSession = function() {
+  origEndEditing();
+  hideRemoveButtons();
+};
+
+/** Helper: rebind subitem checkbox -> qty behavior for any new items */
+function bindSubitemHandlers() {
+  // unbind previous (simple approach: remove all prior change listeners by cloning)
+  document.querySelectorAll('.subitem').forEach(function(sb){
+    // ensure the matching qty id exists
+    const qtyId = 'q' + sb.id.slice(3);
+    const qtyEl = document.getElementById(qtyId);
+    // ensure single listener: remove old then add new
+    // easiest remove by replacing node (safe for this UI)
+    // but to avoid altering identity, we use addEventListener with a stable handler
+    sb.removeEventListener('_custom_qty_handler', sb._custom_qty_handler); // harmless if undefined
+    const handler = function() {
+      if (qtyEl) {
+        qtyEl.disabled = !sb.checked;
+        if (!sb.checked) qtyEl.value = '';
+      }
+    };
+    // store reference so we can remove later if needed
+    sb._custom_qty_handler = handler;
+    sb.addEventListener('change', handler);
+    // initial state
+    if (qtyEl) qtyEl.disabled = !sb.checked;
+  });
+
+  // bind others main toggle too (others main)
+  const otherMain = document.getElementById('p_other');
+  const otherQty = document.getElementById('q_other');
+  if (otherMain && otherQty) {
+    otherMain.removeEventListener('_custom_other_handler', otherMain._custom_other_handler);
+    const oh = function() {
+      otherQty.disabled = !otherMain.checked;
+      if (!otherMain.checked) otherQty.value = '';
+    };
+    otherMain._custom_other_handler = oh;
+    otherMain.addEventListener('change', oh);
+    oh();
+  }
+}
+
+/** Helper: re-attach main -> sublist toggles (for main items) */
+function setupMainToSubBindings() {
+  const mainToSub = {
+    'p_floor': 'sublist_floor',
+    'p_wall': 'sublist_wall',
+    'p_san':  'sublist_san',
+    'p_acc':  'sublist_acc'
+  };
+  // Clear previous listeners by re-binding
+  Object.keys(mainToSub).forEach(mainId => {
+    const mainCb = document.getElementById(mainId);
+    const subDiv = document.getElementById(mainToSub[mainId]);
+    if (!mainCb || !subDiv) return;
+    // remove previous if exists
+    mainCb.removeEventListener('_custom_main_toggle', mainCb._custom_main_toggle);
+    const update = function() {
+      subDiv.style.display = mainCb.checked ? 'block' : 'none';
+      if (!mainCb.checked) {
+        subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
+        subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; if (q.classList.contains('qty')) q.disabled = true; else q.disabled = true; });
+      }
+    };
+    mainCb._custom_main_toggle = update;
+    mainCb.addEventListener('change', update);
+    update();
+  });
+
+  // Also rebind any dynamic main->sub pairs by scanning data attributes (optional)
+  // (Not used by default but left to make dynamic additions work if they set data-sublist attribute)
+  document.querySelectorAll('.item-row').forEach(function(row){
+    const cb = row.querySelector('input[type="checkbox"].purchased');
+    if (!cb) return;
+    const dataSub = cb.getAttribute('data-sublist-id');
+    if (!dataSub) return;
+    const subDiv = document.getElementById(dataSub);
+    if (!subDiv) return;
+    cb.removeEventListener('_custom_main_toggle2', cb._custom_main_toggle2);
+    const up = function(){
+      subDiv.style.display = cb.checked ? 'block' : 'none';
+    };
+    cb._custom_main_toggle2 = up;
+    cb.addEventListener('change', up);
+    up();
+  });
+}
+
+// run initial binds so default items keep working
+bindSubitemHandlers();
+setupMainToSubBindings();
+
+
       // panel close X (same as cancel)
       panelCloseX.addEventListener('click', function() {
         // if currently in editing session, closing panel shouldn't kill edits; instead ask user
@@ -950,3 +1182,4 @@
   </script>
 </body>
 </html>
+
