@@ -1,4 +1,3 @@
-// Configuration — set this to your deployed Apps Script web app URL
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbwTwqZ-xoxJAhBpcYVXOkgdLcgV3o0LCibZKUKWfeQiPp90anzYJa8q7vwlgcDABP2MIg/exec";
 const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
@@ -171,6 +170,30 @@ function collectFormData(){
     if (otherQty !== "") selectedParts.push(otherQty + " " + label);
     else selectedParts.push(label);
     items.push({ id: 'p_other', qty: otherQty || "", label: label });
+  }
+
+  // --------- NEW: Generic pass to pick up any dynamically added/removed subitems ----------
+  // This ensures customization UI that creates additional checkboxes (with class "subitem")
+  // are included in the submission without changing the rest of the logic.
+  try {
+    const allSubitems = Array.from(document.querySelectorAll('.subitem'));
+    allSubitems.forEach(cb => {
+      if (!cb || !cb.checked) return;
+      // if already recorded via hard-coded pushIfSub above, skip to avoid duplicates
+      if (items.some(it => it.id === cb.id)) return;
+
+      // Determine qty id - allow authoring to set a data-qty-id attribute on checkbox for flexibility
+      const dataQty = cb.getAttribute && cb.getAttribute('data-qty-id');
+      const qid = dataQty || ('q' + (cb.id && cb.id.slice ? cb.id.slice(3) : cb.id));
+      const qtyEl = document.getElementById(qid);
+      const qtyVal = qtyEl ? String(qtyEl.value || "").trim() : "";
+      const label = getLabelFor(cb.id, cb.value || "");
+      if (qtyVal !== "") selectedParts.push(qtyVal + " " + label);
+      else selectedParts.push(label);
+      items.push({ id: cb.id, qty: qtyVal || "", label: label });
+    });
+  } catch(e) {
+    console.warn('dynamic subitems pass failed', e);
   }
 
   // --------- MODE handling (dedupe + canonicalize) ----------
@@ -547,6 +570,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
-
-
