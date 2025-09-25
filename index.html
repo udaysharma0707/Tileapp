@@ -48,6 +48,25 @@
     .checkbox-row { margin-top:6px; padding:0; }
     .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
 
+    /* quantity + unit inline controls */
+    .qty-unit {
+      display:flex;
+      gap:6px;
+      align-items:center;
+      min-width:280px;
+      justify-content:flex-end;
+    }
+    .qty-unit input[type="number"] { width:90px; padding:6px; font-size:14px; }
+    .qty-unit select { width:120px; padding:6px; font-size:14px; }
+    .qty-unit .unit-custom { width:110px; padding:6px; font-size:14px; display:none; }
+    .unit-lock {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      margin-left:6px;
+    }
+    .unit-lock input[type="checkbox"] { transform: scale(1.25); margin:0; }
+
     /* payment inline controls */
     .mode-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
     .mode-row .mode-label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -71,6 +90,8 @@
       .mode-row { flex-direction:column; align-items:stretch }
       .mode-amount { width:100%; flex:auto }
       .total-row { flex-direction:column; align-items:stretch }
+      .qty-unit { width:100%; justify-content:flex-start; }
+      .qty-unit input[type="number"], .qty-unit select, .qty-unit .unit-custom { width:40%; }
     }
 
     /* make touch targets larger for checkboxes (and slightly larger radios) */
@@ -247,35 +268,90 @@
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="How many" disabled>
+
+          <!-- NEW: Quantity + Unit group (keeps original qty id for backwards compatibility) -->
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_floor_vitrified" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_floor_vitrified" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item">
+              <input type="checkbox" id="lock_floor_vitrified" /> lock
+            </label>
+          </div>
+
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_floor_ceramic" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_floor_ceramic" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_ceramic" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_floor_porcelain" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_floor_porcelain" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_porcelain" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_floor_marble" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_floor_marble" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_marble" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_floor_granite" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_floor_granite" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_granite" /> lock</label>
+          </div>
         </div>
       </div>
 
@@ -292,21 +368,51 @@
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_wall_kitchen" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_wall_kitchen" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_kitchen" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_wall_bath" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_wall_bath" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_bath" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_wall_decor" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_wall_decor" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_decor" /> lock</label>
+          </div>
         </div>
       </div>
 
@@ -323,21 +429,51 @@
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_san_wash" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_san_wash" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_wash" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_san_wc" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_san_wc" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_wc" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_san_urinal" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_san_urinal" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_urinal" /> lock</label>
+          </div>
         </div>
       </div>
 
@@ -354,42 +490,102 @@
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_acc_grout" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_acc_grout" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_grout" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_acc_spacers" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_acc_spacers" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_spacers" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_acc_sealants" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_acc_sealants" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_sealants" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_acc_chem" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_acc_chem" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_chem" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_acc_skirting" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_acc_skirting" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_skirting" /> lock</label>
+          </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">✕</button>
           </label>
-          <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="How many" disabled>
+          <div class="qty-unit">
+            <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="Quantity" disabled>
+            <select id="unit_acc_mosaic" class="unit-select" disabled>
+              <option value="Boxes">Boxes</option>
+              <option value="Pieces">Pieces</option>
+              <option value="Kg">Kg</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="unit_custom_acc_mosaic" class="unit-custom" placeholder="Custom unit" style="display:none;">
+            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_mosaic" /> lock</label>
+          </div>
         </div>
       </div>
 
@@ -399,7 +595,17 @@
           <input type="checkbox" class="purchased" id="p_other" value="Others">
           <span class="editable" data-config-id="p_other_label" id="label_p_other">Others</span>
         </label>
-        <input type="number" min="0" step="1" id="q_other" class="qty" placeholder="How many" disabled>
+        <div class="qty-unit">
+          <input type="number" min="0" step="1" id="q_other" class="qty" placeholder="Quantity" disabled>
+          <select id="unit_other" class="unit-select" disabled>
+            <option value="Boxes">Boxes</option>
+            <option value="Pieces">Pieces</option>
+            <option value="Kg">Kg</option>
+            <option value="Custom">Custom</option>
+          </select>
+          <input type="text" id="unit_custom_other" class="unit-custom" placeholder="Custom unit" style="display:none;">
+          <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_other" /> lock</label>
+        </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
         <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
@@ -631,7 +837,7 @@
         window.location.reload();
       });
 
-      // Cancel customization: exit customize mode (and editing)
+      // Cancel customization: exit customise mode (and editing)
       cancelCustomBtn.addEventListener('click', function() {
         if (!confirm('Exit customization mode? Unsaved edits will be lost.')) {
           return;
@@ -766,39 +972,192 @@
         removeWrapperForButton(btn);
       });
 
-      
-      
-      
-      // ----------------- binding helpers -----------------
+// ----------------- binding helpers -----------------
       function bindSubitemHandlers() {
         // ensure change handler for each subitem (avoid duplicates)
         document.querySelectorAll('.subitem').forEach(function(sb){
-          const qtyId = 'q' + sb.id.slice(3);
+          // suffix example: for id "sub_floor_vitrified" suffix = "floor_vitrified"
+          const suffix = sb.id.slice(4);
+          const qtyId = 'q' + sb.id.slice(3); // q_floor_vitrified
           const qtyEl = document.getElementById(qtyId);
+          const unitEl = document.getElementById('unit_' + suffix);
+          const unitCustomEl = document.getElementById('unit_custom_' + suffix);
+          const lockEl = document.getElementById('lock_' + suffix);
+
           // remove old handler if present
           if (sb._custom_qty_handler) {
             sb.removeEventListener('change', sb._custom_qty_handler);
             sb._custom_qty_handler = null;
           }
+
           const handler = function() {
+            const enabled = !!sb.checked;
             if (qtyEl) {
-              qtyEl.disabled = !sb.checked;
-              if (!sb.checked) qtyEl.value = '';
+              qtyEl.disabled = !enabled;
+              if (!enabled) qtyEl.value = '';
+            }
+            if (unitEl) {
+              unitEl.disabled = !enabled;
+              if (!enabled) { unitEl.selectedIndex = 0; }
+            }
+            if (unitCustomEl) {
+              unitCustomEl.disabled = !enabled;
+              if (!enabled) { unitCustomEl.style.display = 'none'; unitCustomEl.value = ''; }
+            }
+            if (lockEl) {
+              lockEl.disabled = !enabled;
+              if (!enabled) { lockEl.checked = false; }
+            }
+
+            // If enabling, apply any locked unit stored in localStorage
+            if (enabled) {
+              try {
+                const lockKey = 'unitLock_' + suffix;
+                const valKey = 'unitValue_' + suffix;
+                const locked = localStorage.getItem(lockKey) === '1';
+                const stored = localStorage.getItem(valKey);
+                if (locked && unitEl) {
+                  // if stored value is one of options select it, otherwise set Custom and fill text
+                  const opts = Array.from(unitEl.options).map(o => o.value);
+                  if (opts.indexOf(stored) !== -1) {
+                    unitEl.value = stored;
+                    if (unitCustomEl) unitCustomEl.style.display = 'none';
+                  } else if (stored) {
+                    unitEl.value = 'Custom';
+                    if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = stored; }
+                  }
+                  if (lockEl) lockEl.checked = true;
+                } else {
+                  // no stored lock => keep whatever UI had, but ensure custom visibility is correct
+                  if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
+                }
+              } catch (e){}
             }
           };
           sb._custom_qty_handler = handler;
           sb.addEventListener('change', handler);
           if (qtyEl) qtyEl.disabled = !sb.checked;
+
+          // unit change handler: show/hide custom input & if locked save new value
+          if (unitEl) {
+            if (unitEl._unit_change_bound) {
+              unitEl.removeEventListener('change', unitEl._unit_change_bound);
+            }
+            const unitChange = function() {
+              const v = unitEl.value;
+              if (unitCustomEl) {
+                if (v === 'Custom') {
+                  unitCustomEl.style.display = '';
+                  unitCustomEl.disabled = false;
+                  unitCustomEl.focus && unitCustomEl.focus();
+                } else {
+                  unitCustomEl.style.display = 'none';
+                  unitCustomEl.value = '';
+                  unitCustomEl.disabled = true;
+                }
+              }
+              // if lock is enabled, save selected/custom value immediately
+              if (lockEl && lockEl.checked) {
+                saveUnitLock(suffix);
+              }
+            };
+            unitEl._unit_change_bound = unitChange;
+            unitEl.addEventListener('change', unitChange);
+            if (unitEl) unitEl.disabled = !sb.checked;
+            if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
+          }
+
+          // custom unit text input: on blur/update if lock checked save value
+          if (unitCustomEl) {
+            if (unitCustomEl._custom_input_bound) {
+              unitCustomEl.removeEventListener('input', unitCustomEl._custom_input_bound);
+            }
+            const customInputHandler = function() {
+              if (lockEl && lockEl.checked) saveUnitLock(suffix);
+            };
+            unitCustomEl._custom_input_bound = customInputHandler;
+            unitCustomEl.addEventListener('input', customInputHandler);
+            unitCustomEl.disabled = !sb.checked;
+          }
+
+          // lock checkbox handling
+          if (lockEl) {
+            if (lockEl._lock_change_bound) {
+              lockEl.removeEventListener('change', lockEl._lock_change_bound);
+            }
+            const lockHandler = function() {
+              if (lockEl.checked) {
+                // save current selection (or custom)
+                saveUnitLock(suffix);
+                showTempMessage('Unit locked for this item.');
+              } else {
+                // remove saved value
+                try { localStorage.removeItem('unitLock_' + suffix); localStorage.removeItem('unitValue_' + suffix); } catch(e){}
+                showTempMessage('Unit unlocked for this item.');
+              }
+            };
+            lockEl._lock_change_bound = lockHandler;
+            lockEl.addEventListener('change', lockHandler);
+            lockEl.disabled = !sb.checked;
+          }
+
+          // initialize visibility & lock on bind
+          if (sb.checked) {
+            handler();
+          } else {
+            // ensure unit inputs disabled when unchecked
+            if (qtyEl) qtyEl.disabled = true;
+            if (unitEl) unitEl.disabled = true;
+            if (unitCustomEl) { unitCustomEl.disabled = true; unitCustomEl.style.display = 'none'; }
+            if (lockEl) { lockEl.disabled = true; lockEl.checked = false; }
+          }
         });
 
         // others main
         const otherMain = document.getElementById('p_other');
         const otherQty = document.getElementById('q_other');
+        const otherUnit = document.getElementById('unit_other');
+        const otherUnitCustom = document.getElementById('unit_custom_other');
+        const otherLock = document.getElementById('lock_other');
         if (otherMain && otherQty) {
           if (otherMain._custom_other_handler) otherMain.removeEventListener('change', otherMain._custom_other_handler);
           const oh = function() {
-            otherQty.disabled = !otherMain.checked;
-            if (!otherMain.checked) otherQty.value = '';
+            const enabled = otherMain.checked;
+            otherQty.disabled = !enabled;
+            if (!enabled) otherQty.value = '';
+            if (otherUnit) {
+              otherUnit.disabled = !enabled;
+              if (!enabled) otherUnit.selectedIndex = 0;
+            }
+            if (otherUnitCustom) {
+              otherUnitCustom.disabled = !enabled;
+              if (!enabled) { otherUnitCustom.style.display = 'none'; otherUnitCustom.value = ''; }
+            }
+            if (otherLock) {
+              otherLock.disabled = !enabled;
+              if (!enabled) otherLock.checked = false;
+            }
+
+            if (enabled) {
+              try {
+                const suffix = 'other';
+                const locked = localStorage.getItem('unitLock_' + suffix) === '1';
+                const stored = localStorage.getItem('unitValue_' + suffix);
+                if (locked && otherUnit) {
+                  const opts = Array.from(otherUnit.options).map(o => o.value);
+                  if (opts.indexOf(stored) !== -1) {
+                    otherUnit.value = stored;
+                    if (otherUnitCustom) otherUnitCustom.style.display = 'none';
+                  } else if (stored) {
+                    otherUnit.value = 'Custom';
+                    if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = stored; }
+                  }
+                  if (otherLock) otherLock.checked = true;
+                } else if (otherUnit && otherUnit.value === 'Custom' && otherUnitCustom) {
+                  otherUnitCustom.style.display = '';
+                }
+              } catch(e){}
+            }
           };
           otherMain._custom_other_handler = oh;
           otherMain.addEventListener('change', oh);
@@ -821,8 +1180,12 @@
           const update = function() {
             subDiv.style.display = mainCb.checked ? 'block' : 'none';
             if (!mainCb.checked) {
+              // clear and disable subitems (quantity + unit)
               subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
               subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
+              subDiv.querySelectorAll('.unit-select').forEach(u => { u.selectedIndex = 0; u.disabled = true; });
+              subDiv.querySelectorAll('.unit-custom').forEach(uc => { uc.value=''; uc.style.display='none'; uc.disabled = true; });
+              subDiv.querySelectorAll('.unit-lock input[type="checkbox"]').forEach(lk => { lk.checked = false; lk.disabled = true; });
             }
           };
           mainCb._custom_main_toggle = update;
@@ -848,10 +1211,55 @@
         if (amtInput) amtInput.disabled = !modeCheckbox.checked;
       }
 
+      // helper to save unit lock for a given suffix
+      function saveUnitLock(suffix) {
+        try {
+          const unitEl = document.getElementById('unit_' + suffix);
+          const customEl = document.getElementById('unit_custom_' + suffix);
+          if (!unitEl) return;
+          let val = unitEl.value;
+          if (val === 'Custom' && customEl && customEl.value.trim()) val = customEl.value.trim();
+          localStorage.setItem('unitLock_' + suffix, '1');
+          localStorage.setItem('unitValue_' + suffix, val);
+        } catch (e) { console.warn('saveUnitLock err', e); }
+      }
+
+      // helper to load locks for all unit-selects on startup
+      function initializeUnitLocks() {
+        try {
+          document.querySelectorAll('.unit-select').forEach(function(unitEl) {
+            const id = unitEl.id; // e.g. unit_floor_vitrified
+            if (!id || id.indexOf('unit_') !== 0) return;
+            const suffix = id.slice(5);
+            const lockKey = 'unitLock_' + suffix;
+            const valKey = 'unitValue_' + suffix;
+            const locked = localStorage.getItem(lockKey) === '1';
+            const stored = localStorage.getItem(valKey);
+            const customEl = document.getElementById('unit_custom_' + suffix);
+            const lockEl = document.getElementById('lock_' + suffix);
+            if (locked) {
+              if (stored) {
+                const opts = Array.from(unitEl.options).map(o => o.value);
+                if (opts.indexOf(stored) !== -1) {
+                  unitEl.value = stored;
+                  if (customEl) customEl.style.display = 'none';
+                } else {
+                  unitEl.value = 'Custom';
+                  if (customEl) { customEl.style.display = ''; customEl.value = stored; }
+                }
+              }
+              if (lockEl) lockEl.checked = true;
+            }
+          });
+        } catch (e) {}
+      }
+
       // run initial binds so default items keep working
       bindSubitemHandlers();
       setupMainToSubBindings();
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+      // initialize any saved unit locks so UI reflects previous choices
+      initializeUnitLocks();
 
       // ----------------- add subitem / mode UI -----------------
       if (addSubBtn) {
@@ -926,9 +1334,10 @@
             return;
           }
 
-          // non-mode (floor/wall/san/acc) subitem
+          // non-mode (floor/wall/san/acc) subitem -> create qty + unit + custom + lock group
           const subId = elementId;
-          const qtyId = 'q' + subId.slice(3); // follow existing convention
+          const suffix = subId.slice(4); // floor_custom1...
+          const qtyId = 'q' + subId.slice(3); // q_floor_custom1
 
           const subDiv = document.createElement('div');
           subDiv.className = 'sub-item';
@@ -958,17 +1367,52 @@
           labelEl.appendChild(span);
           labelEl.appendChild(delBtn);
 
+          // qty-unit group
+          const qtyUnitDiv = document.createElement('div');
+          qtyUnitDiv.className = 'qty-unit';
+
           const qty = document.createElement('input');
           qty.type = 'number';
           qty.min = '0';
           qty.step = '1';
-          qty.placeholder = 'How many';
+          qty.placeholder = 'Quantity';
           qty.className = 'subqty qty';
           qty.id = qtyId;
           qty.disabled = true;
 
+          const unitSel = document.createElement('select');
+          unitSel.id = 'unit_' + suffix;
+          unitSel.className = 'unit-select';
+          unitSel.disabled = true;
+          ['Boxes','Pieces','Kg','Custom'].forEach(opt => {
+            const o = document.createElement('option'); o.value = opt; o.textContent = opt; unitSel.appendChild(o);
+          });
+
+          const unitCustom = document.createElement('input');
+          unitCustom.type = 'text';
+          unitCustom.id = 'unit_custom_' + suffix;
+          unitCustom.className = 'unit-custom';
+          unitCustom.placeholder = 'Custom unit';
+          unitCustom.style.display = 'none';
+          unitCustom.disabled = true;
+
+          const lockLabel = document.createElement('label');
+          lockLabel.className = 'unit-lock';
+          lockLabel.title = 'Lock unit for this item';
+          const lockCb = document.createElement('input');
+          lockCb.type = 'checkbox';
+          lockCb.id = 'lock_' + suffix;
+          lockCb.disabled = true;
+          lockLabel.appendChild(lockCb);
+          lockLabel.appendChild(document.createTextNode(' lock'));
+
+          qtyUnitDiv.appendChild(qty);
+          qtyUnitDiv.appendChild(unitSel);
+          qtyUnitDiv.appendChild(unitCustom);
+          qtyUnitDiv.appendChild(lockLabel);
+
           subDiv.appendChild(labelEl);
-          subDiv.appendChild(qty);
+          subDiv.appendChild(qtyUnitDiv);
 
           const map = { floor: 'sublist_floor', wall: 'sublist_wall', san: 'sublist_san', acc: 'sublist_acc' };
           const target = document.getElementById(map[cat] || 'sublist_floor');
@@ -1216,7 +1660,7 @@
             return sl;
           }
 
-          // create sub-item
+          // create sub-item (with qty+unit)
           function createSubItem(sub, sublist) {
             const si = document.createElement('div');
             si.className = 'sub-item';
@@ -1244,17 +1688,52 @@
             label.appendChild(span);
             label.appendChild(delBtn);
 
+            // build qty-unit group to match static elements
+            const suffix = sub.id.slice(4);
             const qty = document.createElement('input');
             qty.type = 'number';
             qty.min = '0';
             qty.step = '1';
             qty.className = 'subqty qty';
             qty.id = 'q' + sub.id.slice(3);
-            qty.placeholder = 'How many';
+            qty.placeholder = 'Quantity';
             qty.disabled = true;
 
+            const unitSel = document.createElement('select');
+            unitSel.id = 'unit_' + suffix;
+            unitSel.className = 'unit-select';
+            ['Boxes','Pieces','Kg','Custom'].forEach(opt => {
+              const o = document.createElement('option'); o.value = opt; o.textContent = opt; unitSel.appendChild(o);
+            });
+            unitSel.disabled = true;
+
+            const unitCustom = document.createElement('input');
+            unitCustom.type = 'text';
+            unitCustom.id = 'unit_custom_' + suffix;
+            unitCustom.className = 'unit-custom';
+            unitCustom.placeholder = 'Custom unit';
+            unitCustom.style.display = 'none';
+            unitCustom.disabled = true;
+
+            const lockLabel = document.createElement('label');
+            lockLabel.className = 'unit-lock';
+            lockLabel.title = 'Lock unit for this item';
+            const lockCb = document.createElement('input');
+            lockCb.type = 'checkbox';
+            lockCb.id = 'lock_' + suffix;
+            lockCb.disabled = true;
+            lockLabel.appendChild(lockCb);
+            lockLabel.appendChild(document.createTextNode(' lock'));
+
+            const qtyUnitDiv = document.createElement('div');
+            qtyUnitDiv.className = 'qty-unit';
+            qtyUnitDiv.appendChild(qty);
+            qtyUnitDiv.appendChild(unitSel);
+            qtyUnitDiv.appendChild(unitCustom);
+            qtyUnitDiv.appendChild(lockLabel);
+
             si.appendChild(label);
-            si.appendChild(qty);
+            si.appendChild(qtyUnitDiv);
             sublist.appendChild(si);
 
             registerEditable(span);
@@ -1621,4 +2100,3 @@
   </script>
 </body>
 </html>
-      
