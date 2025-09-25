@@ -1,4 +1,4 @@
-<!doctype html>
+excellant , i removed that because that custom option was not working properly , in the custom setting the corner icon in webapp, in that allow user to add custom unit of measure. this is new first 1/2 part of index.html, make changes in this if required for above solution. From the point i copied to the point it is copied, just make changes in this after updating i will give you other 1/2 part of index.html. Give updated. "<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -200,20 +200,6 @@
     #customVendorManager .vendor-item button { background:#b71c1c; padding:6px 8px; border-radius:6px; border:none; font-weight:700; }
     #customVendorManager .vendor-actions { display:flex; gap:8px; align-items:center; }
     #customVendorManager input[type="text"] { margin-top:0; margin-bottom:0; }
-
-    /* Unit manager inside customization */
-    #customUnitManager {
-      border:1px dashed #cfcfcf;
-      padding:8px;
-      border-radius:6px;
-      background:#f9fbff;
-      margin-top:10px;
-    }
-    #customUnitManager .unit-list { max-height:140px; overflow:auto; margin-bottom:8px; display:flex; flex-direction:column; gap:6px; }
-    #customUnitManager .unit-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px; border-radius:4px; background:white; border:1px solid #eee; }
-    #customUnitManager .unit-item button { background:#b71c1c; padding:6px 8px; border-radius:6px; border:none; color:white; font-weight:700; }
-    #customUnitManager .unit-actions { display:flex; gap:8px; align-items:center; margin-top:6px; }
-    #customUnitManager input[type="text"] { margin-top:0; margin-bottom:0; }
   </style>
 </head>
 <body>
@@ -241,23 +227,6 @@
           <button id="saveServerBtn" type="button">Save (server)</button>
           <button id="cancelCustomBtn" type="button" style="background:#6c757d">Cancel</button>
         </div>
-      </div>
-
-      <!-- NEW: Unit manager for adding global custom units -->
-      <div id="customUnitManager" style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
-        <strong>Manage Units of Measure (global)</strong>
-        <div style="font-size:13px;color:#444;margin-top:6px">Add units here to make them available in all unit dropdowns. Units are stored locally in your browser (localStorage).</div>
-
-        <div class="unit-actions" style="margin-top:8px;">
-          <input id="newUnitInput" type="text" placeholder="Add unit (e.g. 'Sqft' or 'Carton')" style="flex:1; padding:8px; font-size:14px;">
-          <button id="addUnitBtn" type="button" style="margin-left:8px;">Add Unit</button>
-        </div>
-
-        <div class="unit-list" id="unitList" style="margin-top:8px;">
-          <!-- dynamically populated -->
-        </div>
-
-        <div style="font-size:12px;color:#555;margin-top:8px">Changes here affect unit dropdowns immediately. Click Save (server) to store form structure — units remain stored locally in this browser.</div>
       </div>
 
       <!-- NEW: Add / Remove sub-item controls (includes Mode of payment option) -->
@@ -735,133 +704,8 @@
       const addSubLabelInput = document.getElementById('addSubLabelInput');
       const addSubBtn = document.getElementById('addSubBtn');
 
-      // new unit manager elements
-      const newUnitInput = document.getElementById('newUnitInput');
-      const addUnitBtn = document.getElementById('addUnitBtn');
-      const unitListEl = document.getElementById('unitList');
-
       let customizeMode = false;
       let editingSession = false;
-      let globalUnits = [];
-
-      // ---------- Global Units management (localStorage) ----------
-      function loadGlobalUnits() {
-        try {
-          const raw = localStorage.getItem('globalUnits_v1');
-          if (!raw) { globalUnits = []; return; }
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) globalUnits = parsed.slice();
-          else globalUnits = [];
-        } catch (e) { globalUnits = []; }
-      }
-      function saveGlobalUnits() {
-        try { localStorage.setItem('globalUnits_v1', JSON.stringify(globalUnits)); } catch(e){}
-      }
-      function addGlobalUnitIfMissing(u) {
-        if (!u) return false;
-        const v = u.trim();
-        if (!v) return false;
-        // case-insensitive dedupe
-        if (globalUnits.find(x => x.toLowerCase() === v.toLowerCase())) return false;
-        globalUnits.push(v);
-        saveGlobalUnits();
-        rebuildAllUnitSelects();
-        renderUnitList();
-        return true;
-      }
-      function removeGlobalUnit(u) {
-        const idx = globalUnits.findIndex(x => x.toLowerCase() === u.toLowerCase());
-        if (idx !== -1) {
-          globalUnits.splice(idx,1);
-          saveGlobalUnits();
-          rebuildAllUnitSelects();
-          renderUnitList();
-        }
-      }
-
-      function renderUnitList() {
-        if (!unitListEl) return;
-        unitListEl.innerHTML = '';
-        if (globalUnits.length === 0) {
-          unitListEl.innerHTML = '<div style="color:#666;font-size:13px">No custom units added yet.</div>';
-          return;
-        }
-        globalUnits.forEach((u, idx) => {
-          const div = document.createElement('div');
-          div.className = 'unit-item';
-          const left = document.createElement('div'); left.textContent = u;
-          const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Remove';
-          btn.addEventListener('click', function() {
-            if (!confirm('Remove unit "' + u + '" from global units? This will remove it from dropdowns.')) return;
-            removeGlobalUnit(u);
-          });
-          div.appendChild(left);
-          div.appendChild(btn);
-          unitListEl.appendChild(div);
-        });
-      }
-
-      // add unit button handler
-      if (addUnitBtn) {
-        addUnitBtn.addEventListener('click', function() {
-          const raw = newUnitInput && newUnitInput.value ? newUnitInput.value.trim() : '';
-          if (!raw) { alert('Enter a unit name to add.'); return; }
-          const added = addGlobalUnitIfMissing(raw);
-          if (added) {
-            newUnitInput.value = '';
-            showTempMessage('Added unit: ' + raw);
-          } else {
-            alert('Unit already exists or invalid.');
-          }
-        });
-      }
-      if (newUnitInput) {
-        newUnitInput.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') { e.preventDefault(); addUnitBtn && addUnitBtn.click(); }
-        });
-      }
-
-      // append custom unit options to all .unit-selects (preserve defaults and avoid duplicates)
-      function rebuildAllUnitSelects() {
-        try {
-          document.querySelectorAll('.unit-select').forEach(select => {
-            if (!select) return;
-            // remove previously added custom options (marked with data-custom-unit)
-            Array.from(select.querySelectorAll('option[data-custom-unit="1"]')).forEach(o => o.remove());
-            // append global units (only if not already present)
-            globalUnits.forEach(u => {
-              const exists = Array.from(select.options).some(opt => opt.value.toLowerCase() === u.toLowerCase());
-              if (!exists) {
-                const o = document.createElement('option');
-                o.value = u;
-                o.textContent = u;
-                o.setAttribute('data-custom-unit', '1');
-                select.appendChild(o);
-              }
-            });
-          });
-        } catch (e) { console.warn('rebuildAllUnitSelects err', e); }
-      }
-
-      // Watch for dynamically added .unit-select elements and rebuild options when they appear
-      const purchasedListEl = document.getElementById('purchasedList');
-      if (purchasedListEl && window.MutationObserver) {
-        const mo = new MutationObserver(muts => {
-          let needs = false;
-          muts.forEach(m => {
-            if (m.addedNodes && m.addedNodes.length) {
-              m.addedNodes.forEach(n => {
-                if (n.nodeType === 1 && n.querySelector && (n.matches && n.matches('.unit-select') || n.querySelector('.unit-select'))) needs = true;
-              });
-            }
-          });
-          if (needs) {
-            // small timeout to let new elements initialize
-            setTimeout(rebuildAllUnitSelects, 50);
-          }
-        });
-        mo.observe(purchasedListEl, { childList: true, subtree: true });
-      }
 
       // helper to register an editable element (so dynamically added ones behave like originals)
       function registerEditable(el) {
@@ -1155,19 +999,19 @@
                 const locked = localStorage.getItem(lockKey) === '1';
                 const stored = localStorage.getItem(valKey);
                 if (locked && unitEl) {
-                  // if stored value is one of options select it, otherwise set custom input and show it
+                  // if stored value is one of options select it, otherwise set Custom and fill text
                   const opts = Array.from(unitEl.options).map(o => o.value);
                   if (opts.indexOf(stored) !== -1) {
                     unitEl.value = stored;
                     if (unitCustomEl) unitCustomEl.style.display = 'none';
                   } else if (stored) {
-                    // show custom input and populate
-                    if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = stored; unitCustomEl.disabled = false; }
+                    unitEl.value = 'Custom';
+                    if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = stored; }
                   }
                   if (lockEl) lockEl.checked = true;
                 } else {
                   // no stored lock => keep whatever UI had, but ensure custom visibility is correct
-                  if (unitEl && (unitEl.value === 'Custom' || unitEl.value === '') && unitCustomEl) unitCustomEl.style.display = '';
+                  if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
                 }
               } catch (e){}
             }
@@ -1184,11 +1028,7 @@
             const unitChange = function() {
               const v = unitEl.value;
               if (unitCustomEl) {
-                // show custom input only if option value is empty (shouldn't be) or matches none of defaults
-                // We will show the custom text field if selected option has data-custom-input="1"
-                const selectedOpt = unitEl.options[unitEl.selectedIndex];
-                const isCustomInput = selectedOpt && selectedOpt.getAttribute && selectedOpt.getAttribute('data-needs-custom') === '1';
-                if (isCustomInput) {
+                if (v === 'Custom') {
                   unitCustomEl.style.display = '';
                   unitCustomEl.disabled = false;
                   unitCustomEl.focus && unitCustomEl.focus();
@@ -1206,7 +1046,7 @@
             unitEl._unit_change_bound = unitChange;
             unitEl.addEventListener('change', unitChange);
             if (unitEl) unitEl.disabled = !sb.checked;
-            // no 'Custom' sentinel option present in selects — global units are direct options
+            if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
           }
 
           // custom unit text input: on blur/update if lock checked save value
@@ -1291,11 +1131,11 @@
                     otherUnit.value = stored;
                     if (otherUnitCustom) otherUnitCustom.style.display = 'none';
                   } else if (stored) {
-                    // populate custom input if stored value isn't an option
-                    if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = stored; otherUnitCustom.disabled = false; }
+                    otherUnit.value = 'Custom';
+                    if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = stored; }
                   }
                   if (otherLock) otherLock.checked = true;
-                } else if (otherUnit && otherUnit.value === '' && otherUnitCustom) {
+                } else if (otherUnit && otherUnit.value === 'Custom' && otherUnitCustom) {
                   otherUnitCustom.style.display = '';
                 }
               } catch(e){}
@@ -1305,7 +1145,51 @@
           otherMain.addEventListener('change', oh);
           oh();
         }
-      // end of bindSubitemHandlers function
+      }
+      function setupMainToSubBindings() {
+        const mainToSub = {
+          'p_floor': 'sublist_floor',
+          'p_wall': 'sublist_wall',
+          'p_san':  'sublist_san',
+          'p_acc':  'sublist_acc'
+        };
+        Object.keys(mainToSub).forEach(mainId => {
+          const mainCb = document.getElementById(mainId);
+          const subDiv = document.getElementById(mainToSub[mainId]);
+          if (!mainCb || !subDiv) return;
+          if (mainCb._custom_main_toggle) mainCb.removeEventListener('change', mainCb._custom_main_toggle);
+          const update = function() {
+            subDiv.style.display = mainCb.checked ? 'block' : 'none';
+            if (!mainCb.checked) {
+              // clear and disable subitems (quantity + unit)
+              subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
+              subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
+              subDiv.querySelectorAll('.unit-select').forEach(u => { u.selectedIndex = 0; u.disabled = true; });
+              subDiv.querySelectorAll('.unit-custom').forEach(uc => { uc.value=''; uc.style.display='none'; uc.disabled = true; });
+              subDiv.querySelectorAll('.unit-lock input[type="checkbox"]').forEach(lk => { lk.checked = false; lk.disabled = true; });
+            }
+          };
+          mainCb._custom_main_toggle = update;
+          mainCb.addEventListener('change', update);
+          update();
+        });
+      }
+
+      // generic mode checkbox -> enable its amount input (works for static & dynamic modes)
+      function bindModeToggle(modeCheckbox) {
+        if (!modeCheckbox) return;
+        if (modeCheckbox._boundModeToggle) return;
+        modeCheckbox._boundModeToggle = true;
+        const parent = modeCheckbox.closest('.mode-row');
+        if (!parent) return;
+        const amtInput = parent.querySelector('input[type="number"].mode-amount');
+        modeCheckbox.addEventListener('change', function() {
+          if (amtInput) {
+            amtInput.disabled = !modeCheckbox.checked;
+            if (!modeCheckbox.checked) amtInput.value = '';
+          }
+        });
+        if (amtInput) amtInput.disabled = !modeCheckbox.checked;
       }
 
       // helper to save unit lock for a given suffix
@@ -1315,8 +1199,7 @@
           const customEl = document.getElementById('unit_custom_' + suffix);
           if (!unitEl) return;
           let val = unitEl.value;
-          // if no matching option (rare), pref to custom input
-          if ((!val || val === '') && customEl && customEl.value.trim()) val = customEl.value.trim();
+          if (val === 'Custom' && customEl && customEl.value.trim()) val = customEl.value.trim();
           localStorage.setItem('unitLock_' + suffix, '1');
           localStorage.setItem('unitValue_' + suffix, val);
         } catch (e) { console.warn('saveUnitLock err', e); }
@@ -1342,7 +1225,8 @@
                   unitEl.value = stored;
                   if (customEl) customEl.style.display = 'none';
                 } else {
-                  if (customEl) { customEl.style.display = ''; customEl.value = stored; customEl.disabled = false; }
+                  unitEl.value = 'Custom';
+                  if (customEl) { customEl.style.display = ''; customEl.value = stored; }
                 }
               }
               if (lockEl) lockEl.checked = true;
@@ -1357,11 +1241,6 @@
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
       // initialize any saved unit locks so UI reflects previous choices
       initializeUnitLocks();
-
-      // load global units and apply to selects (initial)
-      loadGlobalUnits();
-      rebuildAllUnitSelects();
-      renderUnitList();
 
       // ----------------- add subitem / mode UI -----------------
       if (addSubBtn) {
@@ -1526,9 +1405,6 @@
 
           registerEditable(span);
           bindSubitemHandlers();
-          // add global units to this newly created select (MutationObserver will also pick it up,
-          // but call rebuild explicitly here to be immediate)
-          rebuildAllUnitSelects();
           if (addSubLabelInput) addSubLabelInput.value = '';
           showTempMessage('Added: ' + rawLabel);
         });
@@ -1594,7 +1470,7 @@
           });
         }
 
-                // payment modes structure
+        // payment modes structure
         const modesContainer = document.getElementById('modes');
         if (modesContainer) {
           const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
@@ -2018,7 +1894,7 @@
           });
           // special Customised option (opens manager)
           const oCust = document.createElement('option'); oCust.value = 'Customised'; oCust.textContent = 'Customised'; sel.appendChild(oCust);
-                  // Other option
+          // Other option
           const oOther = document.createElement('option'); oOther.value = 'Other'; oOther.textContent = 'Other'; sel.appendChild(oOther);
 
           // set selected
@@ -2205,5 +2081,3 @@
   </script>
 </body>
 </html>
-
-          
