@@ -798,39 +798,44 @@ function rebuildAllUnitSelects() {
       const addCategorySelect = document.getElementById('addCategorySelect');
       const addSubLabelInput = document.getElementById('addSubLabelInput');
       const addSubBtn = document.getElementById('addSubBtn');
-      // ---- Units panel event wiring ----
-const newUnitInput = document.getElementById('newUnitInput');
-const addUnitBtn = document.getElementById('addUnitBtn');
-const unitList = document.getElementById('unitList');
+  const newUnitInput = document.getElementById('newUnitInput');
+  const addUnitBtn = document.getElementById('addUnitBtn');
+  const unitList = document.getElementById('unitList');
 
+  // Initial render
+  renderUnitList();
+  rebuildAllUnitSelects();
 
-
-      // Delegated event listener for remove-unit buttons
-unitList.addEventListener('click', function(event) {
-  const target = event.target;
-
-  // Check if the clicked element is a remove-unit button
-  if (target.classList.contains('remove-unit')) {
-    const unit = target.dataset.unit;
-    if (confirm(`Remove unit "${unit}"?`)) {
-      const units = loadGlobalUnits().filter((u) => u !== unit);
-// Initial render
-loadGlobalUnits();
-renderUnitList();
-rebuildAllUnitSelects();
-
-if (addUnitBtn && newUnitInput) {
-  addUnitBtn.addEventListener('click', function() {
-    addGlobalUnit(newUnitInput.value);
-    newUnitInput.value = '';
-  });
-  newUnitInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
+  // Add Unit button event listener
+  if (addUnitBtn && newUnitInput) {
+    addUnitBtn.addEventListener('click', function() {
       addGlobalUnit(newUnitInput.value);
       newUnitInput.value = '';
+    });
+    newUnitInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addGlobalUnit(newUnitInput.value);
+        newUnitInput.value = '';
+      }
+    });
+  }
+
+  // Delegated event listener for Remove Unit buttons
+  unitList.addEventListener('click', function(event) {
+    const target = event.target;
+
+    // Check if the clicked element is a remove-unit button
+    if (target.classList.contains('remove-unit')) {
+      const unit = target.dataset.unit;
+      if (confirm(`Remove unit "${unit}"?`)) {
+        const units = loadGlobalUnits().filter((u) => u !== unit);
+        saveGlobalUnits(units); // Save updated units
+        renderUnitList();       // Re-render the unit list
+        rebuildAllUnitSelects(); // Update dropdowns
+      }
     }
   });
-}
+});
 
       let customizeMode = false;
       let editingSession = false;
@@ -2210,6 +2215,7 @@ if (addUnitBtn && newUnitInput) {
   </script>
 </body>
 </html>
+
 
 
 
