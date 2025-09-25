@@ -707,6 +707,75 @@
       });
     }
 
+    // ADD THE FOLLOWING NEW CODE HERE:
+// ----------------- Unit Management Functions -----------------
+// Function to load global units from localStorage
+function loadGlobalUnits() {
+  try {
+    const stored = localStorage.getItem('globalUnits_v1');
+    return stored ? JSON.parse(stored) : [];
+  } catch(e) {
+    console.error('Error loading global units:', e);
+    return [];
+  }
+}
+
+// Function to save global units to localStorage
+function saveGlobalUnits(units) {
+  try {
+    localStorage.setItem('globalUnits_v1', JSON.stringify(units));
+  } catch(e) {
+    console.error('Error saving global units:', e);
+  }
+}
+
+// Function to render the unit list in the customize panel
+function renderUnitList() {
+  const unitList = document.getElementById('unitList');
+  const units = loadGlobalUnits();
+  
+  unitList.innerHTML = units.map(unit => `
+    <div class="unit-item" style="display:flex; align-items:center; gap:8px; padding:6px; background:white; margin-bottom:6px; border:1px solid #eee; border-radius:4px;">
+      <span style="flex:1">${unit}</span>
+      <button class="remove-unit" data-unit="${unit}" style="background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Remove</button>
+    </div>
+  `).join('');
+}
+
+// Function to add a new global unit
+function addGlobalUnit(unit) {
+  if (!unit.trim()) return;
+  const units = loadGlobalUnits();
+  if (units.includes(unit)) return;
+  
+  units.push(unit);
+  saveGlobalUnits(units);
+  renderUnitList();
+  rebuildAllUnitSelects();
+}
+
+// Function to rebuild all unit select dropdowns
+function rebuildAllUnitSelects() {
+  const units = loadGlobalUnits();
+  document.querySelectorAll('.unit-select').forEach(select => {
+    const currentVal = select.value;
+    // Keep default options
+    const defaultOptions = Array.from(select.options)
+      .filter(opt => ['Boxes', 'Pieces', 'Kg'].includes(opt.value))
+      .map(opt => opt.outerHTML);
+      
+    // Add global units
+    select.innerHTML = defaultOptions.join('') + 
+      units.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+      
+    // Restore selection if possible
+    if (currentVal) {
+      select.value = currentVal;
+    }
+  });
+}
+
+
     // --- customization logic ---
     document.addEventListener('DOMContentLoaded', function() {
       const container = document.getElementById('appContainer');
@@ -2092,156 +2161,12 @@
         };
 
       })();
-      // --- Global Units Management ---
-let globalUnits = [];
-
-// Load global units from localStorage
-function loadGlobalUnits() {
-  try {
-    const stored = localStorage.getItem('globalUnits_v1');
-    globalUnits = stored ? JSON.parse(stored) : [];
-  } catch(e) {
-    console.error('Error loading global units:', e);
-    globalUnits = [];
-  }
-}
-
-// Save global units to localStorage
-function saveGlobalUnits() {
-  try {
-    localStorage.setItem('globalUnits_v1', JSON.stringify(globalUnits));
-  } catch(e) {
-    console.error('Error saving global units:', e);
-  }
-}
-
-// Update the UI to show current global units
-function renderUnitList() {
-  const list = document.getElementById('unitList');
-  if (!list) return;
-  
-  list.innerHTML = '';
-  globalUnits.forEach(unit => {
-    const div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.alignItems = 'center';
-    div.style.gap = '8px';
-    div.style.padding = '6px';
-    div.style.background = 'white';
-    div.style.marginBottom = '4px';
-    div.style.borderRadius = '4px';
-    div.style.border = '1px solid #eee';
-
-    const span = document.createElement('span');
-    span.textContent = unit;
-    span.style.flex = '1';
-
-    const btn = document.createElement('button');
-    btn.textContent = '✕';
-    btn.title = 'Remove unit';
-    btn.style.padding = '4px 8px';
-    btn.style.background = '#ff6b6b';
-    btn.style.border = 'none';
-    btn.style.borderRadius = '4px';
-    btn.style.color = 'white';
-    btn.style.cursor = 'pointer';
-    btn.onclick = () => {
-      if (confirm(`Remove unit "${unit}"? This cannot be undone.`)) {
-        globalUnits = globalUnits.filter(u => u !== unit);
-        saveGlobalUnits();
-        renderUnitList();
-        rebuildAllUnitSelects();
-      }
-    };
-
-    div.appendChild(span);
-    div.appendChild(btn);
-    list.appendChild(div);
-  });
-}
-
-// Add a new global unit
-function addGlobalUnit(unit) {
-  unit = unit.trim();
-  if (!unit) return;
-  if (globalUnits.includes(unit)) {
-    alert('This unit already exists');
-    return;
-  }
-  globalUnits.push(unit);
-  saveGlobalUnits();
-  renderUnitList();
-  rebuildAllUnitSelects();
-}
-
-// Rebuild all unit dropdowns with current options
-function rebuildAllUnitSelects() {
-  document.querySelectorAll('.unit-select').forEach(select => {
-    const currentVal = select.value;
-    const suffix = select.id.replace('unit_', '');
-    const customInput = document.getElementById(`unit_custom_${suffix}`);
-    const hasCustomValue = customInput && customInput.style.display !== 'none' && customInput.value;
-    
-    // Clear existing options
-    select.innerHTML = '';
-    
-    // Add default options
-    ['Boxes', 'Pieces', 'Kg'].forEach(unit => {
-      const opt = document.createElement('option');
-      opt.value = unit;
-      opt.textContent = unit;
-      select.appendChild(opt);
-    });
-
-    // Add global units
-    globalUnits.forEach(unit => {
-      const opt = document.createElement('option');
-      opt.value = unit;
-      opt.textContent = unit;
-      select.appendChild(opt);
-    });
-
-    // Restore selection or handle custom value
-    if (hasCustomValue) {
-      // Keep showing custom input if it had a value
-      customInput.style.display = 'inline-block';
-    } else if (currentVal && (globalUnits.includes(currentVal) || ['Boxes', 'Pieces', 'Kg'].includes(currentVal))) {
-      select.value = currentVal;
-    } else {
-      select.selectedIndex = 0;
-    }
-  });
-}
-
-// Wire up the UI handlers
-document.addEventListener('DOMContentLoaded', function() {
-  const addUnitBtn = document.getElementById('addUnitBtn');
-  const newUnitInput = document.getElementById('newUnitInput');
-
-  if (addUnitBtn && newUnitInput) {
-    addUnitBtn.onclick = () => {
-      addGlobalUnit(newUnitInput.value);
-      newUnitInput.value = '';
-    };
-
-    newUnitInput.onkeypress = (e) => {
-      if (e.key === 'Enter') {
-        addGlobalUnit(newUnitInput.value);
-        newUnitInput.value = '';
-      }
-    };
-  }
-
-  // Initial load
-  loadGlobalUnits();
-  renderUnitList();
-  rebuildAllUnitSelects();
-});
       // ----------------------------------------------------------------------
 
     }); // DOMContentLoaded end
   </script>
 </body>
 </html>
+
 
 
