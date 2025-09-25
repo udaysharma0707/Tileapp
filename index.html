@@ -1508,6 +1508,154 @@ try {
   // rebuildAllUnitSelects(); -- call this inside DOMContentLoaded below
 } catch(e){}
 
+      // ----- PATCH: make Custom unit editable & auto-promote custom text into global units -----
+// Paste this inside DOMContentLoaded (after your initializeUnitLocks / bindSubitemHandlers calls)
+
+// Listen for unit-select changes. If user selects "Custom", ensure the custom input is shown AND enabled
+document.body.addEventListener('change', function(ev) {
+  const t = ev.target;
+  if (!t) return;
+  // existing handler for unit-selects: show/hide custom input
+  if (t.matches('.unit-select')) {
+    const id = t.id || '';
+    if (!id) return;
+    const suffix = id.slice(5); // remove "unit_"
+    const customEl = document.getElementById('unit_custom_' + suffix);
+    // If no customEl, nothing to do
+    if (!customEl) return;
+
+    if (t.value === 'Custom') {
+      // show and enable custom input even if subitem isn't checked — allows adding a global unit
+      customEl.style.display = '';
+      customEl.disabled = false;
+      try { customEl.focus(); } catch(e){}
+    } else {
+      // user selected an explicit unit — hide custom input but DO NOT clear value (so locked values remain)
+      customEl.style.display = 'none';
+      customEl.disabled = true;
+    }
+  }
+});
+
+// When user types into a unit-custom input, add the unit globally (debounced) and promote it into the select
+document.body.addEventListener('input', function(ev) {
+  const t = ev.target;
+  if (!t) return;
+  if (!t.matches('.unit-custom')) return;
+  const id = t.id || ''; // e.g. unit_custom_floor_vitrified
+  if (!id.startsWith('unit_custom_')) return;
+  const suffix = id.slice('unit_custom_'.length);
+
+  // debounce so we don't spam localStorage while typing
+  if (t._unit_custom_deb) clearTimeout(t._unit_custom_deb);
+  t._unit_custom_deb = setTimeout(function() {
+    t._unit_custom_deb = null;
+    const val = (t.value || '').trim();
+    if (!val) return;
+
+    // add to global units; addGlobalUnitIfMissing is part of the manager code (from earlier snippet)
+    const added = addGlobalUnitIfMissing(val);
+    if (added) {
+      // rebuild selects already done by addGlobalUnitIfMissing -> rebuildAllUnitSelects()
+      // find the specific select for this suffix and set it to new unit
+      try {
+        const sel = document.getElementById('unit_' + suffix);
+        if (sel) {
+          // if select exists, set value to new unit
+          // rebuildAllUnitSelects already ran (inside addGlobalUnitIfMissing), but ensure the option is present:
+          const has = Array.from(sel.options).some(o => o.value === val);
+          if (!has) {
+            const opt = document.createElement('option'); opt.value = val; opt.textContent = val;
+            // insert before 'Custom' if present
+            const customIdx = Array.from(sel.options).findIndex(o => o.value === 'Custom');
+            if (customIdx === -1) sel.appendChild(opt);
+            else sel.insertBefore(opt, sel.options[customIdx]);
+          }
+          sel.value = val;
+        }
+        // hide and disable the custom input (we promoted the value into the select)
+        t.style.display = 'none';
+        t.disabled = true;
+      } catch(e) {
+        console.warn('promote custom unit err', e);
+      }
+    } else {
+      // If not added (already exists), we still attempt to set the select value if available
+      try {
+        const sel = document.getElementById('unit_' + suffix);
+        if (sel && Array.from(sel.options).some(o => o.value === val)) {
+          sel.value = val;
+          t.style.display = 'none';
+          t.disabled = true;
+        }
+      } catch(e){}
+    }
+  }, 450);
+});
+
+// ----- MODE OF PAYMENT SYNC: auto-sum mode amounts into "paymentPaid" -----
+// Computes sum of enabled mode amounts and writes to #paymentPaid (rounded to 2 decimals)
+function recalcPaymentFromModes() {
+  try {
+    const amtEls = Array.from(document.querySelectorAll('input.mode-amount'));
+    let sum = 0;
+    amtEls.forEach(el => {
+      // only include if its linked checkbox is checked OR element has data-mode-amount and non-zero
+      let include = true;
+      // If there's a checkbox in same mode-row, prefer its checked state
+      const parent = el.closest && el.closest('.mode-row');
+      if (parent) {
+        const cb = parent.querySelector('input[name="modeOfPayment"], input[type="checkbox"]');
+        if (cb) include = !!cb.checked;
+      }
+      if (!include) return;
+      const v = el.value ? Number(el.value) : 0;
+      if (!isNaN(v)) sum += v;
+    });
+    const pay = document.getElementById('paymentPaid');
+    if (pay) {
+      // Only override if user hasn't manually edited total recently?
+      // For simplicity we always update to reflect mode breakdown (this matches your requirement)
+      pay.value = (Math.round(sum * 100) / 100).toFixed(2);
+    }
+  } catch(e){ console.warn('recalcPaymentFromModes err', e); }
+}
+
+// wire listeners: on mode amount input change and on mode checkbox change
+document.body.addEventListener('input', function(ev) {
+  const t = ev.target;
+  if (!t) return;
+  if (t.matches('input.mode-amount')) {
+    // whenever a mode amount changes, recalc total
+    recalcPaymentFromModes();
+  }
+});
+document.body.addEventListener('change', function(ev) {
+  const t = ev.target;
+  if (!t) return;
+  // when user toggles a mode checkbox, enable/disable its amount and recalc
+  if (t.matches('input[name="modeOfPayment"], input[type="checkbox"].mode-toggle')) {
+    const parent = t.closest && t.closest('.mode-row');
+    if (parent) {
+      const amt = parent.querySelector('input.mode-amount');
+      if (amt) {
+        amt.disabled = !t.checked;
+        if (!t.checked) { amt.value = ''; }
+      }
+    }
+    recalcPaymentFromModes();
+  }
+});
+
+// ---------- ensure the manager UI and selects are initialized ----------
+// Call these after your existing initialization calls (initializeUnitLocks, bindSubitemHandlers)
+try {
+  rebuildAllUnitSelects(); // populate selects from saved global units
+  initUnitManagerUI();     // wire the Unit Manager controls inside customPanel
+  // also run recalc once on load so paymentPaid picks up any pre-filled mode amounts
+  recalcPaymentFromModes();
+} catch(e){ console.warn('unit patch init err', e); }
+
 
       // ----------------- add subitem / mode UI -----------------
       if (addSubBtn) {
@@ -2348,4 +2496,5 @@ try {
   </script>
 </body>
 </html>
+
 
