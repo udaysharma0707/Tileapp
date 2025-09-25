@@ -97,7 +97,7 @@ function sendToServerJSONP(formData, clientTs, opts) {
 // ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
 function collectFormData(){
   const selectedParts = [];
-  const items = []; // structured items: { id, qty, label }
+  const items = []; // structured items: { id, qty, unit, label }
 
   // track which sub ids we've explicitly pushed (to avoid duplicates when scanning generic subitems)
   const addedSubIds = new Set();
@@ -119,19 +119,43 @@ function collectFormData(){
     return (fallback || "").toString().trim();
   }
 
+  // helper: read unit for a suffix (suffix = checkboxId.slice(4) for sub_* items; 'other' for p_other)
+  function getUnitForSuffix(suffix) {
+    try {
+      if (!suffix) return "";
+      const sel = document.getElementById('unit_' + suffix);
+      const custom = document.getElementById('unit_custom_' + suffix);
+      if (sel) {
+        const v = sel.value || '';
+        if (v === 'Custom') {
+          return (custom && custom.value && custom.value.trim()) ? custom.value.trim() : '';
+        } else {
+          return v || '';
+        }
+      }
+    } catch (e){}
+    return "";
+  }
+
   function pushIfSub(checkboxId, qtyId, labelFallback) {
     const cb = document.getElementById(checkboxId);
     if (!cb || !cb.checked) return;
     const qtyEl = document.getElementById(qtyId);
     const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
     const label = getLabelFor(checkboxId, labelFallback || cb.value || "");
+    // compute suffix for unit id: remove leading 'sub_' => suffix
+    const suffix = (checkboxId && checkboxId.indexOf('sub_') === 0) ? checkboxId.slice(4) : (checkboxId || "");
+    const unitVal = getUnitForSuffix(suffix);
+
     if (qtyVal !== "") {
-      selectedParts.push(qtyVal + " " + label);
+      if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
+      else selectedParts.push(qtyVal + " " + label);
     } else {
-      selectedParts.push(label);
+      if (unitVal) selectedParts.push(unitVal + " " + label);
+      else selectedParts.push(label);
     }
-    // add structured item
-    items.push({ id: checkboxId, qty: qtyVal || "", label: label });
+    // add structured item (include unit)
+    items.push({ id: checkboxId, qty: qtyVal || "", unit: unitVal || "", label: label });
     addedSubIds.add(checkboxId);
   }
 
@@ -171,9 +195,15 @@ function collectFormData(){
     // for Others label, prefer the editable label for the main 'p_other' if present
     const mainOtherLabel = getLabelFor('p_other', 'Others');
     const label = otherTxt.trim() !== "" ? otherTxt.trim() : mainOtherLabel;
-    if (otherQty !== "") selectedParts.push(otherQty + " " + label);
-    else selectedParts.push(label);
-    items.push({ id: 'p_other', qty: otherQty || "", label: label });
+    const unitOther = getUnitForSuffix('other');
+    if (otherQty !== "") {
+      if (unitOther) selectedParts.push(otherQty + " " + unitOther + " " + label);
+      else selectedParts.push(otherQty + " " + label);
+    } else {
+      if (unitOther) selectedParts.push(unitOther + " " + label);
+      else selectedParts.push(label);
+    }
+    items.push({ id: 'p_other', qty: otherQty || "", unit: unitOther || "", label: label });
     addedSubIds.add('p_other');
   }
 
@@ -189,9 +219,16 @@ function collectFormData(){
       const qtyEl = document.getElementById(qtyId);
       const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
       const label = getLabelFor(cb.id, cb.value || "");
-      if (qtyVal !== "") selectedParts.push(qtyVal + " " + label);
-      else selectedParts.push(label);
-      items.push({ id: cb.id, qty: qtyVal || "", label: label });
+      const suffix = (cb.id && cb.id.indexOf('sub_') === 0) ? cb.id.slice(4) : (cb.id || "");
+      const unitVal = getUnitForSuffix(suffix);
+      if (qtyVal !== "") {
+        if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
+        else selectedParts.push(qtyVal + " " + label);
+      } else {
+        if (unitVal) selectedParts.push(unitVal + " " + label);
+        else selectedParts.push(label);
+      }
+      items.push({ id: cb.id, qty: qtyVal || "", unit: unitVal || "", label: label });
       addedSubIds.add(cb.id);
     });
   } catch (e) {
@@ -272,13 +309,14 @@ function collectFormData(){
   const modeBreakdown = breakdownParts.join(', ');
 
   return {
-    purchasedItem: selectedParts.join(", "),
+    // NOTE: join by newline so the sheet cell will show each entry on its own line
+    purchasedItem: selectedParts.join("\n"),
     purchasedFrom: (document.getElementById('purchasedFrom') || {}).value ? document.getElementById('purchasedFrom').value.trim() : '',
     modeOfPayment: modeStr,
     modeBreakdown: modeBreakdown,
     paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
     otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
-    // Structured items array - server will prefer this if present
+    // Structured items array - server will prefer this if present (now includes unit)
     items: items
   };
 }
@@ -303,6 +341,10 @@ function clearForm(){
       const e = document.getElementById(id);
       if (e) { e.value=''; e.disabled = true; }
     });
+    // clear unit selects/customs but keep any locked values (locks are intentionally persistent)
+    document.querySelectorAll('.unit-select').forEach(u => { try { u.selectedIndex = 0; u.disabled = true; } catch(e){} });
+    document.querySelectorAll('.unit-custom').forEach(uc => { try { uc.value=''; uc.style.display='none'; uc.disabled = true; } catch(e){} });
+    document.querySelectorAll('.unit-lock input[type="checkbox"]').forEach(lk => { try { lk.checked = false; lk.disabled = true; } catch(e){} });
     const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
     const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
   } catch(e){ console.warn('clearForm error', e); }
@@ -650,4 +692,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
