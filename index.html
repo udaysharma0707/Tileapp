@@ -756,21 +756,6 @@ function renderUnitList() {
   });
 }
     
-// Attach event listener for remove-unit buttons
-unitList.addEventListener('click', function(event) {
-  const target = event.target;
-
-  // Check if the clicked element is a remove-unit button
-  if (target.classList.contains('remove-unit')) {
-    const unit = target.dataset.unit;
-    if (confirm(`Remove unit "${unit}"?`)) {
-      const units = loadGlobalUnits().filter((u) => u !== unit);
-      saveGlobalUnits(units);
-      renderUnitList();
-      rebuildAllUnitSelects();
-    }
-  }
-});
 
 // Function to add a new global unit
 function addGlobalUnit(unit) {
@@ -2225,6 +2210,7 @@ if (addUnitBtn && newUnitInput) {
   </script>
 </body>
 </html>
+
 
 
 
