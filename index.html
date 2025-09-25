@@ -1217,6 +1217,43 @@ function setupMainToSubBindings() {
     update();
   });
 }
+      // ----- Ensure main purchased checkboxes toggle their sublists -----
+// Place this after bindSubitemHandlers() and setupMainToSubBindings() in DOMContentLoaded
+document.querySelectorAll('.purchased').forEach(function(cb){
+  // avoid double-binding
+  if (cb._main_toggle_bound) return;
+  cb._main_toggle_bound = true;
+
+  cb.addEventListener('change', function() {
+    try {
+      const id = this.id || '';
+      const parts = id.split('_');
+      const suffix = parts.length > 1 ? parts.slice(1).join('_') : id;
+      const sublist = document.getElementById('sublist_' + suffix);
+      if (!sublist) return;
+
+      // show/hide the sublist
+      sublist.style.display = this.checked ? 'block' : 'none';
+
+      if (!this.checked) {
+        // clear and disable nested controls when main unchecks
+        sublist.querySelectorAll('.subitem').forEach(si => { si.checked = false; });
+        sublist.querySelectorAll('.subqty').forEach(q => { q.value = ''; q.disabled = true; });
+        sublist.querySelectorAll('.unit-select').forEach(u => { try { u.selectedIndex = 0; u.disabled = true; } catch(e){} });
+        sublist.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; uc.disabled = true; /* keep value for locks */ });
+        sublist.querySelectorAll('.unit-lock input[type="checkbox"]').forEach(lk => { lk.checked = false; lk.disabled = true; });
+      } else {
+        // If main was checked, let bindSubitemHandlers drive enabling of qty/unit when each subitem is checked
+        // but enable the selects if you prefer them active by default:
+        // sublist.querySelectorAll('.unit-select').forEach(u => { u.disabled = false; });
+      }
+    } catch (e) { console.warn('main checkbox toggle err', e); }
+  });
+
+  // trigger initial state so sublists are correctly visible/hidden on load
+  try { cb.dispatchEvent(new Event('change')); } catch(e){}
+});
+
 
 // generic mode checkbox -> enable its amount input (works for static & dynamic modes)
 function bindModeToggle(modeCheckbox) {
@@ -1699,6 +1736,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
