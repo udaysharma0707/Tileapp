@@ -289,7 +289,319 @@ function saveGlobalUnits(units) {
   }
 }
 
-// ---------- MAIN: collectFormData (COMPLETELY REWRITTEN - simpler and more reliable) ----------
+// ---------- CRITICAL: Sub-item Show/Hide Functionality ----------
+function bindMainToSubHandlers() {
+  console.log('=== Setting up main-to-sub bindings ===');
+  
+  // Main category to sublist mapping
+  const mainToSubMapping = {
+    'p_floor': 'sublist_floor',
+    'p_wall': 'sublist_wall', 
+    'p_san': 'sublist_san',
+    'p_acc': 'sublist_acc'
+  };
+
+  Object.keys(mainToSubMapping).forEach(mainId => {
+    const mainCheckbox = document.getElementById(mainId);
+    const sublistDiv = document.getElementById(mainToSubMapping[mainId]);
+    
+    if (!mainCheckbox || !sublistDiv) {
+      console.warn(`Missing elements: ${mainId} or ${mainToSubMapping[mainId]}`);
+      return;
+    }
+
+    console.log(`Binding ${mainId} to ${mainToSubMapping[mainId]}`);
+
+    // Remove existing listeners to avoid duplicates
+    if (mainCheckbox._mainToSubHandler) {
+      mainCheckbox.removeEventListener('change', mainCheckbox._mainToSubHandler);
+    }
+
+    // Create the handler function
+    const handler = function() {
+      const isChecked = mainCheckbox.checked;
+      console.log(`${mainId} changed: ${isChecked}`);
+      
+      // Show/hide the sublist
+      sublistDiv.style.display = isChecked ? 'block' : 'none';
+      
+      // If unchecking main category, also uncheck all sub-items and clear quantities
+      if (!isChecked) {
+        const subItems = sublistDiv.querySelectorAll('.subitem');
+        const quantities = sublistDiv.querySelectorAll('.subqty');
+        const unitSelects = sublistDiv.querySelectorAll('.unit-select');
+        const unitCustoms = sublistDiv.querySelectorAll('.unit-custom');
+        
+        subItems.forEach(sub => { sub.checked = false; });
+        quantities.forEach(qty => { 
+          qty.value = ''; 
+          qty.disabled = true; 
+        });
+        unitSelects.forEach(unit => { 
+          unit.selectedIndex = 0; 
+          unit.disabled = true; 
+        });
+        unitCustoms.forEach(custom => { 
+          custom.value = ''; 
+          custom.style.display = 'none'; 
+          custom.disabled = true; 
+        });
+      }
+    };
+
+    // Bind the handler
+    mainCheckbox._mainToSubHandler = handler;
+    mainCheckbox.addEventListener('change', handler);
+    
+    // Apply initial state
+    handler();
+  });
+}
+
+// ---------- CRITICAL: Sub-item Quantity/Unit Handlers ----------
+function bindSubItemHandlers() {
+  console.log('=== Setting up sub-item handlers ===');
+  
+  document.querySelectorAll('.subitem').forEach(subCheckbox => {
+    if (!subCheckbox.id) return;
+    
+    const subId = subCheckbox.id; // e.g., 'sub_floor_vitrified'
+    const suffix = subId.replace('sub_', ''); // e.g., 'floor_vitrified'
+    const qtyId = 'q_' + suffix; // e.g., 'q_floor_vitrified'
+    const unitId = 'unit_' + suffix; // e.g., 'unit_floor_vitrified'
+    const unitCustomId = 'unit_custom_' + suffix;
+    
+    const qtyInput = document.getElementById(qtyId);
+    const unitSelect = document.getElementById(unitId);
+    const unitCustom = document.getElementById(unitCustomId);
+    
+    console.log(`Binding sub-item: ${subId} -> qty:${qtyId}, unit:${unitId}`);
+
+    // Remove existing handler to avoid duplicates
+    if (subCheckbox._subItemHandler) {
+      subCheckbox.removeEventListener('change', subCheckbox._subItemHandler);
+    }
+
+    // Create handler for sub-item checkbox
+    const handler = function() {
+      const isChecked = subCheckbox.checked;
+      console.log(`${subId} changed: ${isChecked}`);
+      
+      // Enable/disable quantity input
+      if (qtyInput) {
+        qtyInput.disabled = !isChecked;
+        if (!isChecked) qtyInput.value = '';
+      }
+      
+      // Enable/disable unit select
+      if (unitSelect) {
+        unitSelect.disabled = !isChecked;
+        if (!isChecked) {
+          unitSelect.selectedIndex = 0;
+        } else {
+          // Apply saved unit preference when enabling
+          const preferences = loadUnitPreferences();
+          const savedUnit = preferences[unitId];
+          if (savedUnit) {
+            const opts = Array.from(unitSelect.options).map(o => o.value);
+            if (opts.includes(savedUnit)) {
+              unitSelect.value = savedUnit;
+            }
+          }
+        }
+      }
+      
+      // Handle custom unit input
+      if (unitCustom) {
+        unitCustom.disabled = !isChecked;
+        if (!isChecked) {
+          unitCustom.value = '';
+          unitCustom.style.display = 'none';
+        }
+      }
+    };
+
+    // Bind the handler
+    subCheckbox._subItemHandler = handler;
+    subCheckbox.addEventListener('change', handler);
+    
+    // Apply initial state
+    handler();
+
+    // Unit select change handler
+    if (unitSelect) {
+      if (unitSelect._unitChangeHandler) {
+        unitSelect.removeEventListener('change', unitSelect._unitChangeHandler);
+      }
+      
+      const unitChangeHandler = function() {
+        const selectedUnit = unitSelect.value;
+        
+        // Handle custom unit visibility
+        if (unitCustom) {
+          if (selectedUnit === 'Custom') {
+            unitCustom.style.display = 'inline-block';
+            unitCustom.disabled = !subCheckbox.checked;
+            if (subCheckbox.checked) unitCustom.focus();
+          } else {
+            unitCustom.style.display = 'none';
+            unitCustom.value = '';
+            unitCustom.disabled = true;
+          }
+        }
+        
+        // Save unit preference
+        if (subCheckbox.checked && selectedUnit) {
+          saveUnitPreference(unitId, selectedUnit);
+        }
+      };
+      
+      unitSelect._unitChangeHandler = unitChangeHandler;
+      unitSelect.addEventListener('change', unitChangeHandler);
+      
+      // Apply initial state
+      unitChangeHandler();
+    }
+  });
+}
+
+// ---------- CRITICAL: Others Main Item Handler ----------
+function bindOthersHandler() {
+  console.log('=== Setting up Others handler ===');
+  
+  const othersMain = document.getElementById('p_other');
+  const othersQty = document.getElementById('q_other');
+  const othersUnit = document.getElementById('unit_other');
+  const othersCustom = document.getElementById('unit_custom_other');
+  
+  if (!othersMain) {
+    console.warn('Others main checkbox not found');
+    return;
+  }
+
+  // Remove existing handler
+  if (othersMain._othersHandler) {
+    othersMain.removeEventListener('change', othersMain._othersHandler);
+  }
+
+  const handler = function() {
+    const isChecked = othersMain.checked;
+    console.log(`Others changed: ${isChecked}`);
+    
+    if (othersQty) {
+      othersQty.disabled = !isChecked;
+      if (!isChecked) othersQty.value = '';
+    }
+    
+    if (othersUnit) {
+      othersUnit.disabled = !isChecked;
+      if (!isChecked) {
+        othersUnit.selectedIndex = 0;
+      } else {
+        // Apply saved preference
+        const preferences = loadUnitPreferences();
+        const savedUnit = preferences['unit_other'];
+        if (savedUnit) {
+          const opts = Array.from(othersUnit.options).map(o => o.value);
+          if (opts.includes(savedUnit)) {
+            othersUnit.value = savedUnit;
+          }
+        }
+      }
+    }
+    
+    if (othersCustom) {
+      othersCustom.disabled = !isChecked;
+      if (!isChecked) {
+        othersCustom.value = '';
+        othersCustom.style.display = 'none';
+      }
+    }
+  };
+
+  othersMain._othersHandler = handler;
+  othersMain.addEventListener('change', handler);
+  
+  // Apply initial state
+  handler();
+
+  // Others unit select handler
+  if (othersUnit) {
+    if (othersUnit._othersUnitHandler) {
+      othersUnit.removeEventListener('change', othersUnit._othersUnitHandler);
+    }
+    
+    const unitHandler = function() {
+      const selectedUnit = othersUnit.value;
+      
+      if (othersCustom) {
+        if (selectedUnit === 'Custom') {
+          othersCustom.style.display = 'inline-block';
+          othersCustom.disabled = !othersMain.checked;
+          if (othersMain.checked) othersCustom.focus();
+        } else {
+          othersCustom.style.display = 'none';
+          othersCustom.value = '';
+          othersCustom.disabled = true;
+        }
+      }
+      
+      if (othersMain.checked && selectedUnit) {
+        saveUnitPreference('unit_other', selectedUnit);
+      }
+    };
+    
+    othersUnit._othersUnitHandler = unitHandler;
+    othersUnit.addEventListener('change', unitHandler);
+    
+    // Apply initial state
+    unitHandler();
+  }
+}
+
+// ---------- CRITICAL: Payment Mode Handlers ----------
+function bindPaymentModeHandlers() {
+  console.log('=== Setting up payment mode handlers ===');
+  
+  document.querySelectorAll('input[name="modeOfPayment"]').forEach(modeCheckbox => {
+    if (!modeCheckbox.id) return;
+    
+    const modeId = modeCheckbox.id; // e.g., 'mode_cash'
+    const amountId = 'amt_' + modeId; // e.g., 'amt_mode_cash'
+    const amountInput = document.getElementById(amountId) || 
+                       modeCheckbox.closest('.mode-row')?.querySelector('.mode-amount');
+    
+    if (!amountInput) {
+      console.warn(`Amount input not found for ${modeId}`);
+      return;
+    }
+
+    console.log(`Binding payment mode: ${modeId} -> ${amountInput.id || 'amount input'}`);
+
+    // Remove existing handler
+    if (modeCheckbox._paymentModeHandler) {
+      modeCheckbox.removeEventListener('change', modeCheckbox._paymentModeHandler);
+    }
+
+    const handler = function() {
+      const isChecked = modeCheckbox.checked;
+      console.log(`${modeId} changed: ${isChecked}`);
+      
+      amountInput.disabled = !isChecked;
+      if (!isChecked) {
+        amountInput.value = '';
+      }
+    };
+
+    modeCheckbox._paymentModeHandler = handler;
+    modeCheckbox.addEventListener('change', handler);
+    
+    // Apply initial state
+    handler();
+  });
+}
+
+// ---------- MAIN: collectFormData (FIXED - but simpler and more reliable) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = [];
@@ -310,20 +622,16 @@ function collectFormData(){
 
   // Helper function to get label text
   function getLabelText(checkboxId, fallback = '') {
-    // Try multiple ways to get the label
     let labelText = fallback;
     try {
-      // Try data-config-id pattern
       const configEl = document.querySelector(`[data-config-id="${checkboxId}_label"]`);
       if (configEl && configEl.textContent) {
         labelText = configEl.textContent.trim();
       } else {
-        // Try label_ + id pattern
         const labelEl = document.getElementById(`label_${checkboxId}`);
         if (labelEl && labelEl.textContent) {
           labelText = labelEl.textContent.trim();
         } else {
-          // Try the checkbox value itself
           const checkboxEl = document.getElementById(checkboxId);
           if (checkboxEl && checkboxEl.value) {
             labelText = checkboxEl.value.trim();
@@ -346,7 +654,6 @@ function collectFormData(){
     
     if (unitSelect) {
       const selectedUnit = unitSelect.value || '';
-      // Check if custom unit is visible and has value
       if (unitCustom && unitCustom.style.display !== 'none' && unitCustom.value && unitCustom.value.trim()) {
         return unitCustom.value.trim();
       }
@@ -605,6 +912,12 @@ function clearForm(){
     
     // Clear photo
     removePhoto();
+    
+    // Re-bind handlers after clearing
+    bindMainToSubHandlers();
+    bindSubItemHandlers();
+    bindOthersHandler();
+    bindPaymentModeHandlers();
   } catch(e){ 
     console.warn('clearForm error', e); 
   }
@@ -821,6 +1134,13 @@ document.addEventListener('DOMContentLoaded', function() {
   
   try { submitBtn.setAttribute('type','button'); } catch(e){}
 
+  // CRITICAL: Set up all the handlers that make sub-items work
+  console.log('=== Initializing form handlers ===');
+  bindMainToSubHandlers();
+  bindSubItemHandlers();
+  bindOthersHandler();
+  bindPaymentModeHandlers();
+
   // Photo Upload Event Listeners Setup
   const photoUploadBtnCamera = document.getElementById('photoUploadBtnCamera');
   const photoUploadBtnGallery = document.getElementById('photoUploadBtnGallery');
@@ -931,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!any) errors.push('Accessories: select at least one sub-item and enter quantity.');
     }
     if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
-      const q = (document.getElementById('q_other') || {}).value || "";
+       const q = (document.getElementById('q_other') || {}).value || "";
       const txt = (document.getElementById('purchasedOtherText') || {}).value || "";
       if (!q && txt.trim() === "") {
         errors.push('Others: please specify the item name and quantity (or uncheck Others).');
@@ -984,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const payment = (document.getElementById('paymentPaid') || {}).value || "";
       const modeChecked = Array.from(document.querySelectorAll('input[name="modeOfPayment"]')).some(m=>m.checked);
       if (!modeChecked) { alert('Please select a mode of payment.'); return; }
+
       if (!payment || isNaN(Number(payment))) { 
         alert('Please enter a valid payment amount.'); 
         return; 
@@ -1117,9 +1438,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const suffix = selectId.slice(5);
         const customEl = document.getElementById('unit_custom_' + suffix);
         if (customEl) {
-          // Hide custom input since we removed Custom option
-          customEl.style.display = 'none';
-          customEl.disabled = true;
+          if (unitValue === 'Custom') {
+            customEl.style.display = 'inline-block';
+            customEl.disabled = false;
+            customEl.focus();
+          } else {
+            customEl.style.display = 'none';
+            customEl.value = '';
+            customEl.disabled = true;
+          }
         }
       }
     }
@@ -1324,7 +1651,58 @@ window.recoverFromError = function() {
     msgEl.style.display = 'none';
   }
   
+  // Re-bind form handlers
+  bindMainToSubHandlers();
+  bindSubItemHandlers();
+  bindOthersHandler();
+  bindPaymentModeHandlers();
+  
   console.log('Error recovery completed');
+};
+
+// Function to manually trigger sub-item visibility (for debugging)
+window.showSubItems = function(mainId) {
+  const mainCheckbox = document.getElementById(mainId);
+  if (mainCheckbox) {
+    mainCheckbox.checked = true;
+    mainCheckbox.dispatchEvent(new Event('change'));
+    console.log(`Manually triggered ${mainId} to show sub-items`);
+  } else {
+    console.warn(`Main checkbox ${mainId} not found`);
+  }
+};
+
+// Function to test all form handlers
+window.testFormHandlers = function() {
+  console.log('=== Testing form handlers ===');
+  
+  // Test main category handlers
+  ['p_floor', 'p_wall', 'p_san', 'p_acc', 'p_other'].forEach(mainId => {
+    const mainEl = document.getElementById(mainId);
+    if (mainEl) {
+      console.log(`${mainId}: found, handler bound: ${!!mainEl._mainToSubHandler || !!mainEl._othersHandler}`);
+    } else {
+      console.warn(`${mainId}: not found`);
+    }
+  });
+  
+  // Test sub-item handlers
+  const subItems = document.querySelectorAll('.subitem');
+  console.log(`Found ${subItems.length} sub-items`);
+  let handlerCount = 0;
+  subItems.forEach(sub => {
+    if (sub._subItemHandler) handlerCount++;
+  });
+  console.log(`${handlerCount}/${subItems.length} sub-items have handlers bound`);
+  
+  // Test payment mode handlers
+  const paymentModes = document.querySelectorAll('input[name="modeOfPayment"]');
+  console.log(`Found ${paymentModes.length} payment modes`);
+  let paymentHandlerCount = 0;
+  paymentModes.forEach(mode => {
+    if (mode._paymentModeHandler) paymentHandlerCount++;
+  });
+  console.log(`${paymentHandlerCount}/${paymentModes.length} payment modes have handlers bound`);
 };
 
 // Auto-save functionality for form data
@@ -1463,6 +1841,23 @@ function loadAutoSavedData() {
     if (restored) {
       console.log('Auto-saved data restored');
       showMessage('Previous form data restored');
+      
+      // Re-bind handlers and trigger change events after restoration
+      setTimeout(() => {
+        bindMainToSubHandlers();
+        bindSubItemHandlers();
+        bindOthersHandler();
+        bindPaymentModeHandlers();
+        
+        // Trigger change events to update form state
+        document.querySelectorAll('.purchased:checked').forEach(el => {
+          el.dispatchEvent(new Event('change'));
+        });
+        document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(el => {
+          el.dispatchEvent(new Event('change'));
+        });
+      }, 100);
+      
       return true;
     }
   } catch (e) {
@@ -1503,6 +1898,10 @@ document.addEventListener('change', function(e) {
 window.autoSaveFormData = autoSaveFormData;
 window.loadAutoSavedData = loadAutoSavedData;
 window.clearAutoSave = clearAutoSave;
+window.bindMainToSubHandlers = bindMainToSubHandlers;
+window.bindSubItemHandlers = bindSubItemHandlers;
+window.bindOthersHandler = bindOthersHandler;
+window.bindPaymentModeHandlers = bindPaymentModeHandlers;
 
 // Ask user about restoring data on page load (but only once per session)
 if (!sessionStorage.getItem('autoRestoreAsked')) {
@@ -1512,17 +1911,8 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
       if (hasAutoSave) {
         if (confirm('Found unsaved form data from previous session. Restore it?')) {
           const restored = loadAutoSavedData();
-          if (restored) {
-            // Update form state after restoration
-            setTimeout(() => {
-              // Trigger change events to update form state
-              document.querySelectorAll('.purchased:checked').forEach(el => {
-                el.dispatchEvent(new Event('change'));
-              });
-              document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(el => {
-                el.dispatchEvent(new Event('change'));
-              });
-            }, 100);
+          if (!restored) {
+            clearAutoSave();
           }
         } else {
           clearAutoSave();
@@ -1534,3 +1924,4 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
 }
 
 console.log('=== TileApp JavaScript loaded successfully ===');
+
