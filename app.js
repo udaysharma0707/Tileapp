@@ -3,6 +3,10 @@ const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
 
+// ---------- INTEGRATED: Photo WebApp Variables ----------
+let selectedFile = null;
+let selectedImage = null;
+
 // ---------- helpers ----------
 function updateStatus(){ /* same as before - unchanged */
   const s = document.getElementById('status');
@@ -62,7 +66,217 @@ function jsonpRequest(url, timeoutMs) {
   });
 }
 
-// Build JSONP URL and call (form submit)
+// ---------- INTEGRATED: Photo WebApp Functions ----------
+function openCamera() {
+  document.getElementById('cameraInput').click();
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file && file.type.startsWith('image/')) {
+    handleFile(file);
+  }
+}
+
+function handleFile(file) {
+  selectedFile = file;
+  
+  // Compress and create preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set max dimensions to avoid large uploads
+      const maxWidth = 1920;
+      const maxHeight = 1080;
+      let { width, height } = img;
+      
+      // Calculate new dimensions
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      selectedImage = canvas.toDataURL('image/jpeg', 0.7); // Reduced quality for faster upload
+      
+      // Show preview
+      const previewImg = document.getElementById('previewImage');
+      const previewContainer = document.getElementById('previewContainer');
+      if (previewImg && previewContainer) {
+        previewImg.src = selectedImage;
+        previewContainer.style.display = 'block';
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadPhoto() {
+  if (!selectedImage) {
+    showPhotoStatus('Please select a photo first', 'error');
+    return;
+  }
+  
+  showPhotoLoading(true);
+  
+  try {
+    // Method 1: Try direct POST (might work after recent Google updates)
+    const directResponse = await tryDirectUpload();
+    if (directResponse.success) {
+      showPhotoStatus(`Success! Photo uploaded successfully!`, 'success');
+      resetPhotoForm();
+      showPhotoLoading(false);
+      return directResponse.photoUrl;
+    }
+  } catch (error) {
+    console.log('Direct upload failed, trying JSONP method...');
+  }
+  
+  // Method 2: Fallback to JSONP method
+  try {
+    const result = await uploadViaJsonp();
+    return result.photoUrl;
+  } catch (error) {
+    showPhotoStatus(`Upload failed: ${error.message}`, 'error');
+    showPhotoLoading(false);
+    return null;
+  }
+}
+
+async function tryDirectUpload() {
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      imageData: selectedImage,
+      fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+function uploadViaJsonp() {
+  return new Promise((resolve, reject) => {
+    // Create unique callback name
+    const callbackName = 'photoUploadCallback_' + Date.now();
+    
+    // Create callback function
+    window[callbackName] = function(response) {
+      // Cleanup
+      document.head.removeChild(script);
+      delete window[callbackName];
+      
+      showPhotoLoading(false);
+      
+      if (response.success) {
+        showPhotoStatus(`Success! Photo uploaded successfully!`, 'success');
+        resetPhotoForm();
+        resolve(response);
+      } else {
+        showPhotoStatus(`Error: ${response.error}`, 'error');
+        reject(new Error(response.error));
+      }
+    };
+    
+    // Create script tag for JSONP
+    const script = document.createElement('script');
+    
+    // Prepare URL with parameters
+    const params = new URLSearchParams({
+      action: 'upload',
+      callback: callbackName,
+      imageData: selectedImage,
+      fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
+    });
+    
+    script.src = ENDPOINT + '?' + params.toString();
+    script.onerror = () => {
+      document.head.removeChild(script);
+      delete window[callbackName];
+      showPhotoLoading(false);
+      reject(new Error('JSONP request failed'));
+    };
+    
+    // Add script to head to trigger the request
+    document.head.appendChild(script);
+    
+    // Set timeout for cleanup
+    setTimeout(() => {
+      if (window[callbackName]) {
+        document.head.removeChild(script);
+        delete window[callbackName];
+        showPhotoLoading(false);
+        reject(new Error('Upload timeout'));
+      }
+    }, 30000); // 30 second timeout
+  });
+}
+
+function resetPhotoForm() {
+  selectedFile = null;
+  selectedImage = null;
+  const fileInput = document.getElementById('fileInput');
+  const cameraInput = document.getElementById('cameraInput');
+  const previewContainer = document.getElementById('previewContainer');
+  const statusDiv = document.getElementById('photoStatus');
+  
+  if (fileInput) fileInput.value = '';
+  if (cameraInput) cameraInput.value = '';
+  if (previewContainer) previewContainer.style.display = 'none';
+  if (statusDiv) statusDiv.innerHTML = '';
+}
+
+function showPhotoLoading(show) {
+  const loadingDiv = document.getElementById('photoLoading');
+  if (loadingDiv) {
+    loadingDiv.style.display = show ? 'block' : 'none';
+  }
+}
+
+function showPhotoStatus(message, type) {
+  const statusDiv = document.getElementById('photoStatus');
+  if (statusDiv) {
+    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    
+    if (type === 'success') {
+      setTimeout(() => {
+        statusDiv.innerHTML = '';
+      }, 5000);
+    }
+  }
+}
+
+// Expose photo functions globally
+window.openCamera = openCamera;
+window.handleFileSelect = handleFileSelect;
+window.handleFile = handleFile;
+window.uploadPhoto = uploadPhoto;
+window.resetPhotoForm = resetPhotoForm;
+
+// Build JSONP URL and call (form submit) - UPDATED to include photo URL
 function sendToServerJSONP(formData, clientTs, opts) {
   var params = [];
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
@@ -75,6 +289,8 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
+  // INTEGRATED: Add photo URL parameter
+  add("photoUrl", formData.photoUrl || "");
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
   if (clientTs) add("clientTs", String(clientTs));
 
@@ -137,7 +353,7 @@ function saveGlobalUnits(units) {
   }
 }
 
-// ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
+// ---------- MAIN: collectFormData (UPDATED to include photo URL) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = []; // structured items: { id, qty, unit, label }
@@ -371,6 +587,14 @@ function collectFormData(){
   } catch (e) { /* ignore */ }
   const modeBreakdown = breakdownParts.join(', ');
 
+  // INTEGRATED: Get photo URL from uploaded photo (if any)
+  let photoUrl = '';
+  if (selectedImage) {
+    // If photo is selected but not yet uploaded, upload it now
+    console.log('Photo selected but not uploaded, attempting upload...');
+    // Note: This should be handled in the submit flow, not here
+  }
+
   return {
     // NOTE: join by newline so the sheet cell will show each entry on its own line
     purchasedItem: selectedParts.join("\n"),
@@ -381,12 +605,14 @@ function collectFormData(){
     modeBreakdown: modeBreakdown,
     paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
     otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
+    // INTEGRATED: Include photo URL in form data
+    photoUrl: photoUrl,
     // Structured items array - server will prefer this if present (now includes unit)
     items: items
   };
 }
 
-// showMessage, clearForm, makeSubmissionId - keep same semantics as before
+// showMessage, clearForm, makeSubmissionId - UPDATED to include photo clearing
 function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
@@ -433,6 +659,10 @@ function clearForm(){
     });
     const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
     const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
+    
+    // INTEGRATED: Clear photo when clearing form
+    resetPhotoForm();
+    
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -638,7 +868,7 @@ function recomputePaymentFromModes() {
   } catch (e) { console.warn('recomputePaymentFromModes err', e); }
 }
 
-// ---------- MAIN DOM bindings ----------
+// ---------- MAIN DOM bindings (UPDATED to include photo functionality) ----------
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
   const submitBtn = document.getElementById('submitBtn');
@@ -648,6 +878,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
   try { submitBtn.setAttribute('type','button'); } catch(e){}
+
+  // INTEGRATED: Photo WebApp Event Listeners Setup
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const cameraInput = document.getElementById('cameraInput');
+
+  // Drag and drop functionality (if upload area exists)
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type.startsWith('image/')) {
+        handleFile(files[0]);
+      }
+    });
+  }
+
+  // File input change handlers
+  if (fileInput) {
+    fileInput.addEventListener('change', handleFileSelect);
+  }
+  
+  if (cameraInput) {
+    cameraInput.addEventListener('change', handleFileSelect);
+  }
 
   // attempt to load saved customization (apply if present)
   (async function(){
@@ -713,6 +979,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return errors;
   }
 
+  // UPDATED: Submit flow to include photo upload
   async function doSubmitFlow() {
     try {
       if (!navigator.onLine) { alert('Connect to internet. Your entry cannot be saved while offline.'); updateStatus(); return; }
@@ -745,7 +1012,26 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!modeChecked) { alert('Please select a mode of payment.'); return; }
       if (!payment || isNaN(Number(payment)) ) { alert('Please enter a valid payment amount.'); return; }
 
+      // INTEGRATED: Upload photo first if selected
+      let photoUrl = '';
+      if (selectedImage) {
+        try {
+          showMessage('Uploading photo...');
+          const uploadResult = await uploadPhoto();
+          if (uploadResult) {
+            photoUrl = uploadResult;
+            showMessage('Photo uploaded successfully!');
+          }
+        } catch (photoError) {
+          console.warn('Photo upload failed:', photoError);
+          // Continue with form submission even if photo upload fails
+        }
+      }
+
       var formData = collectFormData();
+      // INTEGRATED: Add photo URL to form data
+      formData.photoUrl = photoUrl;
+      
       if (!formData.purchasedItem || formData.purchasedItem.trim() === "") {
         alert('No sub-item selected. Please select at least one specific item and quantity.');
         return;
@@ -896,6 +1182,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, { passive:true });
 
+  // INTEGRATED: Network status handling for photo uploads
+  window.addEventListener('online', () => {
+    showMessage('Back online! You can upload photos and submit forms now.');
+  });
+
+  window.addEventListener('offline', () => {
+    showMessage('You\'re offline. Features may be limited.');
+  });
+
   // Unregister service workers & clear caches (as before)
   if ('serviceWorker' in navigator) {
     try { navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(r => { r.unregister().catch(()=>{}); }); }).catch(()=>{}); } catch(e){ console.warn('sw unregister err', e); }
@@ -905,4 +1200,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
