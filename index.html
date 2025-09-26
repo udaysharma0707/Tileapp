@@ -73,6 +73,92 @@
     .small{font-size:13px;color:#666;margin-top:6px}
     .form-actions { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
 
+    /* Photo Upload Styling */
+    .photo-upload-section {
+      margin-top:10px;
+      padding:10px;
+      border:2px dashed #ccc;
+      border-radius:8px;
+      background:#fafafa;
+      position:relative;
+    }
+    .photo-upload-btn {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      width:100%;
+      padding:12px;
+      background:#2c7be5;
+      color:white;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:16px;
+      margin-top:0;
+    }
+    .photo-upload-btn:hover {
+      background:#1a5bb8;
+    }
+    .photo-upload-btn .icon {
+      font-size:20px;
+    }
+    #photoFileInput {
+      display:none;
+    }
+    .photo-preview {
+      margin-top:10px;
+      display:none;
+    }
+    .photo-preview img {
+      max-width:200px;
+      max-height:200px;
+      border-radius:8px;
+      border:2px solid #ddd;
+    }
+    .photo-actions {
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      align-items:center;
+    }
+    .photo-info {
+      font-size:13px;
+      color:#666;
+      margin-top:4px;
+    }
+    .remove-photo-btn {
+      background:#ff4444;
+      padding:6px 12px;
+      font-size:14px;
+      margin-top:0;
+    }
+    .photo-upload-status {
+      margin-top:8px;
+      padding:8px;
+      border-radius:4px;
+      display:none;
+      font-size:14px;
+    }
+    .photo-upload-status.success {
+      background:#d4edda;
+      color:#155724;
+      border:1px solid #c3e6cb;
+      display:block;
+    }
+    .photo-upload-status.error {
+      background:#f8d7da;
+      color:#721c24;
+      border:1px solid #f5c6cb;
+      display:block;
+    }
+    .photo-upload-status.uploading {
+      background:#d1ecf1;
+      color:#0c5460;
+      border:1px solid #bee5eb;
+      display:block;
+    }
+
     @media (max-width:920px){
       .container { padding:10px; }
     }
@@ -262,6 +348,24 @@
           <div class="note">Note: IDs of dynamically added items start with <code>sub_</code> (e.g. <code>sub_floor_custom1</code>). New payment modes will be created with a checkbox named <code>modeOfPayment</code> and an amount input (data-mode-amount) so your submission logic picks them up.</div>
         </div>
       </div>
+    </div>
+
+    <!-- Photo Upload Section -->
+    <div class="photo-upload-section">
+      <label class="q-label">📸 Attach Photo (Optional)</label>
+      <button id="photoUploadBtn" class="photo-upload-btn" type="button">
+        <span class="icon">📷</span>
+        <span>Take Photo / Upload from Gallery</span>
+      </button>
+      <input id="photoFileInput" type="file" accept="image/*" capture="environment">
+      <div id="photoPreview" class="photo-preview">
+        <img id="previewImage" src="" alt="Photo preview">
+        <div class="photo-actions">
+          <button id="removePhotoBtn" class="remove-photo-btn" type="button">Remove Photo</button>
+          <div id="photoInfo" class="photo-info"></div>
+        </div>
+      </div>
+      <div id="photoUploadStatus" class="photo-upload-status"></div>
     </div>
 
     <!-- Purchased items with inline qty and nested subitems -->
@@ -660,6 +764,9 @@
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwTwqZ-xoxJAhBpcYVXOkgdLcgV3o0LCibZKUKWfeQiPp90anzYJa8q7vwlgcDABP2MIg/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
+    // Global variable to store uploaded photo URL
+    let uploadedPhotoUrl = null;
+
     // JSONP helper
     function jsonpCall(url, timeoutMs = 20000) {
       return new Promise((resolve, reject) => {
@@ -674,6 +781,98 @@
         document.body.appendChild(script);
         setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
       });
+    }
+
+    // Photo Upload Functions
+    function convertToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadPhotoToServer(file) {
+      try {
+        setPhotoUploadStatus('uploading', 'Uploading photo...');
+        
+        const base64Data = await convertToBase64(file);
+        
+        const uploadData = {
+          action: 'uploadPhoto',
+          token: SERVER_TOKEN,
+          fileName: file.name || 'photo.jpg',
+          mimeType: file.type || 'image/jpeg',
+          fileData: base64Data.split(',')[1] // Remove data:image/jpeg;base64, part
+        };
+
+        const url = SERVER_ENDPOINT + '?' + Object.keys(uploadData).map(k => 
+          encodeURIComponent(k) + '=' + encodeURIComponent(uploadData[k])
+        ).join('&');
+
+        const response = await jsonpCall(url, 60000); // 60 second timeout for photo upload
+
+        if (response && response.success && response.photoUrl) {
+          uploadedPhotoUrl = response.photoUrl;
+          setPhotoUploadStatus('success', 'Photo uploaded successfully!');
+          return response.photoUrl;
+        } else {
+          throw new Error(response ? response.error || 'Photo upload failed' : 'No response from server');
+        }
+      } catch (error) {
+        console.error('Photo upload error:', error);
+        setPhotoUploadStatus('error', 'Photo upload failed: ' + error.message);
+        throw error;
+      }
+    }
+
+    function setPhotoUploadStatus(type, message) {
+      const statusEl = document.getElementById('photoUploadStatus');
+      if (statusEl) {
+        statusEl.className = `photo-upload-status ${type}`;
+        statusEl.textContent = message;
+        
+        if (type === 'success' || type === 'error') {
+          setTimeout(() => {
+            statusEl.style.display = 'none';
+          }, 5000);
+        }
+      }
+    }
+
+    function displayPhotoPreview(file) {
+      const preview = document.getElementById('photoPreview');
+      const previewImg = document.getElementById('previewImage');
+      const photoInfo = document.getElementById('photoInfo');
+
+      if (preview && previewImg && photoInfo) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          preview.style.display = 'block';
+          
+          const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+          photoInfo.textContent = `${file.name} (${fileSize} MB)`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removePhoto() {
+      const preview = document.getElementById('photoPreview');
+      const previewImg = document.getElementById('previewImage');
+      const photoInfo = document.getElementById('photoInfo');
+      const fileInput = document.getElementById('photoFileInput');
+      const statusEl = document.getElementById('photoUploadStatus');
+
+      if (preview) preview.style.display = 'none';
+      if (previewImg) previewImg.src = '';
+      if (photoInfo) photoInfo.textContent = '';
+      if (fileInput) fileInput.value = '';
+      if (statusEl) statusEl.style.display = 'none';
+      
+      uploadedPhotoUrl = null;
     }
 
     // ----------------- Unit Management Functions -----------------
@@ -858,6 +1057,48 @@
       const newUnitInput = document.getElementById('newUnitInput');
       const addUnitBtn = document.getElementById('addUnitBtn');
       const unitList = document.getElementById('unitList');
+
+      // Photo Upload Event Listeners
+      const photoUploadBtn = document.getElementById('photoUploadBtn');
+      const photoFileInput = document.getElementById('photoFileInput');
+      const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+      if (photoUploadBtn && photoFileInput) {
+        photoUploadBtn.addEventListener('click', function() {
+          photoFileInput.click();
+        });
+
+        photoFileInput.addEventListener('change', async function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+              alert('Photo size must be less than 10MB');
+              return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+              alert('Please select a valid image file');
+              return;
+            }
+
+            displayPhotoPreview(file);
+            
+            try {
+              await uploadPhotoToServer(file);
+            } catch (error) {
+              console.error('Upload failed:', error);
+            }
+          }
+        });
+      }
+
+      if (removePhotoBtn) {
+        removePhotoBtn.addEventListener('click', function() {
+          removePhoto();
+        });
+      }
 
       // Initialize unit management
       renderUnitList();
@@ -1164,8 +1405,6 @@
                   unitEl.value = savedUnit;
                   if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = savedUnit; }
                 }
-              } else if (unitEl.value === 'Custom' && unitCustomEl) {
-                unitCustomEl.style.display = '';
               }
             }
           };
@@ -1203,7 +1442,6 @@
             unitEl._unit_change_bound = unitChange;
             unitEl.addEventListener('change', unitChange);
             if (unitEl) unitEl.disabled = !sb.checked;
-            if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
           }
 
           // Custom unit text input with preference saving
@@ -1266,8 +1504,6 @@
                   otherUnit.value = savedUnit;
                   if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = savedUnit; }
                 }
-              } else if (otherUnit.value === 'Custom' && otherUnitCustom) {
-                otherUnitCustom.style.display = '';
               }
             }
           };
@@ -2138,6 +2374,9 @@
           if (purchasedFromText) purchasedFromText.style.display = 'none';
           if (customVendorManager) customVendorManager.style.display = 'none';
           
+          // Clear photo
+          removePhoto();
+          
           showTempMessage('Form cleared');
         });
       }
@@ -2159,7 +2398,8 @@
             purchasedFrom: '',
             paymentModes: [],
             paymentPaid: parseFloat(paymentPaid.value) || 0,
-            otherInfo: ''
+            otherInfo: '',
+            photoUrl: uploadedPhotoUrl || '' // Add photo URL to submission data
           };
 
           // Collect purchased items
@@ -2186,7 +2426,7 @@
                 const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
                 let unit = unitEl ? unitEl.value : '';
                 
-                if (unit === 'Custom' && customUnitEl && customUnitEl.value.trim()) {
+                if (customUnitEl && customUnitEl.style.display !== 'none' && customUnitEl.value.trim()) {
                   unit = customUnitEl.value.trim();
                 }
                 
@@ -2219,7 +2459,7 @@
             const qty = otherQty ? (parseInt(otherQty.value) || 0) : 0;
             let unit = otherUnit ? otherUnit.value : '';
             
-            if (unit === 'Custom' && otherCustomUnit && otherCustomUnit.value.trim()) {
+            if (otherCustomUnit && otherCustomUnit.style.display !== 'none' && otherCustomUnit.value.trim()) {
               unit = otherCustomUnit.value.trim();
             }
             
