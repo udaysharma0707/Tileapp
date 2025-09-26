@@ -82,28 +82,33 @@
       background:#fafafa;
       position:relative;
     }
+    .photo-upload-options {
+      display:flex;
+      gap:8px;
+      margin-top:6px;
+    }
     .photo-upload-btn {
       display:flex;
       align-items:center;
       justify-content:center;
       gap:8px;
-      width:100%;
+      flex:1;
       padding:12px;
       background:#2c7be5;
       color:white;
       border:none;
       border-radius:6px;
       cursor:pointer;
-      font-size:16px;
+      font-size:14px;
       margin-top:0;
     }
     .photo-upload-btn:hover {
       background:#1a5bb8;
     }
     .photo-upload-btn .icon {
-      font-size:20px;
+      font-size:18px;
     }
-    #photoFileInput {
+    #photoFileInputCamera, #photoFileInputGallery {
       display:none;
     }
     .photo-preview {
@@ -171,6 +176,7 @@
       .total-row { flex-direction:column; align-items:stretch }
       .qty-unit { width:100%; justify-content:flex-start; }
       .qty-unit input[type="number"], .qty-unit select, .qty-unit .unit-custom { width:40%; }
+      .photo-upload-options { flex-direction:column; }
     }
 
     /* make touch targets larger for checkboxes (and slightly larger radios) */
@@ -353,11 +359,18 @@
     <!-- Photo Upload Section -->
     <div class="photo-upload-section">
       <label class="q-label">📸 Attach Photo (Optional)</label>
-      <button id="photoUploadBtn" class="photo-upload-btn" type="button">
-        <span class="icon">📷</span>
-        <span>Take Photo / Upload from Gallery</span>
-      </button>
-      <input id="photoFileInput" type="file" accept="image/*" capture="environment">
+      <div class="photo-upload-options">
+        <button id="photoUploadBtnCamera" class="photo-upload-btn" type="button">
+          <span class="icon">📷</span>
+          <span>Take Photo</span>
+        </button>
+        <button id="photoUploadBtnGallery" class="photo-upload-btn" type="button">
+          <span class="icon">🖼️</span>
+          <span>Upload from Gallery</span>
+        </button>
+      </div>
+      <input id="photoFileInputCamera" type="file" accept="image/*" capture="environment">
+      <input id="photoFileInputGallery" type="file" accept="image/*">
       <div id="photoPreview" class="photo-preview">
         <img id="previewImage" src="" alt="Photo preview">
         <div class="photo-actions">
@@ -863,16 +876,41 @@
       const preview = document.getElementById('photoPreview');
       const previewImg = document.getElementById('previewImage');
       const photoInfo = document.getElementById('photoInfo');
-      const fileInput = document.getElementById('photoFileInput');
+      const cameraInput = document.getElementById('photoFileInputCamera');
+      const galleryInput = document.getElementById('photoFileInputGallery');
       const statusEl = document.getElementById('photoUploadStatus');
 
       if (preview) preview.style.display = 'none';
       if (previewImg) previewImg.src = '';
       if (photoInfo) photoInfo.textContent = '';
-      if (fileInput) fileInput.value = '';
+      if (cameraInput) cameraInput.value = '';
+      if (galleryInput) galleryInput.value = '';
       if (statusEl) statusEl.style.display = 'none';
       
       uploadedPhotoUrl = null;
+    }
+
+    // Handle photo file input changes
+    function handlePhotoFileInput(file) {
+      if (file) {
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('Photo size must be less than 10MB');
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file');
+          return;
+        }
+
+        displayPhotoPreview(file);
+        
+        uploadPhotoToServer(file).catch(error => {
+          console.error('Upload failed:', error);
+        });
+      }
     }
 
     // ----------------- Unit Management Functions -----------------
@@ -1058,39 +1096,32 @@
       const addUnitBtn = document.getElementById('addUnitBtn');
       const unitList = document.getElementById('unitList');
 
-      // Photo Upload Event Listeners
-      const photoUploadBtn = document.getElementById('photoUploadBtn');
-      const photoFileInput = document.getElementById('photoFileInput');
+      // Photo Upload Event Listeners - Fixed Implementation
+      const photoUploadBtnCamera = document.getElementById('photoUploadBtnCamera');
+      const photoUploadBtnGallery = document.getElementById('photoUploadBtnGallery');
+      const photoFileInputCamera = document.getElementById('photoFileInputCamera');
+      const photoFileInputGallery = document.getElementById('photoFileInputGallery');
       const removePhotoBtn = document.getElementById('removePhotoBtn');
 
-      if (photoUploadBtn && photoFileInput) {
-        photoUploadBtn.addEventListener('click', function() {
-          photoFileInput.click();
+      if (photoUploadBtnCamera && photoFileInputCamera) {
+        photoUploadBtnCamera.addEventListener('click', function() {
+          photoFileInputCamera.click();
         });
 
-        photoFileInput.addEventListener('change', async function(e) {
+        photoFileInputCamera.addEventListener('change', function(e) {
           const file = e.target.files[0];
-          if (file) {
-            // Validate file size (max 10MB)
-            if (file.size > 10 * 1024 * 1024) {
-              alert('Photo size must be less than 10MB');
-              return;
-            }
+          handlePhotoFileInput(file);
+        });
+      }
 
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-              alert('Please select a valid image file');
-              return;
-            }
+      if (photoUploadBtnGallery && photoFileInputGallery) {
+        photoUploadBtnGallery.addEventListener('click', function() {
+          photoFileInputGallery.click();
+        });
 
-            displayPhotoPreview(file);
-            
-            try {
-              await uploadPhotoToServer(file);
-            } catch (error) {
-              console.error('Upload failed:', error);
-            }
-          }
+        photoFileInputGallery.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          handlePhotoFileInput(file);
         });
       }
 
@@ -1774,7 +1805,7 @@
         });
       }
 
-      // Config save/load functions
+      // Config save/load functions - Keep all existing functionality
       function buildConfigObject() {
         const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
 
@@ -1850,7 +1881,7 @@
             }
           }
           const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
-          cfg.purchasedFromCustom = { items: items, selected: selectedValue };
+                    cfg.purchasedFromCustom = { items: items, selected: selectedValue };
         } catch(e){}
 
         return cfg;
@@ -2340,7 +2371,7 @@
         });
       }
 
-      // Submit and clear functionality
+      // Submit and clear functionality with enhanced validation
       const submitBtn = document.getElementById('submitBtn');
       const clearBtn = document.getElementById('clearBtn');
 
@@ -2383,139 +2414,194 @@
 
       if (submitBtn) {
         submitBtn.addEventListener('click', async function() {
-          // Validate required fields
-          const paymentPaid = document.getElementById('paymentPaid');
-          if (!paymentPaid || !paymentPaid.value.trim()) {
-            alert('Please enter the payment amount.');
-            if (paymentPaid) paymentPaid.focus();
-            return;
-          }
+          try {
+            // Enhanced validation with proper error handling
+            const paymentPaid = document.getElementById('paymentPaid');
+            if (!paymentPaid || !paymentPaid.value.trim()) {
+              alert('Please enter the payment amount.');
+              if (paymentPaid) paymentPaid.focus();
+              return;
+            }
 
-          // Build submission data
-          const data = {
-            timestamp: new Date().toISOString(),
-            purchased: [],
-            purchasedFrom: '',
-            paymentModes: [],
-            paymentPaid: parseFloat(paymentPaid.value) || 0,
-            otherInfo: '',
-            photoUrl: uploadedPhotoUrl || '' // Add photo URL to submission data
-          };
+            // Check if at least one main item is checked
+            const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
+            if (!anyMainChecked) {
+              alert('Please select at least one purchased main category.');
+              return;
+            }
 
-          // Collect purchased items
-          document.querySelectorAll('input[type="checkbox"].purchased:checked').forEach(cb => {
-            const item = { name: cb.value, subitems: [] };
+            // Validate main-sub selection
+            let hasValidSubItems = false;
             
-            // Get subitems for this main item
-            const mainId = cb.id;
-            const suffix = mainId.startsWith('p_') ? mainId.slice(2) : mainId;
-            const sublistId = 'sublist_' + suffix;
-            const sublist = document.getElementById(sublistId);
-            
-            if (sublist) {
-              sublist.querySelectorAll('input[type="checkbox"].subitem:checked').forEach(subCb => {
-                const subId = subCb.id;
-                const qtyId = subId.replace('sub_', 'q_');
-                const unitId = subId.replace('sub_', 'unit_');
-                const customUnitId = subId.replace('sub_', 'unit_custom_');
-                
-                const qtyEl = document.getElementById(qtyId);
-                const unitEl = document.getElementById(unitId);
-                const customUnitEl = document.getElementById(customUnitId);
-                
-                const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
-                let unit = unitEl ? unitEl.value : '';
-                
-                if (customUnitEl && customUnitEl.style.display !== 'none' && customUnitEl.value.trim()) {
-                  unit = customUnitEl.value.trim();
-                }
-                
-                if (qty > 0) {
-                  item.subitems.push({
-                    name: subCb.value,
-                    quantity: qty,
-                    unit: unit
-                  });
-                  
-                  // Save unit preference
-                  if (unitEl) {
-                    saveUnitPreference(unitEl.id, unit);
-                  }
-                }
-              });
+            // Check Floor Tiles
+            if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
+              const any = Array.from(document.querySelectorAll('#sublist_floor .subitem')).some(s => s.checked);
+              if (any) hasValidSubItems = true;
             }
             
-            data.purchased.push(item);
-          });
-
-          // Handle "Others" main item
-          const otherMain = document.getElementById('p_other');
-          if (otherMain && otherMain.checked) {
-            const otherQty = document.getElementById('q_other');
-            const otherUnit = document.getElementById('unit_other');
-            const otherCustomUnit = document.getElementById('unit_custom_other');
-            const otherText = document.getElementById('purchasedOtherText');
-            
-            const qty = otherQty ? (parseInt(otherQty.value) || 0) : 0;
-            let unit = otherUnit ? otherUnit.value : '';
-            
-            if (otherCustomUnit && otherCustomUnit.style.display !== 'none' && otherCustomUnit.value.trim()) {
-              unit = otherCustomUnit.value.trim();
+            // Check Wall Tiles
+            if (document.getElementById('p_wall') && document.getElementById('p_wall').checked) {
+              const any = Array.from(document.querySelectorAll('#sublist_wall .subitem')).some(s => s.checked);
+              if (any) hasValidSubItems = true;
             }
             
-            if (qty > 0) {
-              const otherItem = {
-                name: 'Others',
-                quantity: qty,
-                unit: unit,
-                description: otherText ? otherText.value.trim() : ''
-              };
-              data.purchased.push(otherItem);
-              
-              // Save unit preference for Others
-              if (otherUnit) {
-                saveUnitPreference(otherUnit.id, unit);
+            // Check Sanitaryware
+            if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
+              const any = Array.from(document.querySelectorAll('#sublist_san .subitem')).some(s => s.checked);
+              if (any) hasValidSubItems = true;
+            }
+            
+            // Check Accessories
+            if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
+              const any = Array.from(document.querySelectorAll('#sublist_acc .subitem')).some(s => s.checked);
+              if (any) hasValidSubItems = true;
+            }
+            
+            // Check Others
+            if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
+              const q = (document.getElementById('q_other') || {}).value || "";
+              if (q && !isNaN(Number(q)) && Number(q) > 0) {
+                hasValidSubItems = true;
               }
             }
-          }
 
-          // Collect purchased from
-          if (purchasedFromSelect) {
-            if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
-              data.purchasedFrom = purchasedFromText.value.trim();
-            } else {
-              data.purchasedFrom = purchasedFromSelect.value;
+            if (!hasValidSubItems) {
+              alert('Please select at least one specific item with a valid quantity.');
+              return;
             }
-          }
 
-          // Collect payment modes
-          document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(modeCb => {
-            const modeRow = modeCb.closest('.mode-row');
-            const amtInput = modeRow ? modeRow.querySelector('input[type="number"].mode-amount') : null;
-            const amount = amtInput ? (parseFloat(amtInput.value) || 0) : 0;
-            
-            if (amount > 0) {
-              data.paymentModes.push({
-                mode: modeCb.value,
-                amount: amount
-              });
+            // Validate payment modes
+            const modeChecked = Array.from(document.querySelectorAll('input[name="modeOfPayment"]')).some(m => m.checked);
+            if (!modeChecked) {
+              alert('Please select a mode of payment.');
+              return;
             }
-          });
 
-          // Other info
-          const otherInfo = document.getElementById('otherInfo');
-          if (otherInfo) {
-            data.otherInfo = otherInfo.value.trim();
-          }
+            // Build enhanced submission data
+            const data = {
+              timestamp: new Date().toISOString(),
+              purchased: [],
+              purchasedFrom: '',
+              paymentModes: [],
+              paymentPaid: parseFloat(paymentPaid.value) || 0,
+              otherInfo: '',
+              photoUrl: uploadedPhotoUrl || ''
+            };
 
-          // Check if any items were selected
-          if (data.purchased.length === 0) {
-            alert('Please select at least one item to purchase.');
-            return;
-          }
+            // Collect purchased items with enhanced structure
+            document.querySelectorAll('input[type="checkbox"].purchased:checked').forEach(cb => {
+              const item = { name: cb.value, subitems: [] };
+              
+              const mainId = cb.id;
+              const suffix = mainId.startsWith('p_') ? mainId.slice(2) : mainId;
+              const sublistId = 'sublist_' + suffix;
+              const sublist = document.getElementById(sublistId);
+              
+              if (sublist) {
+                sublist.querySelectorAll('input[type="checkbox"].subitem:checked').forEach(subCb => {
+                  const subId = subCb.id;
+                  const qtyId = subId.replace('sub_', 'q_');
+                  const unitId = subId.replace('sub_', 'unit_');
+                  const customUnitId = subId.replace('sub_', 'unit_custom_');
+                  
+                  const qtyEl = document.getElementById(qtyId);
+                  const unitEl = document.getElementById(unitId);
+                  const customUnitEl = document.getElementById(customUnitId);
+                  
+                  const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
+                  let unit = unitEl ? unitEl.value : '';
+                  
+                  if (customUnitEl && customUnitEl.style.display !== 'none' && customUnitEl.value.trim()) {
+                    unit = customUnitEl.value.trim();
+                  }
+                  
+                  if (qty > 0) {
+                    item.subitems.push({
+                      name: subCb.value,
+                      quantity: qty,
+                      unit: unit
+                    });
+                    
+                    // Save unit preference
+                    if (unitEl) {
+                      saveUnitPreference(unitEl.id, unit);
+                    }
+                  }
+                });
+              }
+              
+              if (item.subitems.length > 0) {
+                data.purchased.push(item);
+              }
+            });
 
-          // Submit to server
-          try {
+            // Handle "Others" main item
+            const otherMain = document.getElementById('p_other');
+            if (otherMain && otherMain.checked) {
+              const otherQty = document.getElementById('q_other');
+              const otherUnit = document.getElementById('unit_other');
+              const otherCustomUnit = document.getElementById('unit_custom_other');
+              const otherText = document.getElementById('purchasedOtherText');
+              
+              const qty = otherQty ? (parseInt(otherQty.value) || 0) : 0;
+              let unit = otherUnit ? otherUnit.value : '';
+              
+              if (otherCustomUnit && otherCustomUnit.style.display !== 'none' && otherCustomUnit.value.trim()) {
+                unit = otherCustomUnit.value.trim();
+              }
+              
+              if (qty > 0) {
+                const otherItem = {
+                  name: 'Others',
+                  quantity: qty,
+                  unit: unit,
+                  description: otherText ? otherText.value.trim() : ''
+                };
+                data.purchased.push(otherItem);
+                
+                // Save unit preference for Others
+                if (otherUnit) {
+                  saveUnitPreference(otherUnit.id, unit);
+                }
+              }
+            }
+
+            // Collect purchased from
+            if (purchasedFromSelect) {
+              if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+                data.purchasedFrom = purchasedFromText.value.trim();
+              } else {
+                data.purchasedFrom = purchasedFromSelect.value;
+              }
+            }
+
+            // Collect payment modes
+            document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(modeCb => {
+              const modeRow = modeCb.closest('.mode-row');
+              const amtInput = modeRow ? modeRow.querySelector('input[type="number"].mode-amount') : null;
+              const amount = amtInput ? (parseFloat(amtInput.value) || 0) : 0;
+              
+              if (amount > 0) {
+                data.paymentModes.push({
+                  mode: modeCb.value,
+                  amount: amount
+                });
+              }
+            });
+
+            // Other info
+            const otherInfo = document.getElementById('otherInfo');
+            if (otherInfo) {
+              data.otherInfo = otherInfo.value.trim();
+            }
+
+            // Final validation
+            if (data.purchased.length === 0) {
+              alert('Please select at least one item to purchase.');
+              return;
+            }
+
+            // Submit to server with enhanced error handling
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             
@@ -2533,7 +2619,7 @@
             
             if (response && response.success) {
               alert('Form submitted successfully!');
-              if (clearBtn) clearBtn.click(); // Clear form after successful submission
+              if (clearBtn) clearBtn.click();
             } else {
               throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
             }
