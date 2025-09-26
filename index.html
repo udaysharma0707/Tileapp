@@ -299,7 +299,28 @@
       <span id="appTitle">Tile Purchase Entry</span>
       <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
     </h1>
+<!-- Hidden iframe for POST submit to Apps Script (used to upload base64 image safely) -->
+<iframe id="uploadIframe" name="uploadIframe" style="display:none;"></iframe>
 
+<!-- Hidden form used for uploading base64 image to Apps Script (action will be set by JS) -->
+<form id="photoUploadForm" target="uploadIframe" method="post" enctype="application/x-www-form-urlencoded" style="display:none;">
+  <input type="hidden" name="action" value="uploadPhoto">
+  <input type="hidden" name="token" value="">         <!-- JS will populate this -->
+  <input type="hidden" name="fileData" value="">      <!-- base64 string (without data: prefix) -->
+  <input type="hidden" name="fileName" value="">
+  <input type="hidden" name="mimeType" value="">
+  <!-- optional callback param if you want JSONP - not needed here -->
+</form>
+
+<!-- Example file input (if you don't have one already) -->
+<div style="margin-top:8px;">
+  <label>Attach photo (optional): <input type="file" id="photoInput" accept="image/*"></label>
+  <div id="uploadStatus" class="small" style="display:none; color:#2c7be5; margin-top:6px;">Uploading photo...</div>
+</div>
+
+
+
+    
     <div class="custom-mode-badge">Customize mode</div>
 
     <!-- Customize panel (hidden by default) -->
@@ -2673,6 +2694,7 @@
   </script>
 </body>
 </html>
+
 
 
 
