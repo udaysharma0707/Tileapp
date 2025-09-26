@@ -1,4 +1,4 @@
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbzMLspZ0HUYxMBT2FzTULWKfEkz8lk7XKXaPdSRmdm4EEwSqxQfs9yXVdI81P5V4m2HEg/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbx42uFYDmwQ3EGMCWKqkbL6yWaZmfJsm3KMA2ZttpX9tjU-y6x2v_w0tnBaoAezbJKAMQ/exec";
 const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
@@ -1924,3 +1924,4 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
 }
 
 console.log('=== TileApp JavaScript loaded successfully ===');
+
