@@ -7,7 +7,7 @@ const activeSubmissions = new Set();
 let uploadedPhotoUrl = null;
 
 // ---------- helpers ----------
-function updateStatus(){ /* same as before - unchanged */
+function updateStatus(){ 
   const s = document.getElementById('status');
   const s2 = document.getElementById('status-duplicate');
   const offlineNotice = document.getElementById('offlineNotice');
@@ -29,39 +29,76 @@ function updateStatus(){ /* same as before - unchanged */
 window.addEventListener('online', ()=>{ updateStatus(); });
 window.addEventListener('offline', ()=>{ updateStatus(); });
 
-// JSONP helper (returns Promise) - reused for form submits and config load/save
+// JSONP helper (returns Promise) - FIXED with better error handling
 function jsonpRequest(url, timeoutMs) {
   timeoutMs = timeoutMs || JSONP_TIMEOUT_MS;
   return new Promise(function(resolve, reject) {
-    var cbName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
-    var timer = null;
+    const cbName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+    let timer = null;
+    let scriptAdded = false;
+    
     window[cbName] = function(data) {
-      try { resolve(data); } finally {
+      try { 
+        resolve(data); 
+      } finally {
         // cleanup
         try { delete window[cbName]; } catch(e){}
-        var s = document.getElementById(cbName);
-        if (s && s.parentNode) s.parentNode.removeChild(s);
-        if (timer) clearTimeout(timer);
+        const s = document.getElementById(cbName);
+        if (s && s.parentNode) {
+          try {
+            s.parentNode.removeChild(s);
+          } catch(e){}
+        }
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
       }
     };
+    
     url = url.replace(/(&|\?)?callback=[^&]*/i, "");
-    var full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + encodeURIComponent(cbName);
-    var script = document.createElement('script');
+    const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + encodeURIComponent(cbName);
+    
+    const script = document.createElement('script');
     script.id = cbName;
     script.src = full;
     script.async = true;
+    
     script.onerror = function() {
       try { delete window[cbName]; } catch(e){}
-      if (script.parentNode) script.parentNode.removeChild(script);
-      if (timer) clearTimeout(timer);
+      if (script.parentNode) {
+        try {
+          script.parentNode.removeChild(script);
+        } catch(e){}
+      }
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
       reject(new Error('JSONP script load error'));
     };
+    
     timer = setTimeout(function(){
       try { delete window[cbName]; } catch(e){}
-      if (script.parentNode) script.parentNode.removeChild(script);
+      if (script.parentNode) {
+        try {
+          script.parentNode.removeChild(script);
+        } catch(e){}
+      }
       reject(new Error('JSONP timeout'));
     }, timeoutMs);
-    document.body.appendChild(script);
+    
+    try {
+      document.body.appendChild(script);
+      scriptAdded = true;
+    } catch(e) {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      try { delete window[cbName]; } catch(e){}
+      reject(new Error('Failed to add script to DOM'));
+    }
   });
 }
 
@@ -81,23 +118,24 @@ async function uploadPhotoToServer(file) {
     
     const base64Data = await convertToBase64(file);
     
-    const uploadData = {
-      action: 'uploadPhoto',
-      token: SHARED_TOKEN,
-      fileName: file.name || 'photo.jpg',
-      mimeType: file.type || 'image/jpeg',
-      fileData: base64Data.split(',')[1] // Remove data:image/jpeg;base64, part
-    };
+    // Build URL parameters manually to avoid encoding issues
+    const params = [];
+    params.push('action=uploadPhoto');
+    params.push('token=' + encodeURIComponent(SHARED_TOKEN));
+    params.push('fileName=' + encodeURIComponent(file.name || 'photo.jpg'));
+    params.push('mimeType=' + encodeURIComponent(file.type || 'image/jpeg'));
+    params.push('fileData=' + encodeURIComponent(base64Data.split(',')[1])); // Remove data:image/jpeg;base64, part
 
-    const url = ENDPOINT + '?' + Object.keys(uploadData).map(k => 
-      encodeURIComponent(k) + '=' + encodeURIComponent(uploadData[k])
-    ).join('&');
+    const url = ENDPOINT + '?' + params.join('&');
 
+    console.log('Uploading photo to:', ENDPOINT);
     const response = await jsonpRequest(url, 60000); // 60 second timeout for photo upload
+    console.log('Upload response:', response);
 
     if (response && response.success && response.photoUrl) {
       uploadedPhotoUrl = response.photoUrl;
       setPhotoUploadStatus('success', 'Photo uploaded successfully!');
+      console.log('Photo uploaded successfully:', response.photoUrl);
       return response.photoUrl;
     } else {
       throw new Error(response ? response.error || 'Photo upload failed' : 'No response from server');
@@ -114,10 +152,11 @@ function setPhotoUploadStatus(type, message) {
   if (statusEl) {
     statusEl.className = `photo-upload-status ${type}`;
     statusEl.textContent = message;
+    statusEl.style.display = 'block';
     
     if (type === 'success' || type === 'error') {
       setTimeout(() => {
-        statusEl.style.display = 'none';
+        if (statusEl) statusEl.style.display = 'none';
       }, 5000);
     }
   }
@@ -168,35 +207,42 @@ window.removePhoto = removePhoto;
 
 // Build JSONP URL and call (form submit) - Updated to include photo URL
 function sendToServerJSONP(formData, clientTs, opts) {
-  var params = [];
-  function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
+  const params = [];
+  function add(k,v){ 
+    if (v === undefined || v === null) v=""; 
+    params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); 
+  }
+  
   add("token", SHARED_TOKEN);
-
   add("purchasedItem", formData.purchasedItem || "");
   add("purchasedFrom", formData.purchasedFrom || "");
   add("modeOfPayment", formData.modeOfPayment || "");
-  // extra breakdown for comment/note
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
-  // NEW: Add photo URL parameter
   add("photoUrl", formData.photoUrl || uploadedPhotoUrl || "");
-  if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
+  
+  if (formData.submissionId) { 
+    add("submissionId", formData.submissionId); 
+    add("clientId", formData.submissionId); 
+  }
   if (clientTs) add("clientTs", String(clientTs));
 
-  // NEW: include structured items JSON so server records edited labels
+  // include structured items JSON 
   try {
     if (formData.items && Array.isArray(formData.items)) {
       add("itemsJSON", JSON.stringify(formData.items));
     }
   } catch (e) {
-    // ignore if JSON stringify fails
     console.warn('itemsJSON stringify failed', e);
   }
 
-  var base = ENDPOINT;
-  var url = base + (base.indexOf('?') === -1 ? '?' : '&') + params.join("&");
-  if (url.length > 1900) return Promise.reject(new Error("Payload too large for JSONP"));
+  const url = ENDPOINT + (ENDPOINT.indexOf('?') === -1 ? '?' : '&') + params.join("&");
+  
+  if (url.length > 8000) {
+    return Promise.reject(new Error("Payload too large for JSONP"));
+  }
+  
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
@@ -243,293 +289,269 @@ function saveGlobalUnits(units) {
   }
 }
 
-// ---------- MAIN: collectFormData (FIXED - updated to properly detect sub-items and build items array) ----------
+// ---------- MAIN: collectFormData (COMPLETELY REWRITTEN - simpler and more reliable) ----------
 function collectFormData(){
   const selectedParts = [];
-  const items = []; // structured items: { id, qty, unit, label }
+  const items = [];
+  
+  console.log('=== Starting collectFormData ===');
 
-  // track which sub ids we've explicitly pushed (to avoid duplicates when scanning generic subitems)
-  const addedSubIds = new Set();
-
-  // helper to fetch the editable label for a checkbox/subitem by id
-  function getLabelFor(checkboxId, fallback) {
-    try {
-      // first try data-config-id pattern: checkboxId + "_label"
-      var cfgSel = '[data-config-id="' + checkboxId + '_label"]';
-      var el = document.querySelector(cfgSel);
-      if (!el) {
-        // fallback: element with id "label_" + checkboxId
-        el = document.getElementById('label_' + checkboxId);
-      }
-      if (el && (el.textContent || el.innerText)) {
-        return (el.textContent || el.innerText).toString().trim();
-      }
-    } catch (e) { /* ignore */ }
-    return (fallback || "").toString().trim();
+  // Helper function to safely get element value
+  function getElementValue(id, defaultValue = '') {
+    const el = document.getElementById(id);
+    return el ? (el.value || '').toString().trim() : defaultValue;
   }
 
-  // helper: read unit for a suffix (suffix = checkboxId.slice(4) for sub_* items; 'other' for p_other)
-  function getUnitForSuffix(suffix) {
+  // Helper function to check if element is checked
+  function isChecked(id) {
+    const el = document.getElementById(id);
+    return el ? el.checked : false;
+  }
+
+  // Helper function to get label text
+  function getLabelText(checkboxId, fallback = '') {
+    // Try multiple ways to get the label
+    let labelText = fallback;
     try {
-      if (!suffix) return "";
-      const sel = document.getElementById('unit_' + suffix);
-      const custom = document.getElementById('unit_custom_' + suffix);
-      if (sel) {
-        const v = sel.value || '';
-        // Check if custom input is visible and has value
-        if (custom && custom.style.display !== 'none' && custom.value && custom.value.trim()) {
-          return custom.value.trim();
+      // Try data-config-id pattern
+      const configEl = document.querySelector(`[data-config-id="${checkboxId}_label"]`);
+      if (configEl && configEl.textContent) {
+        labelText = configEl.textContent.trim();
+      } else {
+        // Try label_ + id pattern
+        const labelEl = document.getElementById(`label_${checkboxId}`);
+        if (labelEl && labelEl.textContent) {
+          labelText = labelEl.textContent.trim();
         } else {
-          return v || '';
+          // Try the checkbox value itself
+          const checkboxEl = document.getElementById(checkboxId);
+          if (checkboxEl && checkboxEl.value) {
+            labelText = checkboxEl.value.trim();
+          }
         }
       }
-    } catch (e){}
-    return "";
-  }
-
-  function pushIfSub(checkboxId, qtyId, labelFallback) {
-    const cb = document.getElementById(checkboxId);
-    if (!cb || !cb.checked) return false; // Return false if not checked
-    const qtyEl = document.getElementById(qtyId);
-    const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
-    const label = getLabelFor(checkboxId, labelFallback || cb.value || "");
-    // compute suffix for unit id: remove leading 'sub_' => suffix
-    const suffix = (checkboxId && checkboxId.indexOf('sub_') === 0) ? checkboxId.slice(4) : (checkboxId || "");
-    const unitVal = getUnitForSuffix(suffix);
-
-    // Save unit preference when item is selected
-    if (unitVal) {
-      const unitSelectId = 'unit_' + suffix;
-      saveUnitPreference(unitSelectId, unitVal);
+    } catch (e) {
+      console.warn('Error getting label for', checkboxId, e);
     }
-
-    // FIXED: Only add to selectedParts if there's a valid quantity OR if it's a valid selection
-    if (qtyVal !== "" && !isNaN(Number(qtyVal)) && Number(qtyVal) > 0) {
-      if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
-      else selectedParts.push(qtyVal + " " + label);
-      // add structured item (include unit)
-      items.push({ id: checkboxId, qty: qtyVal || "", unit: unitVal || "", label: label });
-      addedSubIds.add(checkboxId);
-      return true;
-    } else if (label) {
-      // If no quantity but item is selected, add just the label
-      if (unitVal) selectedParts.push(unitVal + " " + label);
-      else selectedParts.push(label);
-      items.push({ id: checkboxId, qty: "", unit: unitVal || "", label: label });
-      addedSubIds.add(checkboxId);
-      return true;
-    }
-    return false;
+    return labelText || fallback;
   }
 
-  // FIXED: Check if main categories are selected and process their sub-items
-  let hasValidItems = false;
-
-  // floor (hard-coded ones kept for backward-compatibility)
-  if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
-    if (pushIfSub('sub_floor_vitrified','q_floor_vitrified','Vitrified tiles')) hasValidItems = true;
-    if (pushIfSub('sub_floor_ceramic','q_floor_ceramic','Ceramic tiles')) hasValidItems = true;
-    if (pushIfSub('sub_floor_porcelain','q_floor_porcelain','Porcelain tiles')) hasValidItems = true;
-    if (pushIfSub('sub_floor_marble','q_floor_marble','Marble finish tiles')) hasValidItems = true;
-    if (pushIfSub('sub_floor_granite','q_floor_granite','Granite finish tiles')) hasValidItems = true;
-  }
-  // wall
-  if (document.getElementById('p_wall') && document.getElementById('p_wall').checked) {
-    if (pushIfSub('sub_wall_kitchen','q_wall_kitchen','Kitchen wall tiles (backsplash)')) hasValidItems = true;
-    if (pushIfSub('sub_wall_bath','q_wall_bath','Bathroom wall tiles (glazed/anti-skid)')) hasValidItems = true;
-    if (pushIfSub('sub_wall_decor','q_wall_decor','Decorative / designer wall tiles')) hasValidItems = true;
-  }
-  // sanitary
-  if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
-    if (pushIfSub('sub_san_wash','q_san_wash','Washbasins')) hasValidItems = true;
-    if (pushIfSub('sub_san_wc','q_san_wc','WC')) hasValidItems = true;
-    if (pushIfSub('sub_san_urinal','q_san_urinal','Urinals')) hasValidItems = true;
-  }
-  // accessories
-  if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
-    if (pushIfSub('sub_acc_grout','q_acc_grout','Tile grout & adhesives')) hasValidItems = true;
-    if (pushIfSub('sub_acc_spacers','q_acc_spacers','Spacers')) hasValidItems = true;
-    if (pushIfSub('sub_acc_sealants','q_acc_sealants','Sealants')) hasValidItems = true;
-    if (pushIfSub('sub_acc_chem','q_acc_chem','Chemicals')) hasValidItems = true;
-    if (pushIfSub('sub_acc_skirting','q_acc_skirting','Skirting & border tiles')) hasValidItems = true;
-    if (pushIfSub('sub_acc_mosaic','q_acc_mosaic','Mosaic tiles for decoration')) hasValidItems = true;
-  }
-  
-  // others main - FIXED: Handle Others properly
-  if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
-    const otherTxt = (document.getElementById('purchasedOtherText') || {}).value || "";
-    const otherQty = (document.getElementById('q_other') || {}).value || "";
-    // for Others label, prefer the editable label for the main 'p_other' if present
-    const mainOtherLabel = getLabelFor('p_other', 'Others');
-    const label = otherTxt.trim() !== "" ? otherTxt.trim() : mainOtherLabel;
-    const unitOther = getUnitForSuffix('other');
+  // Helper function to get unit value
+  function getUnitValue(suffix) {
+    const unitSelectId = `unit_${suffix}`;
+    const unitCustomId = `unit_custom_${suffix}`;
     
-    // Save unit preference for Others
-    if (unitOther) {
-      saveUnitPreference('unit_other', unitOther);
-    }
+    const unitSelect = document.getElementById(unitSelectId);
+    const unitCustom = document.getElementById(unitCustomId);
     
-    // FIXED: Validate Others item properly
-    if (otherQty !== "" && !isNaN(Number(otherQty)) && Number(otherQty) > 0) {
-      if (unitOther) selectedParts.push(otherQty + " " + unitOther + " " + label);
-      else selectedParts.push(otherQty + " " + label);
-      items.push({ id: 'p_other', qty: otherQty || "", unit: unitOther || "", label: label });
-      addedSubIds.add('p_other');
-      hasValidItems = true;
-    } else if (otherTxt.trim() !== "") {
-      // If description is provided but no quantity, still add it
-      if (unitOther) selectedParts.push(unitOther + " " + label);
-      else selectedParts.push(label);
-      items.push({ id: 'p_other', qty: "", unit: unitOther || "", label: label });
-      addedSubIds.add('p_other');
-      hasValidItems = true;
+    if (unitSelect) {
+      const selectedUnit = unitSelect.value || '';
+      // Check if custom unit is visible and has value
+      if (unitCustom && unitCustom.style.display !== 'none' && unitCustom.value && unitCustom.value.trim()) {
+        return unitCustom.value.trim();
+      }
+      return selectedUnit;
     }
+    return '';
   }
 
-  // ----- ENHANCED: generic scan for any dynamic .subitem elements not covered above -----
-  try {
-    const allSubitems = Array.from(document.querySelectorAll('.subitem'));
-    allSubitems.forEach(function(cb) {
-      if (!cb || !cb.id) return;
-      if (addedSubIds.has(cb.id)) return; // already processed
-      if (!cb.checked) return;
-      // qty id uses same convention: 'q' + checkboxId.slice(3)
-      const qtyId = 'q' + cb.id.slice(3);
-      const qtyEl = document.getElementById(qtyId);
-      const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
-      const label = getLabelFor(cb.id, cb.value || "");
-      const suffix = (cb.id && cb.id.indexOf('sub_') === 0) ? cb.id.slice(4) : (cb.id || "");
-      const unitVal = getUnitForSuffix(suffix);
+  // Process each main category and its sub-items
+  const mainCategories = [
+    {
+      mainId: 'p_floor',
+      subItems: [
+        { id: 'sub_floor_vitrified', qtyId: 'q_floor_vitrified', label: 'Vitrified tiles' },
+        { id: 'sub_floor_ceramic', qtyId: 'q_floor_ceramic', label: 'Ceramic tiles' },
+        { id: 'sub_floor_porcelain', qtyId: 'q_floor_porcelain', label: 'Porcelain tiles' },
+        { id: 'sub_floor_marble', qtyId: 'q_floor_marble', label: 'Marble finish tiles' },
+        { id: 'sub_floor_granite', qtyId: 'q_floor_granite', label: 'Granite finish tiles' }
+      ]
+    },
+    {
+      mainId: 'p_wall',
+      subItems: [
+        { id: 'sub_wall_kitchen', qtyId: 'q_wall_kitchen', label: 'Kitchen wall tiles (backsplash)' },
+        { id: 'sub_wall_bath', qtyId: 'q_wall_bath', label: 'Bathroom wall tiles (glazed/anti-skid)' },
+        { id: 'sub_wall_decor', qtyId: 'q_wall_decor', label: 'Decorative / designer wall tiles' }
+      ]
+    },
+    {
+      mainId: 'p_san',
+      subItems: [
+        { id: 'sub_san_wash', qtyId: 'q_san_wash', label: 'Washbasins' },
+        { id: 'sub_san_wc', qtyId: 'q_san_wc', label: 'WC' },
+        { id: 'sub_san_urinal', qtyId: 'q_san_urinal', label: 'Urinals' }
+      ]
+    },
+    {
+      mainId: 'p_acc',
+      subItems: [
+        { id: 'sub_acc_grout', qtyId: 'q_acc_grout', label: 'Tile grout & adhesives' },
+        { id: 'sub_acc_spacers', qtyId: 'q_acc_spacers', label: 'Spacers' },
+        { id: 'sub_acc_sealants', qtyId: 'q_acc_sealants', label: 'Sealants' },
+        { id: 'sub_acc_chem', qtyId: 'q_acc_chem', label: 'Chemicals' },
+        { id: 'sub_acc_skirting', qtyId: 'q_acc_skirting', label: 'Skirting & border tiles' },
+        { id: 'sub_acc_mosaic', qtyId: 'q_acc_mosaic', label: 'Mosaic tiles for decoration' }
+      ]
+    }
+  ];
+
+  // Process main categories
+  mainCategories.forEach(category => {
+    if (isChecked(category.mainId)) {
+      console.log(`Processing main category: ${category.mainId}`);
+      
+      category.subItems.forEach(subItem => {
+        if (isChecked(subItem.id)) {
+          const quantity = getElementValue(subItem.qtyId);
+          const label = getLabelText(subItem.id, subItem.label);
+          const suffix = subItem.id.replace('sub_', '');
+          const unit = getUnitValue(suffix);
+          
+          console.log(`Sub-item ${subItem.id}: qty=${quantity}, unit=${unit}, label=${label}`);
+          
+          if (quantity && !isNaN(Number(quantity)) && Number(quantity) > 0) {
+            const itemText = unit ? `${quantity} ${unit} ${label}` : `${quantity} ${label}`;
+            selectedParts.push(itemText);
+            items.push({ 
+              id: subItem.id, 
+              qty: quantity, 
+              unit: unit, 
+              label: label 
+            });
+            
+            // Save unit preference
+            if (unit) {
+              saveUnitPreference(`unit_${suffix}`, unit);
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // Handle "Others" main item
+  if (isChecked('p_other')) {
+    console.log('Processing Others item');
+    
+    const otherQty = getElementValue('q_other');
+    const otherText = getElementValue('purchasedOtherText');
+    const otherLabel = getLabelText('p_other', 'Others');
+    const otherUnit = getUnitValue('other');
+    
+    console.log(`Others: qty=${otherQty}, text=${otherText}, unit=${otherUnit}`);
+    
+    const finalLabel = otherText || otherLabel;
+    
+    if (otherQty && !isNaN(Number(otherQty)) && Number(otherQty) > 0) {
+      const itemText = otherUnit ? `${otherQty} ${otherUnit} ${finalLabel}` : `${otherQty} ${finalLabel}`;
+      selectedParts.push(itemText);
+      items.push({ 
+        id: 'p_other', 
+        qty: otherQty, 
+        unit: otherUnit, 
+        label: finalLabel 
+      });
       
       // Save unit preference
-      if (unitVal) {
-        const unitSelectId = 'unit_' + suffix;
-        saveUnitPreference(unitSelectId, unitVal);
+      if (otherUnit) {
+        saveUnitPreference('unit_other', otherUnit);
+      }
+    }
+  }
+
+  // Scan for any additional dynamic sub-items
+  try {
+    const allSubitems = document.querySelectorAll('.subitem');
+    const processedIds = new Set(mainCategories.flatMap(c => c.subItems.map(s => s.id)));
+    
+    allSubitems.forEach(checkbox => {
+      if (!checkbox.id || processedIds.has(checkbox.id) || !checkbox.checked) {
+        return;
       }
       
-      // FIXED: Only add if valid quantity or valid item
-      if (qtyVal !== "" && !isNaN(Number(qtyVal)) && Number(qtyVal) > 0) {
-        if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
-        else selectedParts.push(qtyVal + " " + label);
-        items.push({ id: cb.id, qty: qtyVal || "", unit: unitVal || "", label: label });
-        addedSubIds.add(cb.id);
-        hasValidItems = true;
-      } else if (label) {
-        if (unitVal) selectedParts.push(unitVal + " " + label);
-        else selectedParts.push(label);
-        items.push({ id: cb.id, qty: "", unit: unitVal || "", label: label });
-        addedSubIds.add(cb.id);
-        hasValidItems = true;
+      const qtyId = 'q' + checkbox.id.slice(3);
+      const quantity = getElementValue(qtyId);
+      const label = getLabelText(checkbox.id, checkbox.value);
+      const suffix = checkbox.id.replace('sub_', '');
+      const unit = getUnitValue(suffix);
+      
+      console.log(`Dynamic sub-item ${checkbox.id}: qty=${quantity}, unit=${unit}, label=${label}`);
+      
+      if (quantity && !isNaN(Number(quantity)) && Number(quantity) > 0) {
+        const itemText = unit ? `${quantity} ${unit} ${label}` : `${quantity} ${label}`;
+        selectedParts.push(itemText);
+        items.push({ 
+          id: checkbox.id, 
+          qty: quantity, 
+          unit: unit, 
+          label: label 
+        });
+        
+        if (unit) {
+          saveUnitPreference(`unit_${suffix}`, unit);
+        }
       }
     });
   } catch (e) {
-    console.warn('generic subitem scan failed', e);
+    console.warn('Error scanning dynamic sub-items:', e);
   }
 
-  // --------- MODE handling (dedupe + canonicalize) ----------
-  // Build an array of mode objects (checkbox element, display label, amount if present)
-  const rawModeEls = Array.from(document.querySelectorAll('input[name="modeOfPayment"]'));
-  const modeObjs = rawModeEls.map(function(cb) {
-    const id = cb.id || '';
-    // prefer editable label span text if present
-    const displayLabel = getLabelFor(id, cb.value || '');
-    // amount input: try id 'amt_'+id, else first .mode-amount within same .mode-row, else input[data-mode-amount] with matching id
-    let amtInput = null;
-    if (id) amtInput = document.getElementById('amt_' + id);
-    if (!amtInput) {
-      const parent = cb.closest ? cb.closest('.mode-row') : null;
-      if (parent) amtInput = parent.querySelector('input.mode-amount');
-    }
-    if (!amtInput) {
-      // fallback: find any input with data-mode-amount that has attribute matching label (rare)
-      amtInput = document.querySelector('input[data-mode-amount][id="amt_' + id + '"]') || null;
-    }
-    const amtVal = amtInput && amtInput.value ? Number(amtInput.value) : 0;
-    return { el: cb, id: id, label: (displayLabel || '').toString().trim(), amountInput: amtInput, amount: amtVal };
-  });
-
-  const rawSelected = modeObjs.filter(m => m.el && m.el.checked).map(m => m.label).filter(Boolean);
-
-  function canonicalLabel(v){
-    if(!v) return v;
-    const s = v.toString().toLowerCase();
-    if (s.indexOf('cash') !== -1) return 'Cash';
-    if (s.indexOf('online') !== -1) return 'Online';
-    if (s.indexOf('credit') !== -1) return 'Credit';
-    return v.trim();
-  }
-
-  const preferred = ['Cash','Online','Credit'];
-  const present = new Set();
-  const orderedModes = [];
-  const rawLower = rawSelected.map(s=>s.toLowerCase());
-  preferred.forEach(pref => {
-    if (rawLower.some(r => r.indexOf(pref.toLowerCase()) !== -1)) {
-      orderedModes.push(pref);
-      present.add(pref);
-    }
-  });
-  rawSelected.forEach(r => {
-    const can = canonicalLabel(r);
-    if (!present.has(can)) { orderedModes.push(can); present.add(can); }
-  });
-  const modeStr = orderedModes.join(', ');
-
-  // --------- modeBreakdown: amounts ----------
-  const breakdownParts = [];
+  // Process payment modes
+  const modeLabels = [];
+  const modeBreakdownParts = [];
+  
   try {
-    // Use the modeObjs to gather amounts for checked modes (this covers dynamic/custom modes)
-    modeObjs.forEach(function(mo) {
-      if (mo && mo.el && mo.el.checked) {
-        // prefer numeric amount; if missing, treat as 0 (keep previous behavior)
-        const amt = (mo.amountInput && mo.amountInput.value) ? Number(mo.amountInput.value) : (mo.amount || 0);
-        breakdownParts.push((mo.label || mo.el.value || '').trim() + ' Rs.' + (amt || 0));
+    const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+    modeCheckboxes.forEach(checkbox => {
+      const modeLabel = getLabelText(checkbox.id, checkbox.value);
+      if (modeLabel) {
+        modeLabels.push(modeLabel);
+        
+        // Try to find amount input
+        const amountInput = document.getElementById(`amt_${checkbox.id}`) ||
+                           checkbox.closest('.mode-row')?.querySelector('.mode-amount');
+        
+        const amount = amountInput && amountInput.value ? Number(amountInput.value) : 0;
+        modeBreakdownParts.push(`${modeLabel} Rs.${amount}`);
       }
     });
+  } catch (e) {
+    console.warn('Error processing payment modes:', e);
+  }
 
-    // If breakdownParts is still empty, fallback to scanning any inputs with data-mode-amount (non-checkbox-linked amounts)
-    if (breakdownParts.length === 0) {
-      const amtEls = Array.from(document.querySelectorAll('input[data-mode-amount]'));
-      amtEls.forEach(el => {
-        const modeName = el.getAttribute('data-mode-amount') || '';
-        const val = el.value ? Number(el.value) : 0;
-        if (modeName && val) breakdownParts.push(modeName + ' Rs.' + val);
-      });
-    }
-  } catch (e) { /* ignore */ }
-  const modeBreakdown = breakdownParts.join(', ');
+  // Get other form data
+  const purchasedFrom = getElementValue('purchasedFromSelect') === 'Other' 
+    ? getElementValue('purchasedFrom')
+    : getElementValue('purchasedFromSelect');
 
-  // FIXED: Debug logging to help troubleshoot
-  console.log('collectFormData debug:', {
-    hasValidItems,
-    selectedPartsLength: selectedParts.length,
-    itemsLength: items.length,
-    selectedParts: selectedParts.slice(0, 3), // Show first 3 items
-    purchasedItem: selectedParts.join("\n")
-  });
-
-  return {
-    // NOTE: join by newline so the sheet cell will show each entry on its own line
-    purchasedItem: selectedParts.join("\n"),
-    purchasedFrom: (document.getElementById('purchasedFromSelect') || {}).value === 'Other' 
-      ? ((document.getElementById('purchasedFrom') || {}).value || '').trim()
-      : ((document.getElementById('purchasedFromSelect') || {}).value || '').trim(),
-    modeOfPayment: modeStr,
-    modeBreakdown: modeBreakdown,
-    paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
-    otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
-    // NEW: Add photo URL to form data
+  const result = {
+    purchasedItem: selectedParts.join('\n'),
+    purchasedFrom: purchasedFrom,
+    modeOfPayment: modeLabels.join(', '),
+    modeBreakdown: modeBreakdownParts.join(', '),
+    paymentPaid: getElementValue('paymentPaid'),
+    otherInfo: getElementValue('otherInfo'),
     photoUrl: uploadedPhotoUrl || '',
-    // Structured items array - server will prefer this if present (now includes unit)
     items: items
   };
+
+  console.log('=== collectFormData result ===', {
+    purchasedItemLength: result.purchasedItem.length,
+    itemsCount: result.items.length,
+    selectedPartsCount: selectedParts.length,
+    purchasedItem: result.purchasedItem.substring(0, 100) + '...'
+  });
+
+  return result;
 }
 
-// showMessage, clearForm, makeSubmissionId - keep same semantics as before (clearForm also clears photo)
+// Other utility functions
 function showMessage(text){
-  var m = document.getElementById('msg');
+  const m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
-  m.textContent = text; m.style.display='block';
+  m.textContent = text; 
+  m.style.display='block';
   setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 4000);
 }
 
@@ -539,20 +561,25 @@ function clearForm(){
     document.querySelectorAll('.subitem').forEach(ch => { ch.checked = false; });
     document.querySelectorAll('.qty').forEach(q => { q.value = ''; q.disabled = true; });
     document.querySelectorAll('.sublist').forEach(s => s.style.display = 'none');
-    const otherEl = document.getElementById('purchasedOtherText'); if (otherEl) otherEl.value = '';
-    const fromEl = document.getElementById('purchasedFrom'); if (fromEl) fromEl.value = '';
-    const fromSel = document.getElementById('purchasedFromSelect'); if (fromSel) fromSel.selectedIndex = 0;
+    
+    const otherEl = document.getElementById('purchasedOtherText'); 
+    if (otherEl) otherEl.value = '';
+    const fromEl = document.getElementById('purchasedFrom'); 
+    if (fromEl) fromEl.value = '';
+    const fromSel = document.getElementById('purchasedFromSelect'); 
+    if (fromSel) fromSel.selectedIndex = 0;
+    
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>{ el.checked=false; });
     ['amt_cash','amt_online','amt_credit'].forEach(id=>{
       const e = document.getElementById(id);
       if (e) { e.value=''; e.disabled = true; }
     });
+    
     // clear unit selects/customs but preserve saved preferences
     document.querySelectorAll('.unit-select').forEach(u => { 
       try { 
         u.selectedIndex = 0; 
         u.disabled = true; 
-        // Apply saved preference after reset
         const preferences = loadUnitPreferences();
         const savedUnit = preferences[u.id];
         if (savedUnit) {
@@ -570,50 +597,53 @@ function clearForm(){
         uc.disabled = true; 
       } catch(e){} 
     });
-    const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
-    const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
     
-    // NEW: Clear photo when clearing form
-    if (typeof removePhoto === 'function') {
-      removePhoto();
-    }
-  } catch(e){ console.warn('clearForm error', e); }
+    const payEl = document.getElementById('paymentPaid'); 
+    if (payEl) payEl.value = '';
+    const oi = document.getElementById('otherInfo'); 
+    if (oi) oi.value = '';
+    
+    // Clear photo
+    removePhoto();
+  } catch(e){ 
+    console.warn('clearForm error', e); 
+  }
 }
 
-function makeSubmissionId() { return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000); }
+function makeSubmissionId() { 
+  return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000); 
+}
 
-// small helper to show last serial prominently (creates/updates a floating badge)
 function updateSerialBadge(serial) {
   try {
     if (!serial && serial !== 0) return;
-    var existing = document.getElementById('lastSerialBadge');
+    let existing = document.getElementById('lastSerialBadge');
     if (existing) {
       existing.textContent = 'Last Serial: ' + String(serial);
       return;
     }
-    var badge = document.createElement('div');
+    const badge = document.createElement('div');
     badge.id = 'lastSerialBadge';
-    badge.style.position = 'fixed';
-    badge.style.right = '18px';
-    badge.style.bottom = '18px';
-    badge.style.background = '#2c7be5';
-    badge.style.color = '#fff';
-    badge.style.padding = '8px 12px';
-    badge.style.borderRadius = '8px';
-    badge.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
-    badge.style.zIndex = 2000;
-    badge.style.cursor = 'pointer';
+    badge.style.cssText = `
+      position: fixed; right: 18px; bottom: 18px; background: #2c7be5; color: #fff;
+      padding: 8px 12px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      z-index: 2000; cursor: pointer; font-family: Arial, sans-serif;
+    `;
     badge.title = 'Click to copy serial to clipboard';
     badge.textContent = 'Last Serial: ' + String(serial);
     badge.addEventListener('click', function(){
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(String(serial)).then(function(){ showMessage('Serial copied to clipboard'); }).catch(function(){ showMessage('Could not copy'); });
+        navigator.clipboard.writeText(String(serial))
+          .then(() => showMessage('Serial copied to clipboard'))
+          .catch(() => showMessage('Could not copy'));
       } else {
         showMessage('Copy not supported');
       }
     });
     document.body.appendChild(badge);
-  } catch (e) { console.warn('updateSerialBadge err', e); }
+  } catch (e) { 
+    console.warn('updateSerialBadge err', e); 
+  }
 }
 
 window.submitForm = async function() {
@@ -622,7 +652,7 @@ window.submitForm = async function() {
   else await doSubmitFlow();
 };
 
-// ---------- Config helpers (server-backed) ----------
+// Config helpers 
 function loadSavedConfig() {
   const url = ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SHARED_TOKEN);
   return jsonpRequest(url, JSONP_TIMEOUT_MS).then(function(resp) {
@@ -676,14 +706,13 @@ window.loadSavedConfig = loadSavedConfig;
 window.saveConfigToServer = saveConfigToServer;
 window.getCurrentCustomization = function() {
   try {
-    const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
-    return cfg;
+    return { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
   } catch (e) {
     return { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
   }
 };
 
-// ---------- NEW: global units helpers used to persist custom units ----------------
+// global units helpers
 const DEFAULT_GLOBAL_UNITS = ['Boxes','Pieces','Kg'];
 
 function addGlobalUnitIfMissing(unit) {
@@ -694,20 +723,17 @@ function addGlobalUnitIfMissing(unit) {
     if (list.indexOf(unit) === -1) {
       list.push(unit);
       saveGlobalUnits(list);
-      // if page exposes a rebuild function from index.html, call it
       if (typeof window.rebuildAllUnitSelects === 'function') {
         try { window.rebuildAllUnitSelects(); } catch(e){}
       } else {
-        // perform a simple rebuild here
         rebuildUnitSelectsSimple();
       }
       return true;
     }
-  } catch(e){ console.warn('addGlobalUnitIfMissing err', e); }\
+  } catch(e){ console.warn('addGlobalUnitIfMissing err', e); }
   return false;
 }
 
-// simple fallback rebuild (if index.html does not provide rebuildAllUnitSelects)
 function rebuildUnitSelectsSimple() {
   try {
     const defaultUnits = DEFAULT_GLOBAL_UNITS.slice();
@@ -720,7 +746,6 @@ function rebuildUnitSelectsSimple() {
       const selectId = sel.id;
       sel.innerHTML = '';
       
-      // Add all units (no Custom option)
       allUnits.forEach(u => {
         const op = document.createElement('option'); 
         op.value = u; 
@@ -728,14 +753,12 @@ function rebuildUnitSelectsSimple() {
         sel.appendChild(op);
       });
       
-      // Apply saved preference
       if (selectId && preferences[selectId]) {
         const preferredUnit = preferences[selectId];
         const allOptions = Array.from(sel.options).map(opt => opt.value);
         if (allOptions.includes(preferredUnit)) {
           sel.value = preferredUnit;
         } else {
-          // Add custom unit as option if not found
           const tempOption = document.createElement('option');
           tempOption.value = preferredUnit;
           tempOption.textContent = preferredUnit;
@@ -753,7 +776,6 @@ function rebuildUnitSelectsSimple() {
   } catch(e){ console.warn('rebuildUnitSelectsSimple err', e); }
 }
 
-// ---------- new behavior: recompute paymentPaid when mode amounts / mode toggles change ----------
 function recomputePaymentFromModes() {
   try {
     const rows = Array.from(document.querySelectorAll('.mode-row'));
@@ -766,11 +788,11 @@ function recomputePaymentFromModes() {
         if (!isNaN(v)) sum += v;
       }
     });
-    // Also include any standalone data-mode-amount entries where checkbox may not exist (rare)
+    
     const fallbackAmtEls = Array.from(document.querySelectorAll('input[data-mode-amount]'));
     fallbackAmtEls.forEach(el => {
       const parent = el.closest('.mode-row');
-      if (parent) return; // already handled
+      if (parent) return;
       const v = el.value ? Number(el.value) : 0;
       if (!isNaN(v)) sum += v;
     });
@@ -782,23 +804,51 @@ function recomputePaymentFromModes() {
   } catch (e) { console.warn('recomputePaymentFromModes err', e); }
 }
 
-// ---------- MAIN DOM bindings ----------
+// MAIN DOM bindings
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
   const submitBtn = document.getElementById('submitBtn');
   const clearBtn = document.getElementById('clearBtn');
 
-  if (submitBtn && !navigator.onLine) try { submitBtn.disabled = true; } catch(e){}
+  if (submitBtn && !navigator.onLine) {
+    try { submitBtn.disabled = true; } catch(e){}
+  }
 
-  if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
+  if (!submitBtn) { 
+    console.warn('[INIT] submitBtn not found in DOM'); 
+    return; 
+  }
+  
   try { submitBtn.setAttribute('type','button'); } catch(e){}
 
-  // Photo Upload Event Listeners Setup - FIXED to handle both camera and gallery inputs
+  // Photo Upload Event Listeners Setup
   const photoUploadBtnCamera = document.getElementById('photoUploadBtnCamera');
   const photoUploadBtnGallery = document.getElementById('photoUploadBtnGallery');
   const photoFileInputCamera = document.getElementById('photoFileInputCamera');
   const photoFileInputGallery = document.getElementById('photoFileInputGallery');
   const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+  function handlePhotoFile(file) {
+    if (!file) return;
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Photo size must be less than 10MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+
+    displayPhotoPreview(file);
+    
+    uploadPhotoToServer(file).catch(error => {
+      console.error('Upload failed:', error);
+    });
+  }
 
   // Handle camera button and input
   if (photoUploadBtnCamera && photoFileInputCamera) {
@@ -806,29 +856,8 @@ document.addEventListener('DOMContentLoaded', function() {
       photoFileInputCamera.click();
     });
 
-    photoFileInputCamera.addEventListener('change', async function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          alert('Photo size must be less than 10MB');
-          return;
-        }
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          alert('Please select a valid image file');
-          return;
-        }
-
-        displayPhotoPreview(file);
-        
-        try {
-          await uploadPhotoToServer(file);
-        } catch (error) {
-          console.error('Upload failed:', error);
-        }
-      }
+    photoFileInputCamera.addEventListener('change', function(e) {
+      handlePhotoFile(e.target.files[0]);
     });
   }
 
@@ -838,29 +867,8 @@ document.addEventListener('DOMContentLoaded', function() {
       photoFileInputGallery.click();
     });
 
-    photoFileInputGallery.addEventListener('change', async function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          alert('Photo size must be less than 10MB');
-          return;
-        }
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          alert('Please select a valid image file');
-          return;
-        }
-
-        displayPhotoPreview(file);
-        
-        try {
-          await uploadPhotoToServer(file);
-        } catch (error) {
-          console.error('Upload failed:', error);
-        }
-      }
+    photoFileInputGallery.addEventListener('change', function(e) {
+      handlePhotoFile(e.target.files[0]);
     });
   }
 
@@ -870,12 +878,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // attempt to load saved customization (apply if present)
+  // Load config and setup
   (async function(){
     try {
       await loadSavedConfig();
     } catch(e) { /* ignore */ }
-    // after config applied, ensure unit selects use saved global units and preferences
+    
     try {
       if (typeof window.rebuildAllUnitSelects === 'function') {
         window.rebuildAllUnitSelects();
@@ -883,7 +891,6 @@ document.addEventListener('DOMContentLoaded', function() {
         rebuildUnitSelectsSimple();
       }
       
-      // Apply unit preferences after rebuild
       setTimeout(() => {
         const preferences = loadUnitPreferences();
         Object.keys(preferences).forEach(selectId => {
@@ -899,14 +906,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }, 100);
     } catch(e){}
-    // also recompute mode total in case config restored amounts
+    
     recomputePaymentFromModes();
   })();
 
-  // Prevent double-handling between touchend and click
   let ignoreNextClick = false;
 
-  // ENHANCED: Validation function with better error detection
   function validateMainSubSelection() {
     const errors = [];
     if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
@@ -935,16 +940,27 @@ document.addEventListener('DOMContentLoaded', function() {
     return errors;
   }
 
-  // ENHANCED: doSubmitFlow with better debugging and validation
   async function doSubmitFlow() {
     try {
-      if (!navigator.onLine) { alert('Connect to internet. Your entry cannot be saved while offline.'); updateStatus(); return; }
+      console.log('=== Starting form submission ===');
+      
+      if (!navigator.onLine) { 
+        alert('Connect to internet. Your entry cannot be saved while offline.'); 
+        updateStatus(); 
+        return; 
+      }
       
       const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
-      if (!anyMainChecked) { alert('Please select at least one purchased main category.'); return; }
+      if (!anyMainChecked) { 
+        alert('Please select at least one purchased main category.'); 
+        return; 
+      }
       
       const validationList = validateMainSubSelection();
-      if (validationList.length > 0) { alert(validationList.join('\n')); return; }
+      if (validationList.length > 0) { 
+        alert(validationList.join('\n')); 
+        return; 
+      }
 
       const selectedSubboxes = Array.from(document.querySelectorAll('.subitem')).filter(s => s.checked);
       for (let sb of selectedSubboxes) {
@@ -968,81 +984,120 @@ document.addEventListener('DOMContentLoaded', function() {
       const payment = (document.getElementById('paymentPaid') || {}).value || "";
       const modeChecked = Array.from(document.querySelectorAll('input[name="modeOfPayment"]')).some(m=>m.checked);
       if (!modeChecked) { alert('Please select a mode of payment.'); return; }
-      if (!payment || isNaN(Number(payment)) ) { alert('Please enter a valid payment amount.'); return; }
+      if (!payment || isNaN(Number(payment))) { 
+        alert('Please enter a valid payment amount.'); 
+        return; 
+      }
 
-      // ENHANCED: Collect form data with debugging
-      var formData = collectFormData();
-      console.log('Form data collected:', formData); // Debug log
+      // Collect form data
+      const formData = collectFormData();
+      console.log('=== Form data collected ===', formData);
       
       if (!formData.purchasedItem || formData.purchasedItem.trim() === "") {
-        alert('No sub-item selected. Please select at least one specific item and quantity.');
+        console.error('No purchased items found in form data');
+        alert('No items selected. Please select at least one specific item and enter a valid quantity.');
         return;
       }
 
       if (!formData.submissionId) formData.submissionId = makeSubmissionId();
-      if (activeSubmissions.has(formData.submissionId)) { showMessage('Submission in progress — please wait'); return; }
+      if (activeSubmissions.has(formData.submissionId)) { 
+        showMessage('Submission in progress — please wait'); 
+        return; 
+      }
+      
       activeSubmissions.add(formData.submissionId);
 
       submitBtn.disabled = true;
       const origLabel = submitBtn.textContent;
       submitBtn.textContent = 'Saving...';
       showMessage('Submitting — please wait...');
-      clearForm();
 
-      (async function(backgroundForm){
-        try {
-          const clientTs = Date.now();
-          const resp = await sendToServerJSONP(backgroundForm, clientTs);
-          if (resp && resp.success) {
-            // Prefer explicit serial returned by server. If not present, show row or debug to help troubleshooting.
-            const serial = (resp.serial !== undefined && resp.serial !== null) ? resp.serial : null;
-            if (serial !== null) {
-              showMessage('Saved — Serial: ' + serial);
-              updateSerialBadge(serial);
-            } else {
-              // serial not returned — surface helpful info
-              if (resp.row) {
-                showMessage('Saved (row: ' + resp.row + '). Serial not returned by server.');
-              } else {
-                showMessage('Saved — (serial not returned).');
-              }
-              console.warn('Server response missing serial', resp);
-            }
-          } else if (resp && resp.error) {
-            alert('Server rejected submission: ' + resp.error);
+      // Don't clear form until after successful submission
+      console.log('=== Sending to server ===');
+
+      try {
+        const clientTs = Date.now();
+        const resp = await sendToServerJSONP(formData, clientTs);
+        console.log('=== Server response ===', resp);
+        
+        if (resp && resp.success) {
+          // Clear form only after successful submission
+          clearForm();
+          
+          const serial = (resp.serial !== undefined && resp.serial !== null) ? resp.serial : null;
+          if (serial !== null) {
+            showMessage('Saved — Serial: ' + serial);
+            updateSerialBadge(serial);
           } else {
-            alert('Unexpected server response. Please retry while online.');
+            if (resp.row) {
+              showMessage('Saved (row: ' + resp.row + '). Serial not returned by server.');
+            } else {
+              showMessage('Saved — (serial not returned).');
+            }
+            console.warn('Server response missing serial', resp);
           }
-        } catch (errSend) {
-          console.error('send failed', errSend);
-          alert('Network error occurred. Please ensure you are online and try again.');
-        } finally {
-          try { activeSubmissions.delete(backgroundForm.submissionId); } catch(e){}
-          try { submitBtn.disabled = false; submitBtn.textContent = origLabel || 'Submit'; } catch(e){}
-          updateStatus();
+        } else if (resp && resp.error) {
+          alert('Server rejected submission: ' + resp.error);
+        } else {
+          alert('Unexpected server response. Please retry while online.');
+          console.error('Unexpected server response:', resp);
         }
-      })(formData);
+      } catch (errSend) {
+        console.error('=== Send failed ===', errSend);
+        alert('Network error occurred. Please ensure you are online and try again.');
+      } finally {
+        try { activeSubmissions.delete(formData.submissionId); } catch(e){}
+        try { 
+          submitBtn.disabled = false; 
+          submitBtn.textContent = origLabel || 'Submit'; 
+        } catch(e){}
+        updateStatus();
+      }
 
     } catch (ex) {
-      console.error('submit handler exception', ex);
-      alert('Unexpected error. Try again.');
-      submitBtn.disabled = false; submitBtn.textContent = 'Submit';
+      console.error('=== Submit handler exception ===', ex);
+      alert('Unexpected error during submission. Please try again.');
+      try {
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit';
+      } catch(e){}
     }
   }
 
-  function onTouchEndSubmit(ev) { if (!ev) return; ev.preventDefault && ev.preventDefault(); ev.stopPropagation && ev.stopPropagation(); ignoreNextClick = true; setTimeout(()=>{ ignoreNextClick = false; }, 800); doSubmitFlow(); }
-  function onClickSubmit(ev) { if (ignoreNextClick) { ev && ev.preventDefault(); return; } doSubmitFlow(); }
+  function onTouchEndSubmit(ev) { 
+    if (!ev) return; 
+    ev.preventDefault && ev.preventDefault(); 
+    ev.stopPropagation && ev.stopPropagation(); 
+    ignoreNextClick = true; 
+    setTimeout(()=>{ ignoreNextClick = false; }, 800); 
+    doSubmitFlow(); 
+  }
+  
+  function onClickSubmit(ev) { 
+    if (ignoreNextClick) { 
+      ev && ev.preventDefault(); 
+      return; 
+    } 
+    doSubmitFlow(); 
+  }
 
   submitBtn.addEventListener('touchend', onTouchEndSubmit, { passive:false });
   submitBtn.addEventListener('click', onClickSubmit, { passive:false });
 
   if (clearBtn) {
-    clearBtn.addEventListener('touchend', function(ev){ ev && ev.preventDefault(); clearForm(); showMessage('Form cleared'); }, { passive:false });
-    clearBtn.addEventListener('click', function(ev){ clearForm(); showMessage('Form cleared'); }, { passive:false });
+    clearBtn.addEventListener('touchend', function(ev){ 
+      ev && ev.preventDefault(); 
+      clearForm(); 
+      showMessage('Form cleared'); 
+    }, { passive:false });
+    
+    clearBtn.addEventListener('click', function(ev){ 
+      clearForm(); 
+      showMessage('Form cleared'); 
+    }, { passive:false });
   }
 
-  // ---------- Delegated handlers for unit-select / unit_custom & mode totals ----------
-  // Unit select change -> show/hide custom input and save preference
+  // Delegated handlers for unit-select / unit_custom & mode totals
   document.body.addEventListener('change', function(ev) {
     const t = ev.target;
     if (!t) return;
@@ -1057,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveUnitPreference(selectId, unitValue);
       }
       
-      // Handle custom unit input visibility (even though Custom is removed from dropdown)
+      // Handle custom unit input visibility
       if (selectId && selectId.indexOf('unit_') === 0) {
         const suffix = selectId.slice(5);
         const customEl = document.getElementById('unit_custom_' + suffix);
@@ -1111,7 +1166,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (t.matches('.mode-amount')) {
       // recompute after a tiny debounce to avoid excessive writes while typing
       if (t._mode_debounce_timer) clearTimeout(t._mode_debounce_timer);
-      t._mode_debounce_timer = setTimeout(function(){ recomputePaymentFromModes(); t._mode_debounce_timer = null; }, 180);
+      t._mode_debounce_timer = setTimeout(function(){ 
+        recomputePaymentFromModes(); 
+        t._mode_debounce_timer = null; 
+      }, 180);
     }
 
   }, { passive:true });
@@ -1124,12 +1182,355 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, { passive:true });
 
-  // Unregister service workers & clear caches (as before)
+  // Unregister service workers & clear caches
   if ('serviceWorker' in navigator) {
-    try { navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(r => { r.unregister().catch(()=>{}); }); }).catch(()=>{}); } catch(e){ console.warn('sw unregister err', e); }
+    try { 
+      navigator.serviceWorker.getRegistrations().then(function(regs){ 
+        regs.forEach(r => { 
+          r.unregister().catch(()=>{}); 
+        }); 
+      }).catch(()=>{}); 
+    } catch(e){ 
+      console.warn('sw unregister err', e); 
+    }
   }
+  
   if ('caches' in window) {
-    try { caches.keys().then(keys => { keys.forEach(k => caches.delete(k)); }).catch(()=>{}); } catch(e){ console.warn('cache clear err', e); }
+    try { 
+      caches.keys().then(keys => { 
+        keys.forEach(k => caches.delete(k)); 
+      }).catch(()=>{}); 
+    } catch(e){ 
+      console.warn('cache clear err', e); 
+    }
   }
 
 }); // DOMContentLoaded end
+
+// Additional helper functions for better form management
+window.debugFormData = function() {
+  console.log('=== DEBUG: Current form state ===');
+  const formData = collectFormData();
+  console.log('Form data:', formData);
+  
+  console.log('Checked main items:');
+  document.querySelectorAll('.purchased:checked').forEach(cb => {
+    console.log('  -', cb.id, cb.value);
+  });
+  
+  console.log('Checked sub-items:');
+  document.querySelectorAll('.subitem:checked').forEach(cb => {
+    const qtyId = 'q' + cb.id.slice(3);
+    const qtyEl = document.getElementById(qtyId);
+    const qty = qtyEl ? qtyEl.value : 'N/A';
+    console.log('  -', cb.id, cb.value, 'qty:', qty);
+  });
+  
+  console.log('Payment modes:');
+  document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(cb => {
+    console.log('  -', cb.id, cb.value);
+  });
+  
+  return formData;
+};
+
+window.testPhotoUpload = function() {
+  console.log('Current photo URL:', uploadedPhotoUrl);
+  if (uploadedPhotoUrl) {
+    console.log('Photo is ready for submission');
+  } else {
+    console.log('No photo uploaded');
+  }
+};
+
+// Enhanced form validation for better user experience
+window.validateForm = function() {
+  console.log('=== Running form validation ===');
+  
+  const issues = [];
+  
+  // Check main categories
+  const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
+  if (!anyMainChecked) {
+    issues.push('No main category selected');
+  }
+  
+  // Check sub-items for each selected main category
+  const mainCategories = ['p_floor', 'p_wall', 'p_san', 'p_acc'];
+  mainCategories.forEach(mainId => {
+    const mainEl = document.getElementById(mainId);
+    if (mainEl && mainEl.checked) {
+      const suffix = mainId.slice(2); // Remove 'p_' prefix
+      const sublist = document.getElementById(`sublist_${suffix}`);
+      if (sublist) {
+        const hasCheckedSub = Array.from(sublist.querySelectorAll('.subitem')).some(s => s.checked);
+        if (!hasCheckedSub) {
+          issues.push(`${mainEl.value}: No sub-items selected`);
+        }
+      }
+    }
+  });
+  
+  // Check Others
+  const othersMain = document.getElementById('p_other');
+  if (othersMain && othersMain.checked) {
+    const othersQty = document.getElementById('q_other');
+    const othersText = document.getElementById('purchasedOtherText');
+    const qty = othersQty ? othersQty.value : '';
+    const text = othersText ? othersText.value : '';
+    
+    if (!qty && !text.trim()) {
+      issues.push('Others: No quantity or description provided');
+    }
+  }
+  
+  // Check payment
+  const paymentEl = document.getElementById('paymentPaid');
+  const payment = paymentEl ? paymentEl.value : '';
+  if (!payment || isNaN(Number(payment))) {
+    issues.push('Invalid payment amount');
+  }
+  
+  // Check payment modes
+  const anyModeChecked = Array.from(document.querySelectorAll('input[name="modeOfPayment"]')).some(m => m.checked);
+  if (!anyModeChecked) {
+    issues.push('No payment mode selected');
+  }
+  
+  console.log('Validation issues:', issues);
+  return issues;
+};
+
+// Enhanced error handling and recovery
+window.recoverFromError = function() {
+  console.log('=== Attempting error recovery ===');
+  
+  // Reset submission state
+  activeSubmissions.clear();
+  
+  // Re-enable submit button
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+  }
+  
+  // Update status
+  updateStatus();
+  
+  // Clear any error messages
+  const msgEl = document.getElementById('msg');
+  if (msgEl) {
+    msgEl.style.display = 'none';
+  }
+  
+  console.log('Error recovery completed');
+};
+
+// Auto-save functionality for form data
+let autoSaveTimer = null;
+
+function autoSaveFormData() {
+  try {
+    const formData = {
+      purchasedItems: {},
+      paymentPaid: document.getElementById('paymentPaid')?.value || '',
+      otherInfo: document.getElementById('otherInfo')?.value || '',
+      purchasedFrom: document.getElementById('purchasedFromSelect')?.value || '',
+      photoUrl: uploadedPhotoUrl
+    };
+    
+    // Save checked main items
+    document.querySelectorAll('.purchased:checked').forEach(cb => {
+      formData.purchasedItems[cb.id] = { checked: true, subitems: {} };
+    });
+    
+    // Save sub-items and quantities
+    document.querySelectorAll('.subitem:checked').forEach(cb => {
+      const qtyId = 'q' + cb.id.slice(3);
+      const qtyEl = document.getElementById(qtyId);
+      const mainId = cb.id.includes('floor') ? 'p_floor' :
+                   cb.id.includes('wall') ? 'p_wall' :
+                   cb.id.includes('san') ? 'p_san' :
+                   cb.id.includes('acc') ? 'p_acc' : 'p_other';
+      
+      if (!formData.purchasedItems[mainId]) {
+        formData.purchasedItems[mainId] = { checked: false, subitems: {} };
+      }
+      
+      formData.purchasedItems[mainId].subitems[cb.id] = {
+        checked: true,
+        quantity: qtyEl ? qtyEl.value : '',
+        label: cb.value
+      };
+    });
+    
+    // Save payment modes
+    formData.paymentModes = {};
+    document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(cb => {
+      const amountEl = document.getElementById(`amt_${cb.id}`) ||
+                      cb.closest('.mode-row')?.querySelector('.mode-amount');
+      formData.paymentModes[cb.id] = {
+        checked: true,
+        amount: amountEl ? amountEl.value : ''
+      };
+    });
+    
+    localStorage.setItem('tileapp_autosave', JSON.stringify(formData));
+    console.log('Form data auto-saved');
+  } catch (e) {
+    console.warn('Auto-save failed:', e);
+  }
+}
+
+function loadAutoSavedData() {
+  try {
+    const saved = localStorage.getItem('tileapp_autosave');
+    if (!saved) return false;
+    
+    const formData = JSON.parse(saved);
+    let restored = false;
+    
+    // Restore main items
+    Object.keys(formData.purchasedItems || {}).forEach(mainId => {
+      const mainEl = document.getElementById(mainId);
+      const data = formData.purchasedItems[mainId];
+      
+      if (mainEl && data.checked) {
+        mainEl.checked = true;
+        restored = true;
+        
+        // Restore sub-items
+        Object.keys(data.subitems || {}).forEach(subId => {
+          const subEl = document.getElementById(subId);
+          const subData = data.subitems[subId];
+          
+          if (subEl && subData.checked) {
+            subEl.checked = true;
+            
+            // Restore quantity
+            const qtyId = 'q' + subId.slice(3);
+            const qtyEl = document.getElementById(qtyId);
+            if (qtyEl && subData.quantity) {
+              qtyEl.value = subData.quantity;
+              qtyEl.disabled = false;
+            }
+          }
+        });
+      }
+    });
+    
+    // Restore payment data
+    if (formData.paymentPaid) {
+      const paymentEl = document.getElementById('paymentPaid');
+      if (paymentEl) paymentEl.value = formData.paymentPaid;
+    }
+    
+    // Restore other info
+    if (formData.otherInfo) {
+      const otherEl = document.getElementById('otherInfo');
+      if (otherEl) otherEl.value = formData.otherInfo;
+    }
+    
+    // Restore purchased from
+    if (formData.purchasedFrom) {
+      const fromEl = document.getElementById('purchasedFromSelect');
+      if (fromEl) fromEl.value = formData.purchasedFrom;
+    }
+    
+    // Restore payment modes
+    Object.keys(formData.paymentModes || {}).forEach(modeId => {
+      const modeEl = document.getElementById(modeId);
+      const modeData = formData.paymentModes[modeId];
+      
+      if (modeEl && modeData.checked) {
+        modeEl.checked = true;
+        
+        const amountEl = document.getElementById(`amt_${modeId}`) ||
+                        modeEl.closest('.mode-row')?.querySelector('.mode-amount');
+        if (amountEl && modeData.amount) {
+          amountEl.value = modeData.amount;
+          amountEl.disabled = false;
+        }
+      }
+    });
+    
+    // Restore photo
+    if (formData.photoUrl) {
+      uploadedPhotoUrl = formData.photoUrl;
+    }
+    
+    if (restored) {
+      console.log('Auto-saved data restored');
+      showMessage('Previous form data restored');
+      return true;
+    }
+  } catch (e) {
+    console.warn('Auto-restore failed:', e);
+  }
+  
+  return false;
+}
+
+function clearAutoSave() {
+  try {
+    localStorage.removeItem('tileapp_autosave');
+    console.log('Auto-save data cleared');
+  } catch (e) {
+    console.warn('Failed to clear auto-save:', e);
+  }
+}
+
+// Set up auto-save on form changes
+document.addEventListener('change', function(e) {
+  if (e.target && (
+    e.target.matches('.purchased') ||
+    e.target.matches('.subitem') ||
+    e.target.matches('.qty') ||
+    e.target.matches('input[name="modeOfPayment"]') ||
+    e.target.matches('.mode-amount') ||
+    e.target.matches('#paymentPaid') ||
+    e.target.matches('#otherInfo') ||
+    e.target.matches('#purchasedFromSelect')
+  )) {
+    // Debounce auto-save
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(autoSaveFormData, 1000);
+  }
+});
+
+// Expose utility functions
+window.autoSaveFormData = autoSaveFormData;
+window.loadAutoSavedData = loadAutoSavedData;
+window.clearAutoSave = clearAutoSave;
+
+// Ask user about restoring data on page load (but only once per session)
+if (!sessionStorage.getItem('autoRestoreAsked')) {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+      const hasAutoSave = localStorage.getItem('tileapp_autosave');
+      if (hasAutoSave) {
+        if (confirm('Found unsaved form data from previous session. Restore it?')) {
+          const restored = loadAutoSavedData();
+          if (restored) {
+            // Update form state after restoration
+            setTimeout(() => {
+              // Trigger change events to update form state
+              document.querySelectorAll('.purchased:checked').forEach(el => {
+                el.dispatchEvent(new Event('change'));
+              });
+              document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(el => {
+                el.dispatchEvent(new Event('change'));
+              });
+            }, 100);
+          }
+        } else {
+          clearAutoSave();
+        }
+      }
+      sessionStorage.setItem('autoRestoreAsked', 'true');
+    }, 2000); // Wait 2 seconds after page load
+  });
+}
+
+console.log('=== TileApp JavaScript loaded successfully ===');
