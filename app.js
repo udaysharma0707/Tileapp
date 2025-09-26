@@ -145,13 +145,15 @@ function removePhoto() {
   const preview = document.getElementById('photoPreview');
   const previewImg = document.getElementById('previewImage');
   const photoInfo = document.getElementById('photoInfo');
-  const fileInput = document.getElementById('photoFileInput');
+  const cameraInput = document.getElementById('photoFileInputCamera');
+  const galleryInput = document.getElementById('photoFileInputGallery');
   const statusEl = document.getElementById('photoUploadStatus');
 
   if (preview) preview.style.display = 'none';
   if (previewImg) previewImg.src = '';
   if (photoInfo) photoInfo.textContent = '';
-  if (fileInput) fileInput.value = '';
+  if (cameraInput) cameraInput.value = '';
+  if (galleryInput) galleryInput.value = '';
   if (statusEl) statusEl.style.display = 'none';
   
   uploadedPhotoUrl = null;
@@ -241,7 +243,7 @@ function saveGlobalUnits(units) {
   }
 }
 
-// ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
+// ---------- MAIN: collectFormData (FIXED - updated to properly detect sub-items and build items array) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = []; // structured items: { id, qty, unit, label }
@@ -287,7 +289,7 @@ function collectFormData(){
 
   function pushIfSub(checkboxId, qtyId, labelFallback) {
     const cb = document.getElementById(checkboxId);
-    if (!cb || !cb.checked) return;
+    if (!cb || !cb.checked) return false; // Return false if not checked
     const qtyEl = document.getElementById(qtyId);
     const qtyVal = qtyEl ? (String(qtyEl.value || "").trim()) : "";
     const label = getLabelFor(checkboxId, labelFallback || cb.value || "");
@@ -301,48 +303,59 @@ function collectFormData(){
       saveUnitPreference(unitSelectId, unitVal);
     }
 
-    if (qtyVal !== "") {
+    // FIXED: Only add to selectedParts if there's a valid quantity OR if it's a valid selection
+    if (qtyVal !== "" && !isNaN(Number(qtyVal)) && Number(qtyVal) > 0) {
       if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
       else selectedParts.push(qtyVal + " " + label);
-    } else {
+      // add structured item (include unit)
+      items.push({ id: checkboxId, qty: qtyVal || "", unit: unitVal || "", label: label });
+      addedSubIds.add(checkboxId);
+      return true;
+    } else if (label) {
+      // If no quantity but item is selected, add just the label
       if (unitVal) selectedParts.push(unitVal + " " + label);
       else selectedParts.push(label);
+      items.push({ id: checkboxId, qty: "", unit: unitVal || "", label: label });
+      addedSubIds.add(checkboxId);
+      return true;
     }
-    // add structured item (include unit)
-    items.push({ id: checkboxId, qty: qtyVal || "", unit: unitVal || "", label: label });
-    addedSubIds.add(checkboxId);
+    return false;
   }
+
+  // FIXED: Check if main categories are selected and process their sub-items
+  let hasValidItems = false;
 
   // floor (hard-coded ones kept for backward-compatibility)
   if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
-    pushIfSub('sub_floor_vitrified','q_floor_vitrified','Vitrified tiles');
-    pushIfSub('sub_floor_ceramic','q_floor_ceramic','Ceramic tiles');
-    pushIfSub('sub_floor_porcelain','q_floor_porcelain','Porcelain tiles');
-    pushIfSub('sub_floor_marble','q_floor_marble','Marble finish tiles');
-    pushIfSub('sub_floor_granite','q_floor_granite','Granite finish tiles');
+    if (pushIfSub('sub_floor_vitrified','q_floor_vitrified','Vitrified tiles')) hasValidItems = true;
+    if (pushIfSub('sub_floor_ceramic','q_floor_ceramic','Ceramic tiles')) hasValidItems = true;
+    if (pushIfSub('sub_floor_porcelain','q_floor_porcelain','Porcelain tiles')) hasValidItems = true;
+    if (pushIfSub('sub_floor_marble','q_floor_marble','Marble finish tiles')) hasValidItems = true;
+    if (pushIfSub('sub_floor_granite','q_floor_granite','Granite finish tiles')) hasValidItems = true;
   }
   // wall
   if (document.getElementById('p_wall') && document.getElementById('p_wall').checked) {
-    pushIfSub('sub_wall_kitchen','q_wall_kitchen','Kitchen wall tiles (backsplash)');
-    pushIfSub('sub_wall_bath','q_wall_bath','Bathroom wall tiles (glazed/anti-skid)');
-    pushIfSub('sub_wall_decor','q_wall_decor','Decorative / designer wall tiles');
+    if (pushIfSub('sub_wall_kitchen','q_wall_kitchen','Kitchen wall tiles (backsplash)')) hasValidItems = true;
+    if (pushIfSub('sub_wall_bath','q_wall_bath','Bathroom wall tiles (glazed/anti-skid)')) hasValidItems = true;
+    if (pushIfSub('sub_wall_decor','q_wall_decor','Decorative / designer wall tiles')) hasValidItems = true;
   }
   // sanitary
   if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
-    pushIfSub('sub_san_wash','q_san_wash','Washbasins');
-    pushIfSub('sub_san_wc','q_san_wc','WC');
-    pushIfSub('sub_san_urinal','q_san_urinal','Urinals');
+    if (pushIfSub('sub_san_wash','q_san_wash','Washbasins')) hasValidItems = true;
+    if (pushIfSub('sub_san_wc','q_san_wc','WC')) hasValidItems = true;
+    if (pushIfSub('sub_san_urinal','q_san_urinal','Urinals')) hasValidItems = true;
   }
   // accessories
   if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
-    pushIfSub('sub_acc_grout','q_acc_grout','Tile grout & adhesives');
-    pushIfSub('sub_acc_spacers','q_acc_spacers','Spacers');
-    pushIfSub('sub_acc_sealants','q_acc_sealants','Sealants');
-    pushIfSub('sub_acc_chem','q_acc_chem','Chemicals');
-    pushIfSub('sub_acc_skirting','q_acc_skirting','Skirting & border tiles');
-    pushIfSub('sub_acc_mosaic','q_acc_mosaic','Mosaic tiles for decoration');
+    if (pushIfSub('sub_acc_grout','q_acc_grout','Tile grout & adhesives')) hasValidItems = true;
+    if (pushIfSub('sub_acc_spacers','q_acc_spacers','Spacers')) hasValidItems = true;
+    if (pushIfSub('sub_acc_sealants','q_acc_sealants','Sealants')) hasValidItems = true;
+    if (pushIfSub('sub_acc_chem','q_acc_chem','Chemicals')) hasValidItems = true;
+    if (pushIfSub('sub_acc_skirting','q_acc_skirting','Skirting & border tiles')) hasValidItems = true;
+    if (pushIfSub('sub_acc_mosaic','q_acc_mosaic','Mosaic tiles for decoration')) hasValidItems = true;
   }
-  // others main
+  
+  // others main - FIXED: Handle Others properly
   if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
     const otherTxt = (document.getElementById('purchasedOtherText') || {}).value || "";
     const otherQty = (document.getElementById('q_other') || {}).value || "";
@@ -356,18 +369,24 @@ function collectFormData(){
       saveUnitPreference('unit_other', unitOther);
     }
     
-    if (otherQty !== "") {
+    // FIXED: Validate Others item properly
+    if (otherQty !== "" && !isNaN(Number(otherQty)) && Number(otherQty) > 0) {
       if (unitOther) selectedParts.push(otherQty + " " + unitOther + " " + label);
       else selectedParts.push(otherQty + " " + label);
-    } else {
+      items.push({ id: 'p_other', qty: otherQty || "", unit: unitOther || "", label: label });
+      addedSubIds.add('p_other');
+      hasValidItems = true;
+    } else if (otherTxt.trim() !== "") {
+      // If description is provided but no quantity, still add it
       if (unitOther) selectedParts.push(unitOther + " " + label);
       else selectedParts.push(label);
+      items.push({ id: 'p_other', qty: "", unit: unitOther || "", label: label });
+      addedSubIds.add('p_other');
+      hasValidItems = true;
     }
-    items.push({ id: 'p_other', qty: otherQty || "", unit: unitOther || "", label: label });
-    addedSubIds.add('p_other');
   }
 
-  // ----- NEW: generic scan for any dynamic .subitem elements not covered above -----
+  // ----- ENHANCED: generic scan for any dynamic .subitem elements not covered above -----
   try {
     const allSubitems = Array.from(document.querySelectorAll('.subitem'));
     allSubitems.forEach(function(cb) {
@@ -388,15 +407,20 @@ function collectFormData(){
         saveUnitPreference(unitSelectId, unitVal);
       }
       
-      if (qtyVal !== "") {
+      // FIXED: Only add if valid quantity or valid item
+      if (qtyVal !== "" && !isNaN(Number(qtyVal)) && Number(qtyVal) > 0) {
         if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
         else selectedParts.push(qtyVal + " " + label);
-      } else {
+        items.push({ id: cb.id, qty: qtyVal || "", unit: unitVal || "", label: label });
+        addedSubIds.add(cb.id);
+        hasValidItems = true;
+      } else if (label) {
         if (unitVal) selectedParts.push(unitVal + " " + label);
         else selectedParts.push(label);
+        items.push({ id: cb.id, qty: "", unit: unitVal || "", label: label });
+        addedSubIds.add(cb.id);
+        hasValidItems = true;
       }
-      items.push({ id: cb.id, qty: qtyVal || "", unit: unitVal || "", label: label });
-      addedSubIds.add(cb.id);
     });
   } catch (e) {
     console.warn('generic subitem scan failed', e);
@@ -474,6 +498,15 @@ function collectFormData(){
     }
   } catch (e) { /* ignore */ }
   const modeBreakdown = breakdownParts.join(', ');
+
+  // FIXED: Debug logging to help troubleshoot
+  console.log('collectFormData debug:', {
+    hasValidItems,
+    selectedPartsLength: selectedParts.length,
+    itemsLength: items.length,
+    selectedParts: selectedParts.slice(0, 3), // Show first 3 items
+    purchasedItem: selectedParts.join("\n")
+  });
 
   return {
     // NOTE: join by newline so the sheet cell will show each entry on its own line
@@ -670,7 +703,7 @@ function addGlobalUnitIfMissing(unit) {
       }
       return true;
     }
-  } catch(e){ console.warn('addGlobalUnitIfMissing err', e); }
+  } catch(e){ console.warn('addGlobalUnitIfMissing err', e); }\
   return false;
 }
 
@@ -760,17 +793,52 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
   try { submitBtn.setAttribute('type','button'); } catch(e){}
 
-  // Photo Upload Event Listeners Setup
-  const photoUploadBtn = document.getElementById('photoUploadBtn');
-  const photoFileInput = document.getElementById('photoFileInput');
+  // Photo Upload Event Listeners Setup - FIXED to handle both camera and gallery inputs
+  const photoUploadBtnCamera = document.getElementById('photoUploadBtnCamera');
+  const photoUploadBtnGallery = document.getElementById('photoUploadBtnGallery');
+  const photoFileInputCamera = document.getElementById('photoFileInputCamera');
+  const photoFileInputGallery = document.getElementById('photoFileInputGallery');
   const removePhotoBtn = document.getElementById('removePhotoBtn');
 
-  if (photoUploadBtn && photoFileInput) {
-    photoUploadBtn.addEventListener('click', function() {
-      photoFileInput.click();
+  // Handle camera button and input
+  if (photoUploadBtnCamera && photoFileInputCamera) {
+    photoUploadBtnCamera.addEventListener('click', function() {
+      photoFileInputCamera.click();
     });
 
-    photoFileInput.addEventListener('change', async function(e) {
+    photoFileInputCamera.addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('Photo size must be less than 10MB');
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file');
+          return;
+        }
+
+        displayPhotoPreview(file);
+        
+        try {
+          await uploadPhotoToServer(file);
+        } catch (error) {
+          console.error('Upload failed:', error);
+        }
+      }
+    });
+  }
+
+  // Handle gallery button and input
+  if (photoUploadBtnGallery && photoFileInputGallery) {
+    photoUploadBtnGallery.addEventListener('click', function() {
+      photoFileInputGallery.click();
+    });
+
+    photoFileInputGallery.addEventListener('change', async function(e) {
       const file = e.target.files[0];
       if (file) {
         // Validate file size (max 10MB)
@@ -838,6 +906,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Prevent double-handling between touchend and click
   let ignoreNextClick = false;
 
+  // ENHANCED: Validation function with better error detection
   function validateMainSubSelection() {
     const errors = [];
     if (document.getElementById('p_floor') && document.getElementById('p_floor').checked) {
@@ -849,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!any) errors.push('Wall Tiles: select at least one sub-item and enter quantity.');
     }
     if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
-      const any = Array.from(document.querySelectorAll('#sublist_
+      const any = Array.from(document.querySelectorAll('#sublist_san .subitem')).some(s=>s.checked);
       if (!any) errors.push('Sanitaryware: select at least one sub-item and enter quantity.');
     }
     if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
@@ -866,11 +935,14 @@ document.addEventListener('DOMContentLoaded', function() {
     return errors;
   }
 
+  // ENHANCED: doSubmitFlow with better debugging and validation
   async function doSubmitFlow() {
     try {
       if (!navigator.onLine) { alert('Connect to internet. Your entry cannot be saved while offline.'); updateStatus(); return; }
+      
       const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
       if (!anyMainChecked) { alert('Please select at least one purchased main category.'); return; }
+      
       const validationList = validateMainSubSelection();
       if (validationList.length > 0) { alert(validationList.join('\n')); return; }
 
@@ -898,7 +970,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!modeChecked) { alert('Please select a mode of payment.'); return; }
       if (!payment || isNaN(Number(payment)) ) { alert('Please enter a valid payment amount.'); return; }
 
+      // ENHANCED: Collect form data with debugging
       var formData = collectFormData();
+      console.log('Form data collected:', formData); // Debug log
+      
       if (!formData.purchasedItem || formData.purchasedItem.trim() === "") {
         alert('No sub-item selected. Please select at least one specific item and quantity.');
         return;
@@ -1058,4 +1133,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
