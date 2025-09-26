@@ -3,8 +3,10 @@ const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
 
-// Global variable to store uploaded photo URL
-let uploadedPhotoUrl = null;
+// Ensure a global property exists instead of re-declaring variable names that may appear elsewhere
+if (typeof window.uploadedPhotoUrl === 'undefined') {
+  window.uploadedPhotoUrl = null;
+}
 
 // ---------- helpers ----------
 function updateStatus(){ 
@@ -155,7 +157,12 @@ function compressImageToDataURL(file, maxDim = 1200, outputType = 'image/jpeg', 
   });
 }
 
-// --- upload function (replaces uploadPhotoToServer) ---
+// Provide legacy alias if other code expects convertToBase64
+function convertToBase64(file) {
+  return compressImageToDataURL(file);
+}
+
+// --- upload function (compress + send via JSONP) ---
 // This compresses image first then sends the base64 payload via your JSONP GET endpoint.
 // Note: large images may still fail due to URL length limits; reduce maxDim/quality if needed.
 async function uploadPhotoToServer(file) {
@@ -188,7 +195,7 @@ async function uploadPhotoToServer(file) {
     console.log('Upload response:', response);
 
     if (response && response.success && response.photoUrl) {
-      uploadedPhotoUrl = response.photoUrl;
+      window.uploadedPhotoUrl = response.photoUrl;
       setPhotoUploadStatus('success', 'Photo uploaded successfully!');
       console.log('Photo uploaded successfully:', response.photoUrl);
       return response.photoUrl;
@@ -198,42 +205,6 @@ async function uploadPhotoToServer(file) {
   } catch (error) {
     console.error('Photo upload error:', error);
     setPhotoUploadStatus('error', 'Photo upload failed: ' + (error.message || error));
-    throw error;
-  }
-}
-
-
-async function uploadPhotoToServer(file) {
-  try {
-    setPhotoUploadStatus('uploading', 'Uploading photo...');
-    
-    const base64Data = await convertToBase64(file);
-    
-    // Build URL parameters manually to avoid encoding issues
-    const params = [];
-    params.push('action=uploadPhoto');
-    params.push('token=' + encodeURIComponent(SHARED_TOKEN));
-    params.push('fileName=' + encodeURIComponent(file.name || 'photo.jpg'));
-    params.push('mimeType=' + encodeURIComponent(file.type || 'image/jpeg'));
-    params.push('fileData=' + encodeURIComponent(base64Data.split(',')[1])); // Remove data:image/jpeg;base64, part
-
-    const url = ENDPOINT + '?' + params.join('&');
-
-    console.log('Uploading photo to:', ENDPOINT);
-    const response = await jsonpRequest(url, 60000); // 60 second timeout for photo upload
-    console.log('Upload response:', response);
-
-    if (response && response.success && response.photoUrl) {
-      uploadedPhotoUrl = response.photoUrl;
-      setPhotoUploadStatus('success', 'Photo uploaded successfully!');
-      console.log('Photo uploaded successfully:', response.photoUrl);
-      return response.photoUrl;
-    } else {
-      throw new Error(response ? response.error || 'Photo upload failed' : 'No response from server');
-    }
-  } catch (error) {
-    console.error('Photo upload error:', error);
-    setPhotoUploadStatus('error', 'Photo upload failed: ' + error.message);
     throw error;
   }
 }
@@ -286,7 +257,7 @@ function removePhoto() {
   if (galleryInput) galleryInput.value = '';
   if (statusEl) statusEl.style.display = 'none';
   
-  uploadedPhotoUrl = null;
+  window.uploadedPhotoUrl = null;
 }
 
 // Expose photo functions globally
@@ -311,7 +282,7 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
-  add("photoUrl", formData.photoUrl || uploadedPhotoUrl || "");
+  add("photoUrl", formData.photoUrl || window.uploadedPhotoUrl || "");
   
   if (formData.submissionId) { 
     add("submissionId", formData.submissionId); 
@@ -930,7 +901,7 @@ function collectFormData(){
     modeBreakdown: modeBreakdownParts.join(', '),
     paymentPaid: getElementValue('paymentPaid'),
     otherInfo: getElementValue('otherInfo'),
-    photoUrl: uploadedPhotoUrl || '',
+    photoUrl: window.uploadedPhotoUrl || '',
     items: items
   };
 
@@ -1609,17 +1580,17 @@ const q = (document.getElementById('q_other') || {}).value || "";
         }); 
       }).catch(()=>{}); 
     } catch(e){ 
-      console.warn('sw unregister err', e); 
+      console.warn('sw unregister err', e);
     }
   }
   
   if ('caches' in window) {
     try { 
       caches.keys().then(keys => { 
-        keys.forEach(k => caches.delete(k)); 
+        keys.forEach(k => caches.delete(k));
       }).catch(()=>{}); 
     } catch(e){ 
-      console.warn('cache clear err', e); 
+      console.warn('cache clear err', e);
     }
   }
 
@@ -1653,8 +1624,8 @@ window.debugFormData = function() {
 };
 
 window.testPhotoUpload = function() {
-  console.log('Current photo URL:', uploadedPhotoUrl);
-  if (uploadedPhotoUrl) {
+  console.log('Current photo URL:', window.uploadedPhotoUrl);
+  if (window.uploadedPhotoUrl) {
     console.log('Photo is ready for submission');
   } else {
     console.log('No photo uploaded');
@@ -1806,7 +1777,7 @@ function autoSaveFormData() {
       paymentPaid: document.getElementById('paymentPaid')?.value || '',
       otherInfo: document.getElementById('otherInfo')?.value || '',
       purchasedFrom: document.getElementById('purchasedFromSelect')?.value || '',
-      photoUrl: uploadedPhotoUrl
+      photoUrl: window.uploadedPhotoUrl
     };
     
     // Save checked main items
@@ -1926,7 +1897,7 @@ function loadAutoSavedData() {
     
     // Restore photo
     if (formData.photoUrl) {
-      uploadedPhotoUrl = formData.photoUrl;
+      window.uploadedPhotoUrl = formData.photoUrl;
     }
     
     if (restored) {
@@ -2015,6 +1986,3 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
 }
 
 console.log('=== TileApp JavaScript loaded successfully ===');
-
-
-
