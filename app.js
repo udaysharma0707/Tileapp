@@ -94,6 +94,49 @@ function sendToServerJSONP(formData, clientTs, opts) {
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
 
+// ---------- Unit Preference Management ----------
+function loadUnitPreferences() {
+  try {
+    const stored = localStorage.getItem('unitPreferences_v1');
+    return stored ? JSON.parse(stored) : {};
+  } catch(e) {
+    console.error('Error loading unit preferences:', e);
+    return {};
+  }
+}
+
+function saveUnitPreferences(preferences) {
+  try {
+    localStorage.setItem('unitPreferences_v1', JSON.stringify(preferences));
+  } catch(e) {
+    console.error('Error saving unit preferences:', e);
+  }
+}
+
+function saveUnitPreference(productId, unitValue) {
+  const preferences = loadUnitPreferences();
+  preferences[productId] = unitValue;
+  saveUnitPreferences(preferences);
+}
+
+function loadGlobalUnits() {
+  try {
+    const stored = localStorage.getItem('globalUnits_v1');
+    return stored ? JSON.parse(stored) : [];
+  } catch(e) {
+    console.error('Error loading global units:', e);
+    return [];
+  }
+}
+
+function saveGlobalUnits(units) {
+  try {
+    localStorage.setItem('globalUnits_v1', JSON.stringify(units));
+  } catch(e) {
+    console.error('Error saving global units:', e);
+  }
+}
+
 // ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
 function collectFormData(){
   const selectedParts = [];
@@ -127,8 +170,9 @@ function collectFormData(){
       const custom = document.getElementById('unit_custom_' + suffix);
       if (sel) {
         const v = sel.value || '';
-        if (v === 'Custom') {
-          return (custom && custom.value && custom.value.trim()) ? custom.value.trim() : '';
+        // Check if custom input is visible and has value
+        if (custom && custom.style.display !== 'none' && custom.value && custom.value.trim()) {
+          return custom.value.trim();
         } else {
           return v || '';
         }
@@ -146,6 +190,12 @@ function collectFormData(){
     // compute suffix for unit id: remove leading 'sub_' => suffix
     const suffix = (checkboxId && checkboxId.indexOf('sub_') === 0) ? checkboxId.slice(4) : (checkboxId || "");
     const unitVal = getUnitForSuffix(suffix);
+
+    // Save unit preference when item is selected
+    if (unitVal) {
+      const unitSelectId = 'unit_' + suffix;
+      saveUnitPreference(unitSelectId, unitVal);
+    }
 
     if (qtyVal !== "") {
       if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
@@ -196,6 +246,12 @@ function collectFormData(){
     const mainOtherLabel = getLabelFor('p_other', 'Others');
     const label = otherTxt.trim() !== "" ? otherTxt.trim() : mainOtherLabel;
     const unitOther = getUnitForSuffix('other');
+    
+    // Save unit preference for Others
+    if (unitOther) {
+      saveUnitPreference('unit_other', unitOther);
+    }
+    
     if (otherQty !== "") {
       if (unitOther) selectedParts.push(otherQty + " " + unitOther + " " + label);
       else selectedParts.push(otherQty + " " + label);
@@ -221,6 +277,13 @@ function collectFormData(){
       const label = getLabelFor(cb.id, cb.value || "");
       const suffix = (cb.id && cb.id.indexOf('sub_') === 0) ? cb.id.slice(4) : (cb.id || "");
       const unitVal = getUnitForSuffix(suffix);
+      
+      // Save unit preference
+      if (unitVal) {
+        const unitSelectId = 'unit_' + suffix;
+        saveUnitPreference(unitSelectId, unitVal);
+      }
+      
       if (qtyVal !== "") {
         if (unitVal) selectedParts.push(qtyVal + " " + unitVal + " " + label);
         else selectedParts.push(qtyVal + " " + label);
@@ -311,7 +374,9 @@ function collectFormData(){
   return {
     // NOTE: join by newline so the sheet cell will show each entry on its own line
     purchasedItem: selectedParts.join("\n"),
-    purchasedFrom: (document.getElementById('purchasedFrom') || {}).value ? document.getElementById('purchasedFrom').value.trim() : '',
+    purchasedFrom: (document.getElementById('purchasedFromSelect') || {}).value === 'Other' 
+      ? ((document.getElementById('purchasedFrom') || {}).value || '').trim()
+      : ((document.getElementById('purchasedFromSelect') || {}).value || '').trim(),
     modeOfPayment: modeStr,
     modeBreakdown: modeBreakdown,
     paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
@@ -321,13 +386,14 @@ function collectFormData(){
   };
 }
 
-// showMessage, clearForm, makeSubmissionId - keep same semantics as before (clearForm also clears amt inputs if present)
+// showMessage, clearForm, makeSubmissionId - keep same semantics as before
 function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
   m.textContent = text; m.style.display='block';
   setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 4000);
 }
+
 function clearForm(){
   try {
     document.querySelectorAll('.purchased').forEach(ch => { ch.checked = false; });
@@ -336,19 +402,40 @@ function clearForm(){
     document.querySelectorAll('.sublist').forEach(s => s.style.display = 'none');
     const otherEl = document.getElementById('purchasedOtherText'); if (otherEl) otherEl.value = '';
     const fromEl = document.getElementById('purchasedFrom'); if (fromEl) fromEl.value = '';
+    const fromSel = document.getElementById('purchasedFromSelect'); if (fromSel) fromSel.selectedIndex = 0;
     document.querySelectorAll('input[name="modeOfPayment"]').forEach(el=>{ el.checked=false; });
     ['amt_cash','amt_online','amt_credit'].forEach(id=>{
       const e = document.getElementById(id);
       if (e) { e.value=''; e.disabled = true; }
     });
-    // clear unit selects/customs but keep any locked values (locks are intentionally persistent)
-    document.querySelectorAll('.unit-select').forEach(u => { try { u.selectedIndex = 0; u.disabled = true; } catch(e){} });
-    document.querySelectorAll('.unit-custom').forEach(uc => { try { uc.value=''; uc.style.display='none'; uc.disabled = true; } catch(e){} });
-    document.querySelectorAll('.unit-lock input[type="checkbox"]').forEach(lk => { try { lk.checked = false; lk.disabled = true; } catch(e){} });
+    // clear unit selects/customs but preserve saved preferences
+    document.querySelectorAll('.unit-select').forEach(u => { 
+      try { 
+        u.selectedIndex = 0; 
+        u.disabled = true; 
+        // Apply saved preference after reset
+        const preferences = loadUnitPreferences();
+        const savedUnit = preferences[u.id];
+        if (savedUnit) {
+          const opts = Array.from(u.options).map(o => o.value);
+          if (opts.includes(savedUnit)) {
+            u.value = savedUnit;
+          }
+        }
+      } catch(e){} 
+    });
+    document.querySelectorAll('.unit-custom').forEach(uc => { 
+      try { 
+        uc.value=''; 
+        uc.style.display='none'; 
+        uc.disabled = true; 
+      } catch(e){} 
+    });
     const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
     const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
   } catch(e){ console.warn('clearForm error', e); }
 }
+
 function makeSubmissionId() { return "s_" + Date.now() + "_" + Math.floor(Math.random()*1000000); }
 
 // small helper to show last serial prominently (creates/updates a floating badge)
@@ -392,16 +479,6 @@ window.submitForm = async function() {
 };
 
 // ---------- Config helpers (server-backed) ----------
-/* ... loadSavedConfig & saveConfigToServer unchanged (kept as in your original file) ... */
-
-// For brevity, keep the same implementations you had for loadSavedConfig and saveConfigToServer.
-// (They are unchanged; keep the functions from your original file here.)
-
-/**
- * loadSavedConfig()
- * Performs JSONP GET to ENDPOINT?action=getConfig&token=SHARED_TOKEN
- * Returns Promise resolving to config object or null.
- */
 function loadSavedConfig() {
   const url = ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SHARED_TOKEN);
   return jsonpRequest(url, JSONP_TIMEOUT_MS).then(function(resp) {
@@ -435,9 +512,6 @@ function loadSavedConfig() {
   });
 }
 
-/**
- * saveConfigToServer(cfg)
- */
 function saveConfigToServer(cfg) {
   try {
     const cfgStr = JSON.stringify(cfg || {});
@@ -459,49 +533,26 @@ window.saveConfigToServer = saveConfigToServer;
 window.getCurrentCustomization = function() {
   try {
     const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
-
-    // (same as your current implementation — omitted here to keep file compact)
-    // copy the implementation from your original file if needed (it was present before)
-    // For safety I will re-run the same logic when called; but to keep this snippet concise assume it's identical.
     return cfg;
   } catch (e) {
     return { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
   }
 };
 
-
 // ---------- NEW: global units helpers used to persist custom units ----------------
 const DEFAULT_GLOBAL_UNITS = ['Boxes','Pieces','Kg'];
-function loadGlobalUnits() {
-  try {
-    const raw = localStorage.getItem('globalUnits');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice();
-    }
-  } catch (e) { /* ignore */ }
-  return DEFAULT_GLOBAL_UNITS.slice();
-}
-function saveGlobalUnits(arr) {
-  try { localStorage.setItem('globalUnits', JSON.stringify(arr || [])); } catch(e){}
-}
+
 function addGlobalUnitIfMissing(unit) {
   try {
     unit = (unit || "").toString().trim();
     if (!unit) return false;
     const list = loadGlobalUnits();
-    if (list.indexOf(unit) === -1 && unit.toLowerCase() !== 'custom') {
-      // insert before Custom (if Custom exists) or append
-      const idxCustom = list.indexOf('Custom');
-      if (idxCustom === -1) {
-        list.push(unit);
-      } else {
-        list.splice(idxCustom, 0, unit);
-      }
+    if (list.indexOf(unit) === -1) {
+      list.push(unit);
       saveGlobalUnits(list);
       // if page exposes a rebuild function from index.html, call it
-      if (typeof window.__rebuildAllUnitSelects === 'function') {
-        try { window.__rebuildAllUnitSelects(); } catch(e){}
+      if (typeof window.rebuildAllUnitSelects === 'function') {
+        try { window.rebuildAllUnitSelects(); } catch(e){}
       } else {
         // perform a simple rebuild here
         rebuildUnitSelectsSimple();
@@ -511,19 +562,48 @@ function addGlobalUnitIfMissing(unit) {
   } catch(e){ console.warn('addGlobalUnitIfMissing err', e); }
   return false;
 }
-// simple fallback rebuild (if index.html does not provide __rebuildAllUnitSelects)
+
+// simple fallback rebuild (if index.html does not provide rebuildAllUnitSelects)
 function rebuildUnitSelectsSimple() {
   try {
-    const units = loadGlobalUnits().slice();
-    if (units.indexOf('Custom') === -1) units.push('Custom');
+    const defaultUnits = DEFAULT_GLOBAL_UNITS.slice();
+    const globalUnits = loadGlobalUnits();
+    const allUnits = [...defaultUnits, ...globalUnits];
+    const preferences = loadUnitPreferences();
+    
     document.querySelectorAll('.unit-select').forEach(sel => {
       const cur = sel.value;
+      const selectId = sel.id;
       sel.innerHTML = '';
-      units.forEach(u => {
-        const op = document.createElement('option'); op.value = u; op.textContent = u; sel.appendChild(op);
+      
+      // Add all units (no Custom option)
+      allUnits.forEach(u => {
+        const op = document.createElement('option'); 
+        op.value = u; 
+        op.textContent = u; 
+        sel.appendChild(op);
       });
-      if (cur && Array.from(sel.options).some(o=>o.value===cur)) sel.value = cur;
-      else sel.selectedIndex = 0;
+      
+      // Apply saved preference
+      if (selectId && preferences[selectId]) {
+        const preferredUnit = preferences[selectId];
+        const allOptions = Array.from(sel.options).map(opt => opt.value);
+        if (allOptions.includes(preferredUnit)) {
+          sel.value = preferredUnit;
+        } else {
+          // Add custom unit as option if not found
+          const tempOption = document.createElement('option');
+          tempOption.value = preferredUnit;
+          tempOption.textContent = preferredUnit;
+          sel.appendChild(tempOption);
+          sel.value = preferredUnit;
+        }
+      } else if (cur && Array.from(sel.options).some(o=>o.value===cur)) {
+        sel.value = cur;
+      } else {
+        sel.selectedIndex = 0;
+      }
+      
       sel.dispatchEvent(new Event('change'));
     });
   } catch(e){ console.warn('rebuildUnitSelectsSimple err', e); }
@@ -558,7 +638,7 @@ function recomputePaymentFromModes() {
   } catch (e) { console.warn('recomputePaymentFromModes err', e); }
 }
 
-// ---------- MAIN DOM bindings (unchanged submit flow, with small additions for auto-config load) ----------
+// ---------- MAIN DOM bindings ----------
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
   const submitBtn = document.getElementById('submitBtn');
@@ -574,10 +654,29 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       await loadSavedConfig();
     } catch(e) { /* ignore */ }
-    // after config applied, ensure unit selects use saved global units
+    // after config applied, ensure unit selects use saved global units and preferences
     try {
-      if (typeof window.__rebuildAllUnitSelects === 'function') window.__rebuildAllUnitSelects();
-      else rebuildUnitSelectsSimple();
+      if (typeof window.rebuildAllUnitSelects === 'function') {
+        window.rebuildAllUnitSelects();
+      } else {
+        rebuildUnitSelectsSimple();
+      }
+      
+      // Apply unit preferences after rebuild
+      setTimeout(() => {
+        const preferences = loadUnitPreferences();
+        Object.keys(preferences).forEach(selectId => {
+          const selectEl = document.getElementById(selectId);
+          if (selectEl && preferences[selectId]) {
+            const preferredUnit = preferences[selectId];
+            const allOptions = Array.from(selectEl.options).map(opt => opt.value);
+            if (allOptions.includes(preferredUnit)) {
+              selectEl.value = preferredUnit;
+              selectEl.dispatchEvent(new Event('change'));
+            }
+          }
+        });
+      }, 100);
     } catch(e){}
     // also recompute mode total in case config restored amounts
     recomputePaymentFromModes();
@@ -715,21 +814,30 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ---------- Delegated handlers for unit-select / unit_custom & mode totals ----------
-  // Unit select change -> show/hide custom input and (if user selects a saved custom string) preserve it.
+  // Unit select change -> show/hide custom input and save preference
   document.body.addEventListener('change', function(ev) {
     const t = ev.target;
     if (!t) return;
+    
     // unit selector changed
     if (t.matches('.unit-select')) {
-      const id = t.id || '';
-      if (!id || id.indexOf('unit_') !== 0) return;
-      const suffix = id.slice(5);
-      const customEl = document.getElementById('unit_custom_' + suffix);
-      if (t.value === 'Custom') {
-        if (customEl) { customEl.style.display = ''; customEl.disabled = false; customEl.focus && customEl.focus(); }
-      } else {
-        // hide and clear custom input (but don't remove locked stored value)
-        if (customEl) { customEl.style.display = 'none'; customEl.disabled = true; /* customEl.value = ''; */ }
+      const unitValue = t.value || '';
+      const selectId = t.id || '';
+      
+      // Save unit preference immediately when changed
+      if (selectId && unitValue) {
+        saveUnitPreference(selectId, unitValue);
+      }
+      
+      // Handle custom unit input visibility (even though Custom is removed from dropdown)
+      if (selectId && selectId.indexOf('unit_') === 0) {
+        const suffix = selectId.slice(5);
+        const customEl = document.getElementById('unit_custom_' + suffix);
+        if (customEl) {
+          // Hide custom input since we removed Custom option
+          customEl.style.display = 'none';
+          customEl.disabled = true;
+        }
       }
     }
 
@@ -744,6 +852,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.addEventListener('input', function(ev) {
     const t = ev.target;
     if (!t) return;
+    
     if (t.matches('.unit-custom')) {
       const id = t.id || '';
       if (!id || id.indexOf('unit_custom_') !== 0) return;
@@ -752,10 +861,20 @@ document.addEventListener('DOMContentLoaded', function() {
       if (val) {
         // save custom value to globalUnits so it appears in other selects
         addGlobalUnitIfMissing(val);
-        // ensure the sibling select gets set to Custom (and rebuild will show the custom value in the custom input)
-        const sel = document.getElementById('unit_' + suffix);
+        // Save as unit preference
+        const unitSelectId = 'unit_' + suffix;
+        saveUnitPreference(unitSelectId, val);
+        // Update the corresponding select to show this custom value
+        const sel = document.getElementById(unitSelectId);
         if (sel) {
-          try { sel.value = 'Custom'; } catch(e){}
+          const existingOptions = Array.from(sel.options).map(opt => opt.value);
+          if (!existingOptions.includes(val)) {
+            const newOption = document.createElement('option');
+            newOption.value = val;
+            newOption.textContent = val;
+            sel.appendChild(newOption);
+          }
+          sel.value = val;
         }
       }
     }
