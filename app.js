@@ -7,7 +7,7 @@
   'use strict';
 
   // Config - keep these in sync with server
-  const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwTwqZ-xoxJAhBpcYVXOkgdLcgV3o0LCibZKUKWfeQiPp90anzYJa8q7vwlgcDABP2MIg/exec";
+  const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwfNHj-cEfoD_HbjnH9GYg6AJdlHZ6ClX4x_p-2pjP_dwLCXpwfSheZ2sksvaPgYaNsjg/exec";
   const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
   // Avoid duplicate declaration if index.html already created this var
@@ -209,3 +209,4 @@
 })(); // IIFE end
 
 // ----------------- END OF app.js -----------------
+
