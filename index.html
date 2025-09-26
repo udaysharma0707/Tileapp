@@ -59,13 +59,6 @@
     .qty-unit input[type="number"] { width:90px; padding:6px; font-size:14px; }
     .qty-unit select { width:120px; padding:6px; font-size:14px; }
     .qty-unit .unit-custom { width:110px; padding:6px; font-size:14px; display:none; }
-    .unit-lock {
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      margin-left:6px;
-    }
-    .unit-lock input[type="checkbox"] { transform: scale(1.25); margin:0; }
 
     /* payment inline controls */
     .mode-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
@@ -299,9 +292,6 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_vitrified" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item">
-              <input type="checkbox" id="lock_floor_vitrified" /> lock
-            </label>
           </div>
 
         </div>
@@ -318,7 +308,6 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_ceramic" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_ceramic" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -334,7 +323,6 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_porcelain" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_porcelain" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -350,7 +338,6 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_marble" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_marble" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -366,7 +353,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_granite" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_granite" /> lock</label>
+            
           </div>
         </div>
       </div>
@@ -392,7 +379,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_wall_kitchen" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_kitchen" /> lock</label>
+       
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -408,7 +395,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_wall_bath" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_bath" /> lock</label>
+            
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -424,7 +411,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_wall_decor" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_decor" /> lock</label>
+          
           </div>
         </div>
       </div>
@@ -450,7 +437,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_san_wash" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_wash" /> lock</label>
+           
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -466,7 +453,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_san_wc" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_wc" /> lock</label>
+           
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -482,7 +469,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_san_urinal" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_urinal" /> lock</label>
+            
           </div>
         </div>
       </div>
@@ -508,7 +495,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_grout" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_grout" /> lock</label>
+         
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -524,7 +511,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_spacers" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_spacers" /> lock</label>
+        
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -540,7 +527,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_sealants" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_sealants" /> lock</label>
+            
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -556,7 +543,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_chem" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_chem" /> lock</label>
+            
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -572,7 +559,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_skirting" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_skirting" /> lock</label>
+            
           </div>
         </div>
         <div class="sub-item" data-original="true">
@@ -588,7 +575,7 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_mosaic" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_mosaic" /> lock</label>
+            
           </div>
         </div>
       </div>
@@ -607,7 +594,7 @@
             <option value="Kg">Kg</option>
           </select>
           <input type="text" id="unit_custom_other" class="unit-custom" placeholder="Custom unit" style="display:none;">
-          <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_other" /> lock</label>
+        
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
@@ -1170,8 +1157,7 @@
           const qtyEl = document.getElementById(qtyId);
           const unitEl = document.getElementById('unit_' + suffix);
           const unitCustomEl = document.getElementById('unit_custom_' + suffix);
-          const lockEl = document.getElementById('lock_' + suffix);
-
+          
           // remove old handler if present
           if (sb._custom_qty_handler) {
             sb.removeEventListener('change', sb._custom_qty_handler);
@@ -1192,10 +1178,7 @@
               unitCustomEl.disabled = !enabled;
               if (!enabled) { unitCustomEl.style.display = 'none'; unitCustomEl.value = ''; }
             }
-            if (lockEl) {
-              lockEl.disabled = !enabled;
-              if (!enabled) { lockEl.checked = false; }
-            }
+            
 
             // If enabling, apply any locked unit stored in localStorage
             if (enabled) {
@@ -1409,60 +1392,7 @@
         if (amtInput) amtInput.disabled = !modeCheckbox.checked;
       }
 
-      // helper to save unit lock for a given suffix
-      function saveUnitLock(suffix) {
-        try {
-          const unitEl = document.getElementById('unit_' + suffix);
-          const customEl = document.getElementById('unit_custom_' + suffix);
-          if (!unitEl) return;
-          let val = unitEl.value;
-          if (val === 'Custom' && customEl && customEl.value.trim()) val = customEl.value.trim();
-          localStorage.setItem('unitLock_' + suffix, '1');
-          localStorage.setItem('unitValue_' + suffix, val);
-        } catch (e) { console.warn('saveUnitLock err', e); }
-      }
-
-      // helper to load locks for all unit-selects on startup
-      function initializeUnitLocks() {
-        try {
-          document.querySelectorAll('.unit-select').forEach(function(unitEl) {
-            const id = unitEl.id; // e.g. unit_floor_vitrified
-            if (!id || id.indexOf('unit_') !== 0) return;
-            const suffix = id.slice(5);
-            const lockKey = 'unitLock_' + suffix;
-            const valKey = 'unitValue_' + suffix;
-            const locked = localStorage.getItem(lockKey) === '1';
-            const stored = localStorage.getItem(valKey);
-            const customEl = document.getElementById('unit_custom_' + suffix);
-            const lockEl = document.getElementById('lock_' + suffix);
-            if (locked) {
-              if (stored) {
-                const opts = Array.from(unitEl.options).map(o => o.value);
-                if (opts.indexOf(stored) !== -1) {
-                  unitEl.value = stored;
-                  if (customEl) customEl.style.display = 'none';
-                } else {
-                  // Create temporary custom option for stored value
-                  const tempOption = document.createElement('option');
-                  tempOption.value = stored;
-                  tempOption.textContent = stored + ' (custom)';
-                  unitEl.appendChild(tempOption);
-                  unitEl.value = stored;
-                  if (customEl) { customEl.style.display = ''; customEl.value = stored; }
-                }
-              }
-              if (lockEl) lockEl.checked = true;
-            }
-          });
-        } catch (e) {}
-      }
-
-      // run initial binds so default items keep working
-      bindSubitemHandlers();
-      setupMainToSubBindings();
-      document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
-      // initialize any saved unit locks so UI reflects previous choices
-      initializeUnitLocks();
+      
 
       // ----------------- add subitem / mode UI -----------------
       if (addSubBtn) {
@@ -1614,20 +1544,12 @@
           unitCustom.style.display = 'none';
           unitCustom.disabled = true;
 
-          const lockLabel = document.createElement('label');
-          lockLabel.className = 'unit-lock';
-          lockLabel.title = 'Lock unit for this item';
-          const lockCb = document.createElement('input');
-          lockCb.type = 'checkbox';
-          lockCb.id = 'lock_' + suffix;
-          lockCb.disabled = true;
-          lockLabel.appendChild(lockCb);
-          lockLabel.appendChild(document.createTextNode(' lock'));
+          
 
           qtyUnitDiv.appendChild(qty);
           qtyUnitDiv.appendChild(unitSel);
           qtyUnitDiv.appendChild(unitCustom);
-          qtyUnitDiv.appendChild(lockLabel);
+         
 
           subDiv.appendChild(labelEl);
           subDiv.appendChild(qtyUnitDiv);
@@ -2333,3 +2255,4 @@
   </script>
 </body>
 </html>
+
