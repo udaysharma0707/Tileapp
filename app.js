@@ -206,7 +206,6 @@ window.displayPhotoPreview = displayPhotoPreview;
 window.removePhoto = removePhoto;
 
 // Build JSONP URL and call (form submit) - Updated to include photo URL
-// Build JSONP URL and call (form submit) - FIXED to ensure photo URL is sent
 function sendToServerJSONP(formData, clientTs, opts) {
   const params = [];
   function add(k,v){ 
@@ -221,11 +220,7 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
-  
-  // CRITICAL FIX: Ensure photo URL is properly included
-  const photoUrl = formData.photoUrl || uploadedPhotoUrl || "";
-  add("photoUrl", photoUrl);
-  console.log("Sending photo URL to server:", photoUrl); // Debug log
+  add("photoUrl", formData.photoUrl || uploadedPhotoUrl || "");
   
   if (formData.submissionId) { 
     add("submissionId", formData.submissionId); 
@@ -248,11 +243,8 @@ function sendToServerJSONP(formData, clientTs, opts) {
     return Promise.reject(new Error("Payload too large for JSONP"));
   }
   
-  console.log("Full submission URL:", url.substring(0, 500) + "..."); // Debug log (truncated)
-  
   return jsonpRequest(url, JSONP_TIMEOUT_MS);
 }
-
 
 // ---------- Unit Preference Management ----------
 function loadUnitPreferences() {
@@ -609,7 +601,7 @@ function bindPaymentModeHandlers() {
   });
 }
 
-// ---------- MAIN: collectFormData (FIXED - corrected return statement issue) ----------
+// ---------- MAIN: collectFormData (FIXED - but simpler and more reliable) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = [];
@@ -847,26 +839,19 @@ function collectFormData(){
     modeBreakdown: modeBreakdownParts.join(', '),
     paymentPaid: getElementValue('paymentPaid'),
     otherInfo: getElementValue('otherInfo'),
-    // CRITICAL FIX: Ensure photo URL is included in form data
-    photoUrl: uploadedPhotoUrl || '', // Use global variable directly
+    photoUrl: uploadedPhotoUrl || '',
     items: items
   };
 
-  // Debug logs
   console.log('=== collectFormData result ===', {
     purchasedItemLength: result.purchasedItem.length,
     itemsCount: result.items.length,
     selectedPartsCount: selectedParts.length,
-    photoUrl: result.photoUrl, // Show photo URL in debug
     purchasedItem: result.purchasedItem.substring(0, 100) + '...'
   });
 
-  // Debug log to verify photo URL is in form data
-  console.log('collectFormData including photoUrl:', result.photoUrl);
-
-  return result; // SINGLE RETURN STATEMENT
+  return result;
 }
-
 
 // Other utility functions
 function showMessage(text){
@@ -1266,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!any) errors.push('Accessories: select at least one sub-item and enter quantity.');
     }
     if (document.getElementById('p_other') && document.getElementById('p_other').checked) {
-       const q = (document.getElementById('q_other') || {}).value || "";
+const q = (document.getElementById('q_other') || {}).value || "";
       const txt = (document.getElementById('purchasedOtherText') || {}).value || "";
       if (!q && txt.trim() === "") {
         errors.push('Others: please specify the item name and quantity (or uncheck Others).');
@@ -1584,32 +1569,6 @@ window.testPhotoUpload = function() {
     console.log('No photo uploaded');
   }
 };
-// ADD THE NEW DEBUG FUNCTION HERE ⬇️
-window.checkPhotoStatus = function() {
-  console.log('=== Photo Upload Status ===');
-  console.log('uploadedPhotoUrl:', uploadedPhotoUrl);
-  
-  const preview = document.getElementById('photoPreview');
-  const previewImg = document.getElementById('previewImage');
-  
-  console.log('Preview visible:', preview ? preview.style.display !== 'none' : false);
-  console.log('Preview image src:', previewImg ? previewImg.src.substring(0, 100) + '...' : 'none');
-  
-  if (uploadedPhotoUrl) {
-    console.log('✅ Photo is uploaded and ready for submission');
-    return true;
-  } else {
-    console.log('❌ No photo uploaded or upload failed');
-    return false;
-  }
-};
-
-// Enhanced form validation for better user experience
-window.validateForm = function() {
-  console.log('=== Running form validation ===');
-  
-  const issues = [];
-  // ... rest of existing code
 
 // Enhanced form validation for better user experience
 window.validateForm = function() {
@@ -1965,6 +1924,3 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
 }
 
 console.log('=== TileApp JavaScript loaded successfully ===');
-
-
-
