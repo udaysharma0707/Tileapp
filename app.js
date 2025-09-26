@@ -609,7 +609,7 @@ function bindPaymentModeHandlers() {
   });
 }
 
-// ---------- MAIN: collectFormData (FIXED - but simpler and more reliable) ----------
+// ---------- MAIN: collectFormData (FIXED - corrected return statement issue) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = [];
@@ -847,22 +847,26 @@ function collectFormData(){
     modeBreakdown: modeBreakdownParts.join(', '),
     paymentPaid: getElementValue('paymentPaid'),
     otherInfo: getElementValue('otherInfo'),
-    photoUrl: uploadedPhotoUrl || '',
+    // CRITICAL FIX: Ensure photo URL is included in form data
+    photoUrl: uploadedPhotoUrl || '', // Use global variable directly
     items: items
   };
-// Debug log to verify photo URL is in form data
-console.log('collectFormData including photoUrl:', result.photoUrl);
 
-return result;
+  // Debug logs
   console.log('=== collectFormData result ===', {
     purchasedItemLength: result.purchasedItem.length,
     itemsCount: result.items.length,
     selectedPartsCount: selectedParts.length,
+    photoUrl: result.photoUrl, // Show photo URL in debug
     purchasedItem: result.purchasedItem.substring(0, 100) + '...'
   });
 
-  return result;
+  // Debug log to verify photo URL is in form data
+  console.log('collectFormData including photoUrl:', result.photoUrl);
+
+  return result; // SINGLE RETURN STATEMENT
 }
+
 
 // Other utility functions
 function showMessage(text){
@@ -1961,5 +1965,6 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
 }
 
 console.log('=== TileApp JavaScript loaded successfully ===');
+
 
 
