@@ -200,6 +200,10 @@
     #customVendorManager .vendor-item button { background:#b71c1c; padding:6px 8px; border-radius:6px; border:none; font-weight:700; }
     #customVendorManager .vendor-actions { display:flex; gap:8px; align-items:center; }
     #customVendorManager input[type="text"] { margin-top:0; margin-bottom:0; }
+    
+    /* Unit management styling */
+    .unit-item { display:flex; align-items:center; gap:8px; padding:6px; background:white; margin-bottom:6px; border:1px solid #eee; border-radius:4px; }
+    .remove-unit { background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -218,14 +222,7 @@
     <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
       <button class="close-x" id="panelCloseX" title="Close (Esc)">×</button>
       <strong>Customize form text</strong>
-      <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.
-    <section id="manageUnitsSection">
-      <h2>Manage Units of Measure (global)</h2>
-      <input type="text" id="newUnitInput" placeholder="New unit name" />
-      <button id="addUnitBtn">Add Unit</button>
-      <div id="unitList" style="margin-top:10px;"></div>
-    </section>
-</div>
+      <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
       <div class="panel-row">
         <div class="note">When customizing, form controls are temporarily disabled to avoid accidental clicks. Only text labels are editable.</div>
         <div class="panel-actions">
@@ -236,7 +233,24 @@
         </div>
       </div>
 
-      <!-- NEW: Add / Remove sub-item controls (includes Mode of payment option) -->
+      <!-- Manage Units of Measure section -->
+      <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
+        <strong>Manage Units of Measure (global)</strong>
+        <div style="font-size:13px;color:#444;margin-top:6px">
+          Add custom units that will be available in all unit dropdowns throughout the form.
+        </div>
+
+        <div class="panel-row" style="margin-top:8px; align-items:center;">
+          <input id="newUnitInput" type="text" placeholder="Enter new unit name" style="flex:1;">
+          <button id="addUnitBtn" type="button" style="margin-left:8px;">Add Unit</button>
+        </div>
+
+        <div id="unitList" style="margin-top:8px; max-height:160px; overflow:auto;">
+          <!-- Custom units will be listed here dynamically -->
+        </div>
+      </div>
+
+      <!-- Add / Remove sub-item controls -->
       <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
         <strong>Add / Remove Sub-items</strong>
         <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red ✕ next to each sub-item label to remove it.</div>
@@ -579,7 +593,7 @@
         </div>
       </div>
 
-      <!-- OTHERS (main) — keep simple: checked + custom name + qty -->
+      <!-- OTHERS (main) – keep simple: checked + custom name + qty -->
       <div class="item-row">
         <label class="cb">
           <input type="checkbox" class="purchased" id="p_other" value="Others">
@@ -597,7 +611,7 @@
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
-        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
+        <input id="purchasedOtherText" type="text" placeholder="If Others – specify (e.g. 'Grout, Adhesive')">
       </div>
 
     </div>
@@ -614,7 +628,7 @@
         <option value="Other">Other</option>
       </select>
       <!-- keep id 'purchasedFrom' so existing app.js keeps working; show only when Other selected -->
-      <input id="purchasedFrom" type="text" placeholder="If Other — specify vendor name" style="flex:1; display:none;">
+      <input id="purchasedFrom" type="text" placeholder="If Other – specify vendor name" style="flex:1; display:none;">
     </div>
 
     <!-- custom vendor manager (hidden by default) -->
@@ -697,6 +711,157 @@
       });
     }
 
+    // ----------------- Unit Management Functions -----------------
+    // Function to load global units from localStorage
+    function loadGlobalUnits() {
+      try {
+        const stored = localStorage.getItem('globalUnits_v1');
+        return stored ? JSON.parse(stored) : [];
+      } catch(e) {
+        console.error('Error loading global units:', e);
+        return [];
+      }
+    }
+
+    // Function to save global units to localStorage
+    function saveGlobalUnits(units) {
+      try {
+        localStorage.setItem('globalUnits_v1', JSON.stringify(units));
+      } catch(e) {
+        console.error('Error saving global units:', e);
+      }
+    }
+
+    // Function to render the unit list in the customize panel
+    function renderUnitList() {
+      const unitList = document.getElementById('unitList');
+      const units = loadGlobalUnits();
+
+      // Clear existing content
+      unitList.innerHTML = '';
+
+      if (units.length === 0) {
+        unitList.innerHTML = '<div style="color:#666;font-size:13px">No custom units added yet.</div>';
+        return;
+      }
+
+      // Create unit items
+      units.forEach((unit) => {
+        const div = document.createElement('div');
+        div.className = 'unit-item';
+
+        const span = document.createElement('span');
+        span.style.flex = '1';
+        span.textContent = unit;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-unit';
+        removeBtn.dataset.unit = unit;
+        removeBtn.textContent = 'Remove';
+
+        div.appendChild(span);
+        div.appendChild(removeBtn);
+        unitList.appendChild(div);
+      });
+    }
+
+    // Function to add a new global unit
+    function addGlobalUnit(unit) {
+      if (!unit || !unit.trim()) return;
+      unit = unit.trim();
+      
+      const units = loadGlobalUnits();
+      if (units.includes(unit)) {
+        alert('Unit already exists!');
+        return;
+      }
+      
+      units.push(unit);
+      saveGlobalUnits(units);
+      renderUnitList();
+      rebuildAllUnitSelects();
+      showTempMessage('Added unit: ' + unit);
+    }
+
+    // Function to remove a global unit
+    function removeGlobalUnit(unit) {
+      if (!confirm(`Remove unit "${unit}"? This will remove it from all dropdowns.`)) return;
+      
+      const units = loadGlobalUnits().filter((u) => u !== unit);
+      saveGlobalUnits(units);
+      renderUnitList();
+      rebuildAllUnitSelects();
+      showTempMessage('Removed unit: ' + unit);
+    }
+
+    // Function to rebuild all unit select dropdowns
+    function rebuildAllUnitSelects() {
+      const units = loadGlobalUnits();
+      const defaultUnits = ['Boxes', 'Pieces', 'Kg'];
+      
+      document.querySelectorAll('.unit-select').forEach(select => {
+        const currentVal = select.value;
+        
+        // Clear and rebuild options
+        select.innerHTML = '';
+        
+        // Add default options
+        defaultUnits.forEach(unit => {
+          const option = document.createElement('option');
+          option.value = unit;
+          option.textContent = unit;
+          select.appendChild(option);
+        });
+        
+        // Add global units
+        units.forEach(unit => {
+          const option = document.createElement('option');
+          option.value = unit;
+          option.textContent = unit;
+          select.appendChild(option);
+        });
+        
+        // Restore selection if possible
+        if (currentVal) {
+          const allOptions = Array.from(select.options).map(opt => opt.value);
+          if (allOptions.includes(currentVal)) {
+            select.value = currentVal;
+          } else {
+            // If current value not found but it was a custom locked value, add it temporarily
+            const selectId = select.id;
+            if (selectId && selectId.startsWith('unit_')) {
+              const suffix = selectId.slice(5);
+              const lockKey = 'unitLock_' + suffix;
+              const valKey = 'unitValue_' + suffix;
+              try {
+                const locked = localStorage.getItem(lockKey) === '1';
+                const storedValue = localStorage.getItem(valKey);
+                if (locked && storedValue && storedValue === currentVal) {
+                  // Add the stored value as a temporary option
+                  const tempOption = document.createElement('option');
+                  tempOption.value = storedValue;
+                  tempOption.textContent = storedValue + ' (legacy)';
+                  select.appendChild(tempOption);
+                  select.value = storedValue;
+                }
+              } catch(e) {}
+            }
+          }
+        }
+      });
+    }
+
+    // Show temporary message
+    function showTempMessage(text) {
+      const m = document.getElementById('msg');
+      if (!m) return;
+      m.textContent = text; 
+      m.style.display = 'block';
+      setTimeout(() => { 
+        if (m && navigator.onLine) m.style.display = 'none'; 
+      }, 2500);
+    }
+
     // --- customization logic ---
     document.addEventListener('DOMContentLoaded', function() {
       const container = document.getElementById('appContainer');
@@ -710,6 +875,40 @@
       const addCategorySelect = document.getElementById('addCategorySelect');
       const addSubLabelInput = document.getElementById('addSubLabelInput');
       const addSubBtn = document.getElementById('addSubBtn');
+      const newUnitInput = document.getElementById('newUnitInput');
+      const addUnitBtn = document.getElementById('addUnitBtn');
+      const unitList = document.getElementById('unitList');
+
+      // Initialize unit management
+      renderUnitList();
+      rebuildAllUnitSelects();
+
+      // Add Unit button event listener
+      if (addUnitBtn && newUnitInput) {
+        addUnitBtn.addEventListener('click', function() {
+          addGlobalUnit(newUnitInput.value);
+          newUnitInput.value = '';
+        });
+        
+        newUnitInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addGlobalUnit(newUnitInput.value);
+            newUnitInput.value = '';
+          }
+        });
+      }
+
+      // Delegated event listener for Remove Unit buttons
+      if (unitList) {
+        unitList.addEventListener('click', function(event) {
+          const target = event.target;
+          if (target.classList.contains('remove-unit')) {
+            const unit = target.dataset.unit;
+            removeGlobalUnit(unit);
+          }
+        });
+      }
 
       let customizeMode = false;
       let editingSession = false;
@@ -961,7 +1160,7 @@
         removeWrapperForButton(btn);
       });
 
-// ----------------- binding helpers -----------------
+      // ----------------- binding helpers -----------------
       function bindSubitemHandlers() {
         // ensure change handler for each subitem (avoid duplicates)
         document.querySelectorAll('.subitem').forEach(function(sb){
@@ -1012,7 +1211,12 @@
                     unitEl.value = stored;
                     if (unitCustomEl) unitCustomEl.style.display = 'none';
                   } else if (stored) {
-                    unitEl.value = 'Custom';
+                    // Create temporary custom option if stored value doesn't exist
+                    const tempOption = document.createElement('option');
+                    tempOption.value = stored;
+                    tempOption.textContent = stored + ' (custom)';
+                    unitEl.appendChild(tempOption);
+                    unitEl.value = stored;
                     if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = stored; }
                   }
                   if (lockEl) lockEl.checked = true;
@@ -1138,7 +1342,12 @@
                     otherUnit.value = stored;
                     if (otherUnitCustom) otherUnitCustom.style.display = 'none';
                   } else if (stored) {
-                    otherUnit.value = 'Custom';
+                    // Create temporary custom option if stored value doesn't exist
+                    const tempOption = document.createElement('option');
+                    tempOption.value = stored;
+                    tempOption.textContent = stored + ' (custom)';
+                    otherUnit.appendChild(tempOption);
+                    otherUnit.value = stored;
                     if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = stored; }
                   }
                   if (otherLock) otherLock.checked = true;
@@ -1153,6 +1362,7 @@
           oh();
         }
       }
+      
       function setupMainToSubBindings() {
         const mainToSub = {
           'p_floor': 'sublist_floor',
@@ -1232,7 +1442,12 @@
                   unitEl.value = stored;
                   if (customEl) customEl.style.display = 'none';
                 } else {
-                  unitEl.value = 'Custom';
+                  // Create temporary custom option for stored value
+                  const tempOption = document.createElement('option');
+                  tempOption.value = stored;
+                  tempOption.textContent = stored + ' (custom)';
+                  unitEl.appendChild(tempOption);
+                  unitEl.value = stored;
                   if (customEl) { customEl.style.display = ''; customEl.value = stored; }
                 }
               }
@@ -1372,8 +1587,23 @@
           unitSel.id = 'unit_' + suffix;
           unitSel.className = 'unit-select';
           unitSel.disabled = true;
-          ['Boxes','Pieces','Kg'].forEach(opt => {
-            const o = document.createElement('option'); o.value = opt; o.textContent = opt; unitSel.appendChild(o);
+          
+          // Add default units
+          const defaultUnits = ['Boxes','Pieces','Kg'];
+          defaultUnits.forEach(unit => {
+            const o = document.createElement('option'); 
+            o.value = unit; 
+            o.textContent = unit; 
+            unitSel.appendChild(o);
+          });
+          
+          // Add global units
+          const globalUnits = loadGlobalUnits();
+          globalUnits.forEach(unit => {
+            const o = document.createElement('option'); 
+            o.value = unit; 
+            o.textContent = unit; 
+            unitSel.appendChild(o);
           });
 
           const unitCustom = document.createElement('input');
@@ -1417,18 +1647,11 @@
         });
       }
 
-      function showTempMessage(text) {
-        const m = document.getElementById('msg');
-        if (!m) return;
-        m.textContent = text; m.style.display='block';
-        setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 2500);
-      }
-
       // ----------------- Config object and save/load -----------------
 
       // Build config object including structure (main items + subitems + payment modes)
       function buildConfigObject() {
-        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
+        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
 
         // title + label map
         cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
@@ -1494,7 +1717,7 @@
           });
         }
 
-        // --- NEW: Purchased-from custom vendors capture ---
+        // --- Purchased-from custom vendors capture ---
         try {
           const sel = document.getElementById('purchasedFromSelect');
           const txt = document.getElementById('purchasedFrom');
@@ -1570,11 +1793,18 @@
         }
       })();
 
-      // apply config object (labels map + structure)
+      // apply config object (labels map + structure + globalUnits)
       function applyConfig(cfg) {
         if (!cfg) return;
 
-        // 1) labels/title
+        // 1) Apply global units first
+        if (cfg.globalUnits && Array.isArray(cfg.globalUnits)) {
+          saveGlobalUnits(cfg.globalUnits);
+          renderUnitList();
+          rebuildAllUnitSelects();
+        }
+
+        // 2) labels/title
         if (cfg.title) {
           const t = document.getElementById('appTitle');
           if (t) t.textContent = cfg.title;
@@ -1587,7 +1817,7 @@
           });
         }
 
-        // 2) structure (if present) - add/remove mains/subitems and modes
+        // 3) structure (if present) - add/remove mains/subitems and modes
         if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
           const purchasedList = document.getElementById('purchasedList');
 
@@ -1690,9 +1920,25 @@
             const unitSel = document.createElement('select');
             unitSel.id = 'unit_' + suffix;
             unitSel.className = 'unit-select';
-            ['Boxes','Pieces','Kg'].forEach(opt => {
-              const o = document.createElement('option'); o.value = opt; o.textContent = opt; unitSel.appendChild(o);
+            
+            // Add default units
+            const defaultUnits = ['Boxes','Pieces','Kg'];
+            defaultUnits.forEach(unit => {
+              const o = document.createElement('option'); 
+              o.value = unit; 
+              o.textContent = unit; 
+              unitSel.appendChild(o);
             });
+            
+            // Add global units
+            const globalUnits = loadGlobalUnits();
+            globalUnits.forEach(unit => {
+              const o = document.createElement('option'); 
+              o.value = unit; 
+              o.textContent = unit; 
+              unitSel.appendChild(o);
+            });
+            
             unitSel.disabled = true;
 
             const unitCustom = document.createElement('input');
@@ -1832,7 +2078,7 @@
         setupMainToSubBindings();
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
 
-        // --- NEW: apply purchasedFrom custom data if present ---
+        // --- apply purchasedFrom custom data if present ---
         if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
           applyPurchasedFromConfig(cfg.purchasedFromCustom.items, cfg.purchasedFromCustom.selected || '');
         }
@@ -1872,7 +2118,7 @@
       // initial: hide custom panel if not customizing
       customPanel.style.display = 'none';
 
-      // ----------------- NEW: Purchased From select + custom manager ----------------
+      // ----------------- Purchased From select + custom manager ----------------
       (function setupPurchasedFromManager() {
         const sel = document.getElementById('purchasedFromSelect');
         const txt = document.getElementById('purchasedFrom');
@@ -2082,108 +2328,8 @@
         };
 
       })();
-      // ----------------------------------------------------------------------
 
     }); // DOMContentLoaded end
-  
-
-// Manage Units of Measure feature implementation
-
-const defaultUnits = ["Boxes", "Pieces", "Kg"];
-let globalUnits = [];
-
-function loadGlobalUnits() {
-  const stored = localStorage.getItem('globalUnits_v1');
-  globalUnits = stored ? JSON.parse(stored) : [];
-}
-
-function saveGlobalUnits() {
-  localStorage.setItem('globalUnits_v1', JSON.stringify(globalUnits));
-}
-
-function renderUnitList() {
-  const unitList = document.getElementById('unitList');
-  unitList.innerHTML = '';
-  globalUnits.forEach((unit, index) => {
-    const unitItem = document.createElement('div');
-    unitItem.textContent = unit + ' ';
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = 'Remove';
-    removeBtn.style.marginLeft = '8px';
-    removeBtn.addEventListener('click', () => {
-      globalUnits.splice(index, 1);
-      saveGlobalUnits();
-      renderUnitList();
-      rebuildAllUnitSelects();
-    });
-    unitItem.appendChild(removeBtn);
-    unitList.appendChild(unitItem);
-  });
-}
-
-function addGlobalUnit(unit) {
-  const trimmed = unit.trim();
-  if (!trimmed) return;
-  if (defaultUnits.includes(trimmed) || globalUnits.includes(trimmed)) return;
-  globalUnits.push(trimmed);
-  saveGlobalUnits();
-  renderUnitList();
-  rebuildAllUnitSelects();
-}
-
-function rebuildAllUnitSelects() {
-  const selects = document.querySelectorAll('.unit-select');
-  selects.forEach(select => {
-    const currentValue = select.value;
-    while (select.firstChild) {
-      select.removeChild(select.firstChild);
-    }
-    defaultUnits.forEach(d => {
-      const option = document.createElement('option');
-      option.value = d;
-      option.textContent = d;
-      select.appendChild(option);
-    });
-    globalUnits.forEach(unit => {
-      const option = document.createElement('option');
-      option.value = unit;
-      option.textContent = unit;
-      select.appendChild(option);
-    });
-    if (currentValue && !defaultUnits.includes(currentValue) && !globalUnits.includes(currentValue)) {
-      const option = document.createElement('option');
-      option.value = currentValue;
-      option.textContent = currentValue;
-      select.appendChild(option);
-    }
-    select.value = currentValue;
-  });
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  loadGlobalUnits();
-  renderUnitList();
-  rebuildAllUnitSelects();
-
-  const addUnitBtn = document.getElementById('addUnitBtn');
-  const newUnitInput = document.getElementById('newUnitInput');
-
-  addUnitBtn.addEventListener('click', () => {
-    addGlobalUnit(newUnitInput.value);
-    newUnitInput.value = '';
-    newUnitInput.focus();
-  });
-
-  newUnitInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addGlobalUnit(newUnitInput.value);
-      newUnitInput.value = '';
-    }
-  });
-});
-
-</script>
+  </script>
 </body>
 </html>
-
