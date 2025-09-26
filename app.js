@@ -3,6 +3,9 @@ const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
 
+// Global variable to store uploaded photo URL
+let uploadedPhotoUrl = null;
+
 // ---------- helpers ----------
 function updateStatus(){ /* same as before - unchanged */
   const s = document.getElementById('status');
@@ -62,7 +65,106 @@ function jsonpRequest(url, timeoutMs) {
   });
 }
 
-// Build JSONP URL and call (form submit)
+// ---------- Photo Upload Functions ----------
+function convertToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPhotoToServer(file) {
+  try {
+    setPhotoUploadStatus('uploading', 'Uploading photo...');
+    
+    const base64Data = await convertToBase64(file);
+    
+    const uploadData = {
+      action: 'uploadPhoto',
+      token: SHARED_TOKEN,
+      fileName: file.name || 'photo.jpg',
+      mimeType: file.type || 'image/jpeg',
+      fileData: base64Data.split(',')[1] // Remove data:image/jpeg;base64, part
+    };
+
+    const url = ENDPOINT + '?' + Object.keys(uploadData).map(k => 
+      encodeURIComponent(k) + '=' + encodeURIComponent(uploadData[k])
+    ).join('&');
+
+    const response = await jsonpRequest(url, 60000); // 60 second timeout for photo upload
+
+    if (response && response.success && response.photoUrl) {
+      uploadedPhotoUrl = response.photoUrl;
+      setPhotoUploadStatus('success', 'Photo uploaded successfully!');
+      return response.photoUrl;
+    } else {
+      throw new Error(response ? response.error || 'Photo upload failed' : 'No response from server');
+    }
+  } catch (error) {
+    console.error('Photo upload error:', error);
+    setPhotoUploadStatus('error', 'Photo upload failed: ' + error.message);
+    throw error;
+  }
+}
+
+function setPhotoUploadStatus(type, message) {
+  const statusEl = document.getElementById('photoUploadStatus');
+  if (statusEl) {
+    statusEl.className = `photo-upload-status ${type}`;
+    statusEl.textContent = message;
+    
+    if (type === 'success' || type === 'error') {
+      setTimeout(() => {
+        statusEl.style.display = 'none';
+      }, 5000);
+    }
+  }
+}
+
+function displayPhotoPreview(file) {
+  const preview = document.getElementById('photoPreview');
+  const previewImg = document.getElementById('previewImage');
+  const photoInfo = document.getElementById('photoInfo');
+
+  if (preview && previewImg && photoInfo) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      previewImg.src = e.target.result;
+      preview.style.display = 'block';
+      
+      const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+      photoInfo.textContent = `${file.name} (${fileSize} MB)`;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removePhoto() {
+  const preview = document.getElementById('photoPreview');
+  const previewImg = document.getElementById('previewImage');
+  const photoInfo = document.getElementById('photoInfo');
+  const fileInput = document.getElementById('photoFileInput');
+  const statusEl = document.getElementById('photoUploadStatus');
+
+  if (preview) preview.style.display = 'none';
+  if (previewImg) previewImg.src = '';
+  if (photoInfo) photoInfo.textContent = '';
+  if (fileInput) fileInput.value = '';
+  if (statusEl) statusEl.style.display = 'none';
+  
+  uploadedPhotoUrl = null;
+}
+
+// Expose photo functions globally
+window.convertToBase64 = convertToBase64;
+window.uploadPhotoToServer = uploadPhotoToServer;
+window.setPhotoUploadStatus = setPhotoUploadStatus;
+window.displayPhotoPreview = displayPhotoPreview;
+window.removePhoto = removePhoto;
+
+// Build JSONP URL and call (form submit) - Updated to include photo URL
 function sendToServerJSONP(formData, clientTs, opts) {
   var params = [];
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
@@ -75,6 +177,8 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
+  // NEW: Add photo URL parameter
+  add("photoUrl", formData.photoUrl || uploadedPhotoUrl || "");
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
   if (clientTs) add("clientTs", String(clientTs));
 
@@ -381,12 +485,14 @@ function collectFormData(){
     modeBreakdown: modeBreakdown,
     paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
     otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
+    // NEW: Add photo URL to form data
+    photoUrl: uploadedPhotoUrl || '',
     // Structured items array - server will prefer this if present (now includes unit)
     items: items
   };
 }
 
-// showMessage, clearForm, makeSubmissionId - keep same semantics as before
+// showMessage, clearForm, makeSubmissionId - keep same semantics as before (clearForm also clears photo)
 function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
@@ -433,6 +539,11 @@ function clearForm(){
     });
     const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
     const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
+    
+    // NEW: Clear photo when clearing form
+    if (typeof removePhoto === 'function') {
+      removePhoto();
+    }
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -649,6 +760,48 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
   try { submitBtn.setAttribute('type','button'); } catch(e){}
 
+  // Photo Upload Event Listeners Setup
+  const photoUploadBtn = document.getElementById('photoUploadBtn');
+  const photoFileInput = document.getElementById('photoFileInput');
+  const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+  if (photoUploadBtn && photoFileInput) {
+    photoUploadBtn.addEventListener('click', function() {
+      photoFileInput.click();
+    });
+
+    photoFileInput.addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('Photo size must be less than 10MB');
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file');
+          return;
+        }
+
+        displayPhotoPreview(file);
+        
+        try {
+          await uploadPhotoToServer(file);
+        } catch (error) {
+          console.error('Upload failed:', error);
+        }
+      }
+    });
+  }
+
+  if (removePhotoBtn) {
+    removePhotoBtn.addEventListener('click', function() {
+      removePhoto();
+    });
+  }
+
   // attempt to load saved customization (apply if present)
   (async function(){
     try {
@@ -696,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!any) errors.push('Wall Tiles: select at least one sub-item and enter quantity.');
     }
     if (document.getElementById('p_san') && document.getElementById('p_san').checked) {
-      const any = Array.from(document.querySelectorAll('#sublist_san .subitem')).some(s=>s.checked);
+      const any = Array.from(document.querySelectorAll('#sublist_
       if (!any) errors.push('Sanitaryware: select at least one sub-item and enter quantity.');
     }
     if (document.getElementById('p_acc') && document.getElementById('p_acc').checked) {
