@@ -102,15 +102,106 @@ function jsonpRequest(url, timeoutMs) {
   });
 }
 
-// ---------- Photo Upload Functions ----------
-function convertToBase64(file) {
+// --- image compress + convert helper (replaces convertToBase64) ---
+// Returns a dataURL (e.g. "data:image/jpeg;base64,...") after resizing & compression
+function compressImageToDataURL(file, maxDim = 1200, outputType = 'image/jpeg', quality = 0.7) {
   return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      return reject(new Error('Not an image file'));
+    }
+
+    const img = new Image();
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
+
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => {
+      img.onload = () => {
+        try {
+          const w = img.naturalWidth;
+          const h = img.naturalHeight;
+          let targetW = w, targetH = h;
+
+          // compute scale preserving aspect ratio
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              targetW = maxDim;
+              targetH = Math.round(h * (maxDim / w));
+            } else {
+              targetH = maxDim;
+              targetW = Math.round(w * (maxDim / h));
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+
+          // draw resized image
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+
+          // export compressed dataURL
+          const dataUrl = canvas.toDataURL(outputType, quality);
+          resolve(dataUrl);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error('Invalid image data'));
+      img.src = reader.result;
+    };
+
     reader.readAsDataURL(file);
   });
 }
+
+// --- upload function (replaces uploadPhotoToServer) ---
+// This compresses image first then sends the base64 payload via your JSONP GET endpoint.
+// Note: large images may still fail due to URL length limits; reduce maxDim/quality if needed.
+async function uploadPhotoToServer(file) {
+  try {
+    setPhotoUploadStatus('uploading', 'Compressing & uploading photo...');
+
+    // Compress and get data URL
+    // You may reduce maxDim and quality to keep the URL length smaller
+    const maxDimension = 1200;   // reduce if problems persist
+    const quality = 0.7;         // reduce if necessary
+    const dataUrl = await compressImageToDataURL(file, maxDimension, 'image/jpeg', quality);
+
+    // get base64 portion (strip "data:*/*;base64,")
+    const base64Part = (dataUrl && dataUrl.indexOf(',') !== -1) ? dataUrl.split(',')[1] : '';
+
+    if (!base64Part) throw new Error('Could not extract base64 from compressed image');
+
+    // Build URL parameters manually (same approach as before)
+    const params = [];
+    params.push('action=uploadPhoto');
+    params.push('token=' + encodeURIComponent(SHARED_TOKEN));
+    params.push('fileName=' + encodeURIComponent(file.name || 'photo.jpg'));
+    params.push('mimeType=' + encodeURIComponent('image/jpeg'));
+    params.push('fileData=' + encodeURIComponent(base64Part));
+
+    const url = ENDPOINT + '?' + params.join('&');
+
+    console.log('Uploading photo to:', ENDPOINT);
+    const response = await jsonpRequest(url, 60000); // 60s timeout
+    console.log('Upload response:', response);
+
+    if (response && response.success && response.photoUrl) {
+      uploadedPhotoUrl = response.photoUrl;
+      setPhotoUploadStatus('success', 'Photo uploaded successfully!');
+      console.log('Photo uploaded successfully:', response.photoUrl);
+      return response.photoUrl;
+    } else {
+      throw new Error(response ? (response.error || 'Photo upload failed') : 'No response from server');
+    }
+  } catch (error) {
+    console.error('Photo upload error:', error);
+    setPhotoUploadStatus('error', 'Photo upload failed: ' + (error.message || error));
+    throw error;
+  }
+}
+
 
 async function uploadPhotoToServer(file) {
   try {
@@ -1924,5 +2015,6 @@ if (!sessionStorage.getItem('autoRestoreAsked')) {
 }
 
 console.log('=== TileApp JavaScript loaded successfully ===');
+
 
 
