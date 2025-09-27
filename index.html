@@ -74,6 +74,29 @@
         .file-input {
             display: none;
         }
+    .btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 150px;
+        }
+        
+        .btn:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
         
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
@@ -2385,6 +2408,7 @@
   </script>
 </body>
 </html>
+
 
 
 
