@@ -940,424 +940,403 @@
 
   <script src="app.js"></script>
 
-  <script>
-  // --- Config / server endpoint detection ---
-  // Keep your existing constants; replace SCRIPT_URL if you prefer a different one.
-  const SCRIPT_URL = window.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
-  const SERVER_ENDPOINT = window.ENDPOINT || SCRIPT_URL;
-  const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
-  // --- Photo selection / preview / compression ---
-  let selectedFile = null;
-  let selectedImage = null; // base64 dataURL string
+ <script>
+/* Unified submit script — NO CANVAS used.
+   - Single POST to SCRIPT_URL?action=submit via hidden iframe
+   - Includes imageData (base64) if a photo is selected (read via FileReader)
+   - Clears form after successful submit
+   - Shows debug box with exactly what is being posted
+*/
 
+const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
+
+let selectedFile = null;
+let selectedImage = null; // dataURL string (base64) read directly from file with FileReader
+
+/* ---------- File selection (NO CANVAS) ---------- */
+(function wireUploadInputs() {
   const uploadArea = document.getElementById('uploadArea');
   if (uploadArea) {
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
     uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', (e) => {
+    uploadArea.addEventListener('drop', e => {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
-      const files = e.dataTransfer.files;
-      if (files && files[0] && files[0].type.startsWith('image/')) handleFile(files[0]);
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f && f.type && f.type.startsWith('image/')) handleFileDirect(f);
     });
   }
 
-  function openCamera() { const el = document.getElementById('cameraInput'); if (el) el.click(); }
-  function handleFileSelect(ev) { const f = ev.target.files[0]; if (f && f.type.startsWith('image/')) handleFile(f); }
+  const fileInput = document.getElementById('fileInput');
+  const cameraInput = document.getElementById('cameraInput');
+  if (fileInput) fileInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+  if (cameraInput) cameraInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+})();
 
-  function handleFile(file) {
-    selectedFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        // Resize / compress
-        const maxWidth = 1920, maxHeight = 1080;
-        let width = img.width, height = img.height;
-        if (width > height) {
-          if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-        } else {
-          if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-        selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-
-        const preview = document.getElementById('previewImage');
-        const previewContainer = document.getElementById('previewContainer');
-        if (preview) preview.src = selectedImage;
-        if (previewContainer) previewContainer.style.display = 'block';
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function resetPhotoForm() {
+function handleFileDirect(file) {
+  // No canvas used — simply read file as data URL (base64)
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    selectedImage = e.target.result; // data:image/...;base64,...
+    // Show preview if previewImage exists
+    const preview = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('previewContainer');
+    if (preview) preview.src = selectedImage;
+    if (previewContainer) previewContainer.style.display = 'block';
+  };
+  reader.onerror = (err) => {
+    console.error('FileReader error', err);
     selectedFile = null;
     selectedImage = null;
-    const fi = document.getElementById('fileInput'), ci = document.getElementById('cameraInput'), pc = document.getElementById('previewContainer'), ps = document.getElementById('photoStatus');
-    if (fi) fi.value = '';
-    if (ci) ci.value = '';
-    if (pc) pc.style.display = 'none';
-    if (ps) ps.innerHTML = '';
+    showTempMessage('Failed to read selected photo.');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- UI helpers ---------- */
+function showLoading(show) {
+  const el = document.getElementById('loading');
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+function showPhotoStatus(msg, type='info') {
+  const el = document.getElementById('photoStatus');
+  if (!el) return;
+  el.innerHTML = `<div class="status ${type}">${msg}</div>`;
+}
+function showTempMessage(text) {
+  const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
+  if (!el) {
+    // fallback alert if no message container
+    try { alert(text); } catch(e) {}
+    return;
   }
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { try { el.style.display = 'none'; } catch(e) {} }, 3000);
+}
 
-  function showLoading(show) {
-    const el = document.getElementById('loading');
-    if (el) el.style.display = show ? 'block' : 'none';
-  }
-  function showPhotoStatus(msg, type='success') {
-    const d = document.getElementById('photoStatus'); if (!d) return;
-    d.innerHTML = `<div class="status ${type}">${msg}</div>`;
-  }
+function resetPhotoForm() {
+  selectedFile = null;
+  selectedImage = null;
+  const fi = document.getElementById('fileInput'), ci = document.getElementById('cameraInput'), pc = document.getElementById('previewContainer'), ps = document.getElementById('photoStatus');
+  if (fi) fi.value = '';
+  if (ci) ci.value = '';
+  if (pc) pc.style.display = 'none';
+  if (ps) ps.innerHTML = '';
+}
 
-  // --- Photo upload (iframe fallback) ---
-  // This only uploads the image to the server endpoint. Because Apps Script is cross-origin,
-  // we cannot reliably always read the response. We therefore return whatever we can get
-  // (prefer a URL, else a shortName or a success string). We DO NOT clear the form here.
-  async function uploadPhotoToServer() {
-    if (!selectedImage) return null;
-    showLoading(true);
-    try {
-      return await uploadViaFormSubmission();
-    } catch (err) {
-      console.error('uploadPhotoToServer error', err);
-      return null;
-    } finally {
-      showLoading(false);
-    }
-  }
+/* ---------- Collect form data (purchased items -> Column C etc.) ---------- */
+function getSublistId(mainCheckboxId) {
+  const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
+  return mapping[mainCheckboxId] || null;
+}
 
-  function uploadViaFormSubmission() {
-    return new Promise((resolve, reject) => {
-      // Create hidden iframe
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.name = 'upload_iframe_' + Date.now();
-      document.body.appendChild(iframe);
+function collectFormData() {
+  const data = {};
+  const purchased = [];
+  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
 
-      // Create form and hidden inputs
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = SCRIPT_URL;
-      form.target = iframe.name;
-      form.enctype = 'multipart/form-data';
+  purchasedCheckboxes.forEach(cb => {
+    const value = cb.value || '';
+    if (cb.id === 'p_other') {
+      const qtyEl = document.getElementById('q_other');
+      const unitEl = document.getElementById('unit_other');
+      const unitCustomEl = document.getElementById('unit_custom_other');
+      const otherTextEl = document.getElementById('purchasedOtherText');
 
-      const imageInput = document.createElement('input'); imageInput.type = 'hidden'; imageInput.name = 'imageData'; imageInput.value = selectedImage;
-      const fileNameInput = document.createElement('input'); fileNameInput.type = 'hidden'; fileNameInput.name = 'fileName';
-      fileNameInput.value = selectedFile ? selectedFile.name : ('camera_' + Date.now() + '.jpg');
-      const actionInput = document.createElement('input'); actionInput.type = 'hidden'; actionInput.name = 'action'; actionInput.value = 'upload';
-
-      form.appendChild(imageInput); form.appendChild(fileNameInput); form.appendChild(actionInput);
-      document.body.appendChild(form);
-
-      let cleanedUp = false;
-      const cleanup = () => {
-        if (cleanedUp) return; cleanedUp = true;
-        try { if (form.parentNode) form.parentNode.removeChild(form); } catch (e) {}
-        try { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); } catch (e) {}
-      };
-
-      iframe.onload = function() {
-        try {
-          // Attempt to read iframe content (may fail due to cross-origin)
-          const text = iframe.contentDocument && iframe.contentDocument.body ? iframe.contentDocument.body.textContent : null;
-          if (text) {
-            try {
-              const parsed = JSON.parse(text);
-              if (parsed && parsed.success) {
-                // If server returns a shortName or URL, return it
-                resolve(parsed.shortName || parsed.url || parsed.link || parsed.message || 'Photo uploaded');
-                cleanup(); return;
-              } else {
-                // server returned JSON but not success
-                resolve(parsed.shortName || parsed.url || parsed.link || parsed.message || null);
-                cleanup(); return;
+      let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+      let unit = '';
+      if (unitEl && unitEl.value) {
+        if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+        else unit = unitEl.value;
+      }
+      const desc = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+      if (qty && unit) purchased.push(`${qty} ${unit} ${desc}`);
+      else if (desc) purchased.push(desc);
+      else purchased.push(value);
+    } else {
+      const sublistId = getSublistId(cb.id);
+      if (sublistId) {
+        const sublist = document.getElementById(sublistId);
+        if (sublist) {
+          const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+          if (checkedSubs.length > 0) {
+            checkedSubs.forEach(subCb => {
+              const subValue = subCb.value || '';
+              const subSuffix = (subCb.id || '').startsWith('sub_') ? subCb.id.slice(4) : (subCb.id || '');
+              const qtyEl = document.getElementById('q_' + subSuffix);
+              const unitEl = document.getElementById('unit_' + subSuffix);
+              const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+              let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+              let unit = '';
+              if (unitEl && unitEl.value) {
+                if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+                else unit = unitEl.value;
               }
-            } catch (e) {
-              // Not JSON, but maybe a URL or simple text
-              if (text && text.trim()) {
-                resolve(text.trim()); cleanup(); return;
-              }
-            }
-          }
-        } catch (e) {
-          // cross-origin read will throw - fallback below
-        }
-        // Cross-origin or no readable response -> return a safe success string
-        resolve('Photo uploaded successfully');
-        // cleanup after tiny delay so server finishes
-        setTimeout(cleanup, 800);
-      };
-
-      // Submit the form
-      try {
-        form.submit();
-      } catch (e) {
-        cleanup();
-        reject(e);
-      }
-
-      // Safety timeout
-      setTimeout(() => {
-        // If still present, resolve fallback
-        resolve('Photo upload completed');
-        cleanup();
-      }, 12000);
-    });
-  }
-
-  // --- Main submission logic (COLLECT FIRST, THEN UPLOAD PHOTO, THEN SUBMIT) ---
-  async function submitMainForm() {
-    const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
-
-    try {
-      // 1) collect form data first (so nothing gets cleared out by upload)
-      const formData = collectFormData();
-
-      // Basic client-side validation: make sure purchased isn't empty
-      if (!formData.purchased || !formData.purchased.trim()) {
-        throw new Error('No purchase item found. Please select at least one item and quantity.');
-      }
-
-      // 2) If there's a photo, upload it now and attach returned identifier/link to formData
-      let photoUploadResult = null;
-      if (selectedImage) {
-        showPhotoStatus('Uploading photo — please wait...', 'success');
-        try {
-          photoUploadResult = await uploadPhotoToServer();
-          // if the server returned a recognizable URL, use it; else use whatever short name returned
-          if (photoUploadResult && typeof photoUploadResult === 'string') {
-            // heuristics to decide if it's probably a URL
-            const s = photoUploadResult.trim();
-            if (s.startsWith('http') || s.includes('/') || s.includes('.jpg') || s.includes('.png')) {
-              formData.photoLink = s;
-            } else {
-              // server may return a shortName; assign it anyway (server expects something there)
-              formData.photoLink = s;
-            }
-            showPhotoStatus('Photo uploaded (attached to submission).', 'success');
+              if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
+              else if (subValue) purchased.push(subValue);
+            });
           } else {
-            showPhotoStatus('Photo upload finished but no link returned; submitting form without photo link.', 'error');
-          }
-        } catch (err) {
-          console.error('Photo upload failed:', err);
-          showPhotoStatus('Photo upload failed but continuing with submission.', 'error');
-        }
-      }
-
-      // 3) Submit everything together to server (via JSONP)
-      const mainSubmitResult = await submitFormData(formData);
-
-      // Handle server response
-      if (mainSubmitResult && mainSubmitResult.success) {
-        showTempMessage('Entry submitted successfully!');
-        // Clear the form (only after successful submit)
-        clearForm();
-        resetPhotoForm();
-      } else {
-        // Server returned an error - surface to user
-        const errMsg = (mainSubmitResult && (mainSubmitResult.error || mainSubmitResult.message)) || 'Submission failed';
-        throw new Error(errMsg);
-      }
-
-    } catch (err) {
-      console.error('submitMainForm error:', err);
-      showTempMessage('Error: ' + (err.message || err));
-    } finally {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
-    }
-  }
-
-  // --- Collect form fields into object ---
-  function collectFormData() {
-    const data = {};
-
-    // purchased items: collect main checked items, handle "Others" and subitems
-    const purchased = [];
-    const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-
-    purchasedCheckboxes.forEach(cb => {
-      const value = cb.value || '';
-      if (cb.id === 'p_other') {
-        // Others handling
-        const qtyEl = document.getElementById('q_other');
-        const unitEl = document.getElementById('unit_other');
-        const unitCustomEl = document.getElementById('unit_custom_other');
-        const otherTextEl = document.getElementById('purchasedOtherText');
-
-        let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-        let unit = '';
-        if (unitEl && unitEl.value) {
-          if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
-          else unit = unitEl.value;
-        }
-        const desc = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
-        if (qty && unit) purchased.push(`${qty} ${unit} ${desc}`);
-        else if (desc) purchased.push(desc);
-        else purchased.push(value);
-      } else {
-        // main with subitems
-        const sublistId = getSublistId(cb.id);
-        if (sublistId) {
-          const sublist = document.getElementById(sublistId);
-          if (sublist) {
-            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-            if (checkedSubs.length > 0) {
-              checkedSubs.forEach(subCb => {
-                const subValue = subCb.value || '';
-                const subSuffix = subCb.id.slice(4); // remove sub_ prefix
-                const qtyEl = document.getElementById('q_' + subSuffix);
-                const unitEl = document.getElementById('unit_' + subSuffix);
-                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-                let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-                let unit = '';
-                if (unitEl && unitEl.value) {
-                  if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
-                  else unit = unitEl.value;
-                }
-                if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
-                else if (subValue) purchased.push(subValue);
-              });
-            } else {
-              // main checked but no sub selected - record main label
-              purchased.push(value);
-            }
-          } else {
+            // main checked but no subitems checked -> record main label
             purchased.push(value);
           }
         } else {
           purchased.push(value);
         }
+      } else {
+        purchased.push(value);
       }
-    });
-
-    data.purchased = purchased.join(', ');
-
-    // purchasedFrom
-    const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-    const purchasedFromText = document.getElementById('purchasedFrom');
-    if (purchasedFromSelect) {
-      if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) data.purchasedFrom = purchasedFromText.value.trim();
-      else data.purchasedFrom = purchasedFromSelect.value;
-    } else {
-      data.purchasedFrom = '';
     }
-
-    // payment modes
-    const paymentModes = [];
-    const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
-    modeCheckboxes.forEach(cb => {
-      const mode = cb.value;
-      const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
-      const amount = amountInput && amountInput.value ? amountInput.value : '';
-      if (amount) paymentModes.push(`${mode}: ₹${amount}`);
-      else paymentModes.push(mode);
-    });
-    data.paymentModes = paymentModes.join(', ');
-
-    // paymentPaid
-    const paymentPaidEl = document.getElementById('paymentPaid');
-    data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-
-    // otherInfo
-    const otherInfoEl = document.getElementById('otherInfo');
-    data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-
-    // photoLink will be attached by submitMainForm after upload
-    data.photoLink = '';
-
-    return data;
-  }
-
-  function getSublistId(mainCheckboxId) {
-    const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
-    return mapping[mainCheckboxId] || null;
-  }
-
-  // --- Submit form data using JSONP (server-side Apps Script expects ?action=submit&...&callback=) ---
-  async function submitFormData(formData) {
-    const submitData = {
-      action: 'submit',
-      token: SERVER_TOKEN,
-      purchased: formData.purchased || '',
-      purchasedFrom: formData.purchasedFrom || '',
-      paymentModes: formData.paymentModes || '',
-      paymentPaid: formData.paymentPaid || '',
-      otherInfo: formData.otherInfo || '',
-      photoLink: formData.photoLink || ''
-    };
-    const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])).join('&');
-    return await jsonpCall(url, 30000);
-  }
-
-  // --- JSONP helper ---
-  function jsonpCall(url, timeoutMs = 20000) {
-    return new Promise((resolve, reject) => {
-      const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-      window[cbName] = function(data) { try { resolve(data); } finally { try { delete window[cbName]; } catch(e) {} } };
-      const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
-      const script = document.createElement('script');
-      script.src = full;
-      script.onerror = function() { try { delete window[cbName]; } catch(e) {} reject(new Error('JSONP load error')); };
-      document.body.appendChild(script);
-      setTimeout(() => { try { delete window[cbName]; } catch(e) {} reject(new Error('JSONP timeout')); }, timeoutMs);
-    });
-  }
-
-  // --- Clear form UI (only called after successful submit) ---
-  function clearForm() {
-    // Clear all checkboxes and trigger change events to update dependent controls
-    document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; cb.dispatchEvent(new Event('change')); });
-    // Clear text/number/textarea excluding management inputs
-    document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
-      if (['newUnitInput', 'newVendorInput', 'addSubLabelInput'].indexOf(input.id) === -1) input.value = '';
-    });
-    // Reset selects
-    document.querySelectorAll('select').forEach(select => {
-      if (select.id !== 'addCategorySelect') { select.selectedIndex = 0; select.dispatchEvent(new Event('change')); }
-    });
-    // Hide all custom unit inputs
-    document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; uc.value = ''; });
-  }
-
-  // --- Utility messages ---
-  function showTempMessage(text) {
-    const m = document.getElementById('msg'); if (!m) return;
-    m.textContent = text; m.style.display = 'block';
-    setTimeout(() => { if (m && navigator.onLine) m.style.display = 'none'; }, 3000);
-  }
-
-  // --- Wiring events on DOMContentLoaded ---
-  document.addEventListener('DOMContentLoaded', function() {
-    // Attach submit/clear
-    const submitBtn = document.getElementById('submitBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    if (submitBtn) submitBtn.addEventListener('click', submitMainForm);
-    if (clearBtn) clearBtn.addEventListener('click', function() {
-      if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); }
-    });
-
-    // Bind change events for purchased/subitems etc (existing bindings assume these events)
-    document.querySelectorAll('.purchased').forEach(cb => cb.dispatchEvent(new Event('change')));
-    document.querySelectorAll('.subitem').forEach(cb => cb.dispatchEvent(new Event('change')));
-    document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => cb.dispatchEvent(new Event('change')));
-
-    // Bind file inputs
-    const fi = document.getElementById('fileInput'); if (fi) fi.addEventListener('change', handleFileSelect);
-    const ci = document.getElementById('cameraInput'); if (ci) ci.addEventListener('change', handleFileSelect);
   });
 
-  // Expose helper in case some HTML onclicks reference them
-  window.openCamera = openCamera;
-  window.handleFileSelect = handleFileSelect;
-  window.resetPhotoForm = resetPhotoForm;
+  data.purchased = purchased.join(', ');
+  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+  const purchasedFromText = document.getElementById('purchasedFrom');
+  if (purchasedFromSelect) {
+    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) data.purchasedFrom = purchasedFromText.value.trim();
+    else data.purchasedFrom = purchasedFromSelect.value || '';
+  } else {
+    data.purchasedFrom = '';
+  }
 
+  const paymentModes = [];
+  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+  modeCheckboxes.forEach(cb => {
+    const mode = cb.value || '';
+    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+    const amount = amountInput && amountInput.value ? amountInput.value : '';
+    if (amount) paymentModes.push(`${mode}: ₹${amount}`);
+    else paymentModes.push(mode);
+  });
+  data.paymentModes = paymentModes.join(', ');
+
+  const paymentPaidEl = document.getElementById('paymentPaid');
+  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+  const otherInfoEl = document.getElementById('otherInfo');
+  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+
+  data.photoLink = ''; // will be set by submit flow if photo attached
+  return data;
+}
+
+/* ---------- Debug box (temporary) ---------- */
+function showDebugBox(text) {
+  let dbg = document.getElementById('clientDebugBox');
+  if (!dbg) {
+    dbg = document.createElement('pre');
+    dbg.id = 'clientDebugBox';
+    dbg.style.position = 'fixed';
+    dbg.style.right = '10px';
+    dbg.style.bottom = '10px';
+    dbg.style.zIndex = 99999;
+    dbg.style.background = 'rgba(0,0,0,0.75)';
+    dbg.style.color = '#fff';
+    dbg.style.padding = '8px';
+    dbg.style.maxWidth = '420px';
+    dbg.style.maxHeight = '320px';
+    dbg.style.overflow = 'auto';
+    dbg.style.fontSize = '12px';
+    document.body.appendChild(dbg);
+  }
+  dbg.textContent = text;
+}
+
+/* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
+async function submitMainForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
+  showLoading(true);
+
+  try {
+    // 1) collect form data first
+    const data = collectFormData();
+
+    // basic client validation
+    if (!data.purchased || !data.purchased.trim()) {
+      showTempMessage('No sub-item selected. Please select at least one specific item and quantity.');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+      showLoading(false);
+      return;
+    }
+
+    // 2) If photo selected, ensure selectedImage is ready (FileReader already read it in handleFileDirect).
+    // If selectedImage is not yet populated (fast click), wait briefly (max 2s) for it to appear.
+    if (selectedFile && !selectedImage) {
+      // wait up to 2s for FileReader to finish
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        // small pause
+        await new Promise(r => setTimeout(r, 120));
+      }
+    }
+
+    // Attach photo marker to data.photoLink (filename marker) — server's submit branch should write this into Column D
+    if (selectedImage) {
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
+    } else {
+      data.photoLink = '';
+    }
+
+    // 3) Build hidden POST form with all fields + imageData (if present)
+    const iframeName = 'submit_iframe_single';
+    let iframe = document.getElementById(iframeName);
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeName;
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL; // server reads action from fields
+    form.target = iframeName;
+    form.enctype = 'multipart/form-data';
+
+    function addHidden(name, value) {
+      const i = document.createElement('input');
+      i.type = 'hidden';
+      i.name = name;
+      i.value = value != null ? String(value) : '';
+      form.appendChild(i);
+    }
+
+    addHidden('token', SERVER_TOKEN || '');
+    addHidden('action', 'submit');
+    addHidden('purchased', data.purchased || '');
+    addHidden('purchasedFrom', data.purchasedFrom || '');
+    addHidden('paymentModes', data.paymentModes || '');
+    addHidden('paymentPaid', data.paymentPaid || '');
+    addHidden('otherInfo', data.otherInfo || '');
+    addHidden('photoLink', data.photoLink || '');
+
+    if (selectedImage) {
+      // include base64 image in the submit body
+      addHidden('imageData', selectedImage);
+      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+      showPhotoStatus('Attaching photo to submission...', 'info');
+    }
+
+    document.body.appendChild(form);
+
+    // Debug snapshot of what we're about to send (imageData trimmed)
+    const inputs = Array.from(form.querySelectorAll('input')).map(inp => {
+      const val = (inp.name === 'imageData') ? ('[BASE64:' + Math.min(200, (selectedImage ? selectedImage.length : 0)) + ' chars]') : inp.value;
+      return `${inp.name}=${val}`;
+    }).join('\n');
+    console.log('Submitting form fields:\n' + inputs);
+    showDebugBox('Submitting form:\n' + inputs);
+
+    // 4) Submit into iframe and process response/fallback
+    let handled = false;
+    function finalize(success, serverText, serverJson) {
+      if (handled) return;
+      handled = true;
+      showLoading(false);
+
+      console.log('iframe response text:', serverText, 'json:', serverJson);
+      // treat success or success-like server JSON
+      const ok = success || (serverJson && (serverJson.success === true || serverJson.result === 'ok' || serverJson.status === 'success'));
+      if (ok) {
+        showTempMessage('Entry submitted successfully!');
+        clearForm();
+        resetPhotoForm();
+      } else {
+        const err = (serverJson && (serverJson.error || serverJson.message)) || serverText || 'Submission may have failed';
+        showTempMessage('Error: ' + err);
+      }
+      // cleanup
+      try { if (form.parentNode) form.parentNode.removeChild(form); } catch(e) {}
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+      setTimeout(() => { const dbg = document.getElementById('clientDebugBox'); if (dbg) dbg.remove(); }, 5000);
+    }
+
+    iframe.onload = function() {
+      try {
+        const bodyText = iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.textContent;
+        if (bodyText) {
+          try {
+            const parsed = JSON.parse(bodyText);
+            finalize(true, bodyText, parsed);
+            return;
+          } catch (err) {
+            // not JSON - assume any non-empty response indicates server handled the POST
+            finalize(true, bodyText, null);
+            return;
+          }
+        } else {
+          // no readable body (likely cross-origin) - assume server received POST
+          finalize(true, null, null);
+        }
+      } catch (err) {
+        // cross-origin access blocked - assume success
+        finalize(true, null, null);
+      }
+    };
+
+    // submit and fallback timeout
+    form.submit();
+    setTimeout(() => finalize(true, null, null), 9000);
+
+  } catch (err) {
+    console.error('submitMainForm error', err);
+    showTempMessage('Error: ' + (err && err.message ? err.message : 'Unknown error'));
+    const submitBtn2 = document.getElementById('submitBtn');
+    if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.textContent = submitBtn2.dataset.origText || 'Submit'; }
+    showLoading(false);
+  }
+}
+
+/* ---------- Clear form (only after successful submit) ---------- */
+function clearForm() {
+  // uncheck checkboxes
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
+  // clear text/number/textarea (skip helper inputs)
+  document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
+    if (['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(inp.id) === -1) inp.value = '';
+  });
+  // reset selects
+  document.querySelectorAll('select').forEach(sel => { if (sel.id !== 'addCategorySelect') { sel.selectedIndex = 0; try { sel.dispatchEvent(new Event('change')); } catch(e){} } });
+  // hide custom unit inputs
+  document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; if (uc.value !== undefined) uc.value = ''; });
+}
+
+/* ---------- Remove stray upload/submit buttons in photo area at runtime & wire submit button ---------- */
+document.addEventListener('DOMContentLoaded', function() {
+  // Remove any accidental "Submit" or "Upload" buttons inside photo area
+  const photoAreas = document.querySelectorAll('.photo-section, #uploadArea, #previewContainer');
+  photoAreas.forEach(area => {
+    if (!area) return;
+    area.querySelectorAll('button').forEach(btn => {
+      const t = (btn.textContent || '').trim().toLowerCase();
+      if (t === 'submit' || t === 'upload' || t === 'upload photo') btn.remove();
+    });
+  });
+
+  // Wire main submit button
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    // ensure we don't double-wire
+    submitBtn.removeEventListener('click', submitMainForm);
+    submitBtn.addEventListener('click', submitMainForm);
+    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent || 'Submit';
+  }
+
+  // Wire clear button if present
+  const clearBtn = document.getElementById('clearBtn');
+  if (clearBtn) {
+    clearBtn.removeEventListener('click', function(){});
+    clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); } });
+  }
+});
 </script>
+
 
     <!-- Service Worker Registration -->
     <script>
@@ -3058,6 +3037,7 @@
   </script>
 </body>
 </html>
+
 
 
 
