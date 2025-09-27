@@ -4,6 +4,9 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-U
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
 
+// Photo upload variables
+let selectedFile = null;
+let selectedImage = null;
 
 // ---------- helpers ----------
 function updateStatus(){ /* same as before - unchanged */
@@ -27,7 +30,6 @@ function updateStatus(){ /* same as before - unchanged */
 }
 window.addEventListener('online', ()=>{ updateStatus(); });
 window.addEventListener('offline', ()=>{ updateStatus(); });
-
 
 // JSONP helper (returns Promise) - reused for form submits and config load/save
 function jsonpRequest(url, timeoutMs) {
@@ -65,7 +67,7 @@ function jsonpRequest(url, timeoutMs) {
   });
 }
 
-// Build JSONP URL and call (form submit)
+// Build JSONP URL and call (form submit) - FIXED: Added photoUrl parameter
 function sendToServerJSONP(formData, clientTs, opts) {
   var params = [];
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
@@ -78,6 +80,9 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
+  // FIXED: Add photo URL parameter
+  add("photoUrl", formData.photoUrl || "");
+  
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
   if (clientTs) add("clientTs", String(clientTs));
 
@@ -140,7 +145,7 @@ function saveGlobalUnits(units) {
   }
 }
 
-// ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
+// ---------- MAIN: collectFormData (FIXED: Added photo URL collection) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = []; // structured items: { id, qty, unit, label }
@@ -374,6 +379,22 @@ function collectFormData(){
   } catch (e) { /* ignore */ }
   const modeBreakdown = breakdownParts.join(', ');
 
+  // FIXED: Get photo URL from hidden input or uploaded photo
+  let photoUrl = '';
+  try {
+    // Check if there's a photo URL stored in hidden input
+    const photoUrlInput = document.getElementById('photoUrl');
+    if (photoUrlInput && photoUrlInput.value) {
+      photoUrl = photoUrlInput.value;
+    }
+    // If no stored URL but photo is selected, indicate pending upload
+    else if (selectedImage) {
+      photoUrl = 'pending';
+    }
+  } catch (e) {
+    console.warn('Photo URL detection failed', e);
+  }
+
   return {
     // NOTE: join by newline so the sheet cell will show each entry on its own line
     purchasedItem: selectedParts.join("\n"),
@@ -384,12 +405,14 @@ function collectFormData(){
     modeBreakdown: modeBreakdown,
     paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
     otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
+    // FIXED: Include photo URL
+    photoUrl: photoUrl,
     // Structured items array - server will prefer this if present (now includes unit)
     items: items
   };
 }
 
-// showMessage, clearForm, makeSubmissionId - keep same semantics as before
+// showMessage, clearForm, makeSubmissionId - FIXED: Added photo clearing
 function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
@@ -436,6 +459,11 @@ function clearForm(){
     });
     const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
     const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
+    
+    // FIXED: Clear photo-related fields
+    const photoUrlInput = document.getElementById('photoUrl');
+    if (photoUrlInput) photoUrlInput.value = '';
+    resetPhotoForm(); // Clear photo upload area
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -641,9 +669,261 @@ function recomputePaymentFromModes() {
   } catch (e) { console.warn('recomputePaymentFromModes err', e); }
 }
 
+// ---------- Photo Upload Functions (integrated and fixed) ----------
+function openCamera() {
+    const cameraInput = document.getElementById('cameraInput');
+    if (cameraInput) cameraInput.click();
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        handleFile(file);
+    }
+}
+
+function handleFile(file) {
+    selectedFile = file;
+    
+    // Compress and create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set max dimensions to avoid large uploads
+            const maxWidth = 1920;
+            const maxHeight = 1080;
+            let { width, height } = img;
+            
+            // Calculate new dimensions
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Show preview
+            const previewImg = document.getElementById('previewImage');
+            const previewContainer = document.getElementById('previewContainer');
+            if (previewImg) previewImg.src = selectedImage;
+            if (previewContainer) previewContainer.style.display = 'block';
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function uploadPhoto() {
+    if (!selectedImage) {
+        showPhotoStatus('Please select a photo first', 'error');
+        return;
+    }
+    
+    showPhotoLoading(true);
+    
+    try {
+        // Method 1: Try direct POST
+        const directResponse = await tryDirectUpload();
+        if (directResponse.success) {
+            showPhotoStatus(`Success! Photo uploaded`, 'success');
+            // FIXED: Store the photo URL in hidden input
+            const photoUrlInput = document.getElementById('photoUrl');
+            if (photoUrlInput && directResponse.fileUrl) {
+                photoUrlInput.value = directResponse.fileUrl;
+            }
+            showPhotoLoading(false);
+            return directResponse;
+        }
+    } catch (error) {
+        console.log('Direct upload failed, trying JSONP method...');
+    }
+    
+    // Method 2: Fallback to JSONP method
+    try {
+        const result = await uploadViaJsonp();
+        return result;
+    } catch (error) {
+        showPhotoStatus(`Upload failed: ${error.message}`, 'error');
+        showPhotoLoading(false);
+        throw error;
+    }
+}
+
+async function tryDirectUpload() {
+    const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            imageData: selectedImage,
+            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
+        })
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+}
+
+function uploadViaJsonp() {
+    return new Promise((resolve, reject) => {
+        // Create unique callback name
+        const callbackName = 'photoUploadCallback_' + Date.now();
+        
+        // Create callback function
+        window[callbackName] = function(response) {
+            // Cleanup
+            const script = document.getElementById(callbackName);
+            if (script && script.parentNode) {
+                document.head.removeChild(script);
+            }
+            delete window[callbackName];
+            
+            showPhotoLoading(false);
+            
+            if (response.success) {
+                showPhotoStatus(`Success! Photo uploaded`, 'success');
+                // FIXED: Store the photo URL in hidden input
+                const photoUrlInput = document.getElementById('photoUrl');
+                if (photoUrlInput && response.fileUrl) {
+                    photoUrlInput.value = response.fileUrl;
+                }
+                resolve(response);
+            } else {
+                showPhotoStatus(`Error: ${response.error}`, 'error');
+                reject(new Error(response.error));
+            }
+        };
+        
+        // Create script tag for JSONP
+        const script = document.createElement('script');
+        script.id = callbackName;
+        
+        // Prepare URL with parameters
+        const params = new URLSearchParams({
+            action: 'upload',
+            callback: callbackName,
+            imageData: selectedImage,
+            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
+        });
+        
+        script.src = SCRIPT_URL + '?' + params.toString();
+        script.onerror = () => {
+            if (script.parentNode) {
+                document.head.removeChild(script);
+            }
+            delete window[callbackName];
+            showPhotoLoading(false);
+            reject(new Error('JSONP request failed'));
+        };
+        
+        // Add script to head to trigger the request
+        document.head.appendChild(script);
+        
+        // Set timeout for cleanup
+        setTimeout(() => {
+            if (window[callbackName]) {
+                if (script.parentNode) {
+                    document.head.removeChild(script);
+                }
+                delete window[callbackName];
+                showPhotoLoading(false);
+                reject(new Error('Upload timeout'));
+            }
+        }, 30000); // 30 second timeout
+    });
+}
+
+function resetPhotoForm() {
+    selectedFile = null;
+    selectedImage = null;
+    const fileInput = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const photoStatus = document.getElementById('photoStatus');
+    const photoUrlInput = document.getElementById('photoUrl');
+    
+    if (fileInput) fileInput.value = '';
+    if (cameraInput) cameraInput.value = '';
+    if (previewContainer) previewContainer.style.display = 'none';
+    if (photoStatus) photoStatus.innerHTML = '';
+    if (photoUrlInput) photoUrlInput.value = '';
+}
+
+function showPhotoLoading(show) {
+    const loadingDiv = document.getElementById('photoLoading') || document.getElementById('loading');
+    if (loadingDiv) {
+        loadingDiv.style.display = show ? 'block' : 'none';
+    }
+}
+
+function showPhotoStatus(message, type) {
+    const statusDiv = document.getElementById('photoStatus') || document.getElementById('status');
+    if (statusDiv) {
+        statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+    }
+    // Also show in main message area
+    showMessage(message);
+}
+
+// Expose photo functions globally
+window.openCamera = openCamera;
+window.handleFileSelect = handleFileSelect;
+window.uploadPhoto = uploadPhoto;
+window.resetPhotoForm = resetPhotoForm;
+
 // ---------- MAIN DOM bindings ----------
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
+  
+  // Initialize photo upload area if it exists
+  const uploadArea = document.getElementById('uploadArea');
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+            handleFile(files[0]);
+        }
+    });
+  }
+  
   const submitBtn = document.getElementById('submitBtn');
   const clearBtn = document.getElementById('clearBtn');
 
@@ -716,9 +996,28 @@ document.addEventListener('DOMContentLoaded', function() {
     return errors;
   }
 
+  // FIXED: Enhanced doSubmitFlow with proper photo handling
   async function doSubmitFlow() {
     try {
       if (!navigator.onLine) { alert('Connect to internet. Your entry cannot be saved while offline.'); updateStatus(); return; }
+      
+      // FIXED: Handle photo upload first if there's a photo selected but not uploaded
+      if (selectedImage) {
+        try {
+          showMessage('Uploading photo first...');
+          const photoResult = await uploadPhoto();
+          if (photoResult && photoResult.success && photoResult.fileUrl) {
+            showMessage('Photo uploaded successfully! Now submitting purchase...');
+          }
+        } catch (photoError) {
+          console.error('Photo upload failed:', photoError);
+          const continueWithoutPhoto = confirm('Photo upload failed. Continue submitting purchase without photo?');
+          if (!continueWithoutPhoto) {
+            return;
+          }
+        }
+      }
+      
       const anyMainChecked = Array.from(document.querySelectorAll('.purchased')).some(cb => cb.checked);
       if (!anyMainChecked) { alert('Please select at least one purchased main category.'); return; }
       const validationList = validateMainSubSelection();
@@ -772,7 +1071,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Prefer explicit serial returned by server. If not present, show row or debug to help troubleshooting.
             const serial = (resp.serial !== undefined && resp.serial !== null) ? resp.serial : null;
             if (serial !== null) {
-              showMessage('Saved — Serial: ' + serial);
+              const photoMsg = backgroundForm.photoUrl ? ' (with photo)' : '';
+              showMessage('Saved — Serial: ' + serial + photoMsg);
               updateSerialBadge(serial);
             } else {
               // serial not returned — surface helpful info
@@ -804,226 +1104,6 @@ document.addEventListener('DOMContentLoaded', function() {
       submitBtn.disabled = false; submitBtn.textContent = 'Submit';
     }
   }
-
-  let selectedFile = null;
-let selectedImage = null;
-
-// Drag and drop functionality
-const uploadArea = document.getElementById('uploadArea');
-
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-});
-
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
-        handleFile(files[0]);
-    }
-});
-
-function openCamera() {
-    document.getElementById('cameraInput').click();
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        handleFile(file);
-    }
-}
-
-function handleFile(file) {
-    selectedFile = file;
-    
-    // Compress and create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Set max dimensions to avoid large uploads
-            const maxWidth = 1920;
-            const maxHeight = 1080;
-            let { width, height } = img;
-            
-            // Calculate new dimensions
-            if (width > height) {
-                if (width > maxWidth) {
-                    height *= maxWidth / width;
-                    width = maxWidth;
-                }
-            } else {
-                if (height > maxHeight) {
-                    width *= maxHeight / height;
-                    height = maxHeight;
-                }
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Draw and compress
-            ctx.drawImage(img, 0, 0, width, height);
-            selectedImage = canvas.toDataURL('image/jpeg', 0.7); // Reduced quality for faster upload
-            
-            // Show preview
-            document.getElementById('previewImage').src = selectedImage;
-            document.getElementById('previewContainer').style.display = 'block';
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-async function uploadPhoto() {
-    if (!selectedImage) {
-        showStatus('Please select a photo first', 'error');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        // Method 1: Try direct POST (might work after recent Google updates)
-        const directResponse = await tryDirectUpload();
-        if (directResponse.success) {
-            showStatus(`Success! Photo saved as "${directResponse.shortName}"`, 'success');
-            resetForm();
-            showLoading(false);
-            return;
-        }
-    } catch (error) {
-        console.log('Direct upload failed, trying JSONP method...');
-    }
-    
-    // Method 2: Fallback to JSONP method
-    try {
-        await uploadViaJsonp();
-    } catch (error) {
-        showStatus(`Upload failed: ${error.message}`, 'error');
-        showLoading(false);
-    }
-}
-
-async function tryDirectUpload() {
-    const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            imageData: selectedImage,
-            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
-        })
-    });
-    
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-}
-
-function uploadViaJsonp() {
-    return new Promise((resolve, reject) => {
-        // Create unique callback name
-        const callbackName = 'photoUploadCallback_' + Date.now();
-        
-        // Create callback function
-        window[callbackName] = function(response) {
-            // Cleanup
-            document.head.removeChild(script);
-            delete window[callbackName];
-            
-            showLoading(false);
-            
-            if (response.success) {
-                showStatus(`Success! Photo saved as "${response.shortName}"`, 'success');
-                resetForm();
-                resolve(response);
-            } else {
-                showStatus(`Error: ${response.error}`, 'error');
-                reject(new Error(response.error));
-            }
-        };
-        
-        // Create script tag for JSONP
-        const script = document.createElement('script');
-        
-        // Prepare URL with parameters
-        const params = new URLSearchParams({
-            action: 'upload',
-            callback: callbackName,
-            imageData: selectedImage,
-            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
-        });
-        
-        script.src = SCRIPT_URL + '?' + params.toString();
-        script.onerror = () => {
-            document.head.removeChild(script);
-            delete window[callbackName];
-            showLoading(false);
-            reject(new Error('JSONP request failed'));
-        };
-        
-        // Add script to head to trigger the request
-        document.head.appendChild(script);
-        
-        // Set timeout for cleanup
-        setTimeout(() => {
-            if (window[callbackName]) {
-                document.head.removeChild(script);
-                delete window[callbackName];
-                showLoading(false);
-                reject(new Error('Upload timeout'));
-            }
-        }, 30000); // 30 second timeout
-    });
-}
-
-function resetForm() {
-    selectedFile = null;
-    selectedImage = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('cameraInput').value = '';
-    document.getElementById('previewContainer').style.display = 'none';
-    document.getElementById('status').innerHTML = '';
-}
-
-function showLoading(show) {
-    document.getElementById('loading').style.display = show ? 'block' : 'none';
-}
-
-function showStatus(message, type) {
-    const statusDiv = document.getElementById('status');
-    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-    
-    if (type === 'success') {
-        setTimeout(() => {
-            statusDiv.innerHTML = '';
-        }, 5000);
-    }
-}
-
-// Network status handling
-window.addEventListener('online', () => {
-    showStatus('Back online! You can upload photos now.', 'success');
-});
-
-window.addEventListener('offline', () => {
-    showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-});
 
   function onTouchEndSubmit(ev) { if (!ev) return; ev.preventDefault && ev.preventDefault(); ev.stopPropagation && ev.stopPropagation(); ignoreNextClick = true; setTimeout(()=>{ ignoreNextClick = false; }, 800); doSubmitFlow(); }
   function onClickSubmit(ev) { if (ignoreNextClick) { ev && ev.preventDefault(); return; } doSubmitFlow(); }
@@ -1129,6 +1209,11 @@ window.addEventListener('offline', () => {
 
 }); // DOMContentLoaded end
 
+// Network status handling for photo uploads
+window.addEventListener('online', () => {
+    showPhotoStatus('Back online! You can upload photos now.', 'success');
+});
 
-
-
+window.addEventListener('offline', () => {
+    showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+});
