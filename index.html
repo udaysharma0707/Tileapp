@@ -1077,61 +1077,74 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // Main Submission Logic - FIXED VERSION
-    async function submitMainForm() {
-      const submitBtn = document.getElementById('submitBtn');
-      if (!submitBtn) return;
-      
-      // Disable button during submission
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-      
-      try {
-        let photoUploadResult = null;
-        
-        // First, handle photo upload if there's a selected image
-        if (selectedImage) {
-          showPhotoStatus('Uploading photo...', 'success');
-          try {
-            photoUploadResult = await uploadPhotoToServer();
+    // ---------- REPLACEMENT: submitMainForm ----------
+async function submitMainForm() {
+  const submitBtn = document.getElementById('submitBtn');
+  if (!submitBtn) return;
+
+  // Disable button during submission
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  try {
+    // Collect form data first
+    const formData = collectFormData();
+
+    // Submit main form data first (so manual entries always get saved)
+    const mainSubmitResult = await submitFormData(formData);
+
+    if (mainSubmitResult && mainSubmitResult.success) {
+      // Main entry saved successfully — clear the form right away
+      showTempMessage('Entry submitted successfully!');
+      clearForm();
+
+      // If a photo was selected, upload it in the background (do not block main submit)
+      if (selectedImage) {
+        showPhotoStatus('Uploading photo...', 'success');
+
+        // fire-and-forget photo upload — we don't await it here so the UI is responsive
+        uploadPhotoToServer()
+          .then(photoUploadResult => {
             if (photoUploadResult) {
               showPhotoStatus('Photo uploaded successfully!', 'success');
+              // NOTE: many Apps Script upload handlers create a separate row for the photo.
+              // If you want the photo linked to the just-created row (instead of creating
+              // a separate photo-only row) we will need one of:
+              //  - a server API that accepts a row ID / clientId to attach the photo
+              //  - or the server's upload handler must skip appending its own row.
+              // I can help add a client-generated clientId and server support if you want.
             } else {
-              showPhotoStatus('Photo upload failed, but form will continue', 'error');
+              showPhotoStatus('Photo upload failed (but main entry saved).', 'error');
             }
-          } catch (error) {
-            console.error('Photo upload error:', error);
-            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
-          }
-        }
-        
-        // Collect form data - SIMPLIFIED VERSION
-        const formData = collectFormData();
-        
-        // Add photo link to form data if available
-        if (photoUploadResult) {
-          formData.photoLink = photoUploadResult;
-        }
-        
-        // Submit main form data using the unified submission
-        const mainSubmitResult = await submitFormDataUnified(formData);
-        
-        if (mainSubmitResult.success) {
-          showTempMessage('Entry submitted successfully!');
-          clearForm();
-          resetPhotoForm();
-        } else {
-          throw new Error(mainSubmitResult.error || 'Submission failed');
-        }
-        
-      } catch (error) {
-        console.error('Submission error:', error);
-        showTempMessage('Error: ' + error.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
+          })
+          .catch(err => {
+            console.error('Photo upload (background) error:', err);
+            showPhotoStatus('Photo upload failed: ' + (err && err.message ? err.message : ''), 'error');
+          })
+          .finally(() => {
+            // Always reset photo preview after upload completes (or fails)
+            resetPhotoForm();
+          });
+      } else {
+        // No photo — just ensure preview/reset is cleared
+        resetPhotoForm();
       }
+
+    } else {
+      // main submit failed — bubble error to user
+      throw new Error((mainSubmitResult && mainSubmitResult.error) || 'Submission failed');
     }
+
+  } catch (error) {
+    console.error('Submission error:', error);
+    showTempMessage('Error: ' + (error && error.message ? error.message : 'Unknown error'));
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+  }
+}
+// ---------- end replacement ----------
+
 
     // SIMPLIFIED form data collection
     function collectFormData() {
@@ -1514,3 +1527,4 @@
   </script>
 </body>
 </html>
+
