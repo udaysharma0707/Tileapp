@@ -40,126 +40,7 @@
       border:1px solid #ccc; border-radius:4px;
     }
 
-    .upload-area {
-            border: 3px dashed #2196F3;
-            border-radius: 15px;
-            padding: 40px 20px;
-            margin: 30px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9ff;
-        }
-
-    .upload-area:hover {
-            border-color: #1976D2;
-            background: #e3f2fd;
-        }
-        
-        .upload-area.dragover {
-            border-color: #4CAF50;
-            background: #e8f5e8;
-        }
-    .upload-icon {
-            font-size: 4rem;
-            color: #2196F3;
-            margin-bottom: 15px;
-        }
-        
-        .upload-text {
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-        
-        .file-input {
-            display: none;
-        }
-    .btn {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-            min-width: 150px;
-        }
-        
-        .btn:hover {
-            background: #1976D2;
-            transform: translateY(-2px);
-        }
-        
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-         .camera-btn {
-            background: #4CAF50;
-        }
-        
-        .camera-btn:hover {
-            background: #45a049;
-        }
-        
-        .preview-container {
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-     .status {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .loading {
-            display: none;
-            margin: 20px 0;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2196F3;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-    /* main item row and nested sublist */
-    .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
-    .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
-    .qty { width:110px; flex:0 0 110px; }
-    .sublist { margin-left:28px; margin-top:6px; padding-left:6px; border-left:2px solid rgba(0,0,0,0.04); display:none; }
-    .sub-item { display:flex; align-items:center; gap:8px; margin-top:6px; }
-    .sub-item label { flex:1; display:flex; align-items:center; gap:8px; }
-    .checkbox-row { margin-top:6px; padding:0; }
-    .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
-
-    /* Photo Upload Styles (integrated from photo webapp) */
+    /* Photo Upload Styles */
     .photo-section {
       margin-top: 20px;
       border-top: 2px solid #f0f0f0;
@@ -288,6 +169,16 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* main item row and nested sublist */
+    .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
+    .qty { width:110px; flex:0 0 110px; }
+    .sublist { margin-left:28px; margin-top:6px; padding-left:6px; border-left:2px solid rgba(0,0,0,0.04); display:none; }
+    .sub-item { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .sub-item label { flex:1; display:flex; align-items:center; gap:8px; }
+    .checkbox-row { margin-top:6px; padding:0; }
+    .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
 
     /* quantity + unit inline controls */
     .qty-unit {
@@ -446,9 +337,6 @@
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
       <span id="appTitle">Tile Purchase Entry</span>
-
-      
-      
       <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
     </h1>
 
@@ -935,11 +823,11 @@
 
   <script>
     // --- Config / server endpoint detection ---
-    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec";
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
     // Replace with your Google Apps Script Web App URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec';
 
     let selectedFile = null;
     let selectedImage = null;
@@ -1085,7 +973,7 @@
                     const result = JSON.parse(response);
                     
                     if (result.success) {
-                        resolve(result.shortName || 'Photo uploaded');
+                        resolve(result.url || result.shortName || 'Photo uploaded');
                     } else {
                         reject(new Error(result.error || 'Upload failed'));
                     }
@@ -1171,1425 +1059,7 @@
       });
     }
 
-    // ----------------- Unit Management Functions -----------------
-    function loadGlobalUnits() {
-      try {
-        const stored = localStorage.getItem('globalUnits_v1');
-        return stored ? JSON.parse(stored) : [];
-      } catch(e) {
-        console.error('Error loading global units:', e);
-        return [];
-      }
-    }
-
-    function saveGlobalUnits(units) {
-      try {
-        localStorage.setItem('globalUnits_v1', JSON.stringify(units));
-      } catch(e) {
-        console.error('Error saving global units:', e);
-      }
-    }
-
-    // Function to load unit preferences for each product
-    function loadUnitPreferences() {
-      try {
-        const stored = localStorage.getItem('unitPreferences_v1');
-        return stored ? JSON.parse(stored) : {};
-      } catch(e) {
-        console.error('Error loading unit preferences:', e);
-        return {};
-      }
-    }
-
-    // Function to save unit preferences for each product
-    function saveUnitPreferences(preferences) {
-      try {
-        localStorage.setItem('unitPreferences_v1', JSON.stringify(preferences));
-      } catch(e) {
-        console.error('Error saving unit preferences:', e);
-      }
-    }
-
-    // Function to save unit preference for a specific product
-    function saveUnitPreference(productId, unitValue) {
-      const preferences = loadUnitPreferences();
-      preferences[productId] = unitValue;
-      saveUnitPreferences(preferences);
-    }
-
-    function renderUnitList() {
-      const unitList = document.getElementById('unitList');
-      const units = loadGlobalUnits();
-
-      unitList.innerHTML = '';
-
-      if (units.length === 0) {
-        unitList.innerHTML = '<div style="color:#666;font-size:13px">No custom units added yet.</div>';
-        return;
-      }
-
-      units.forEach((unit) => {
-        const div = document.createElement('div');
-        div.className = 'unit-item';
-
-        const span = document.createElement('span');
-        span.style.flex = '1';
-        span.textContent = unit;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-unit';
-        removeBtn.dataset.unit = unit;
-        removeBtn.textContent = 'Remove';
-
-        div.appendChild(span);
-        div.appendChild(removeBtn);
-        unitList.appendChild(div);
-      });
-    }
-
-    function addGlobalUnit(unit) {
-      if (!unit || !unit.trim()) return;
-      unit = unit.trim();
-      
-      const units = loadGlobalUnits();
-      if (units.includes(unit)) {
-        alert('Unit already exists!');
-        return;
-      }
-      
-      units.push(unit);
-      saveGlobalUnits(units);
-      renderUnitList();
-      rebuildAllUnitSelects();
-      showTempMessage('Added unit: ' + unit);
-    }
-
-    function removeGlobalUnit(unit) {
-      if (!confirm(`Remove unit "${unit}"? This will remove it from all dropdowns.`)) return;
-      
-      const units = loadGlobalUnits().filter((u) => u !== unit);
-      saveGlobalUnits(units);
-      renderUnitList();
-      rebuildAllUnitSelects();
-      showTempMessage('Removed unit: ' + unit);
-    }
-
-    // Function to rebuild all unit select dropdowns with preferences
-    function rebuildAllUnitSelects() {
-      const units = loadGlobalUnits();
-      const defaultUnits = ['Boxes', 'Pieces', 'Kg'];
-      const preferences = loadUnitPreferences();
-      
-      document.querySelectorAll('.unit-select').forEach(select => {
-        const selectId = select.id;
-        const currentVal = select.value;
-        
-        // Clear and rebuild options
-        select.innerHTML = '';
-        
-        // Add default options
-        defaultUnits.forEach(unit => {
-          const option = document.createElement('option');
-          option.value = unit;
-          option.textContent = unit;
-          select.appendChild(option);
-        });
-        
-        // Add global units
-        units.forEach(unit => {
-          const option = document.createElement('option');
-          option.value = unit;
-          option.textContent = unit;
-          select.appendChild(option);
-        });
-        
-        // Restore saved preference if available
-        if (selectId && preferences[selectId]) {
-          const preferredUnit = preferences[selectId];
-          const allOptions = Array.from(select.options).map(opt => opt.value);
-          if (allOptions.includes(preferredUnit)) {
-            select.value = preferredUnit;
-          } else {
-            // If preferred unit not found, add it as custom option
-            const tempOption = document.createElement('option');
-            tempOption.value = preferredUnit;
-            tempOption.textContent = preferredUnit + ' (custom)';
-            select.appendChild(tempOption);
-            select.value = preferredUnit;
-          }
-        } else if (currentVal) {
-          // Restore current selection if no preference saved
-          const allOptions = Array.from(select.options).map(opt => opt.value);
-          if (allOptions.includes(currentVal)) {
-            select.value = currentVal;
-          }
-        }
-      });
-    }
-
-    function showTempMessage(text) {
-      const m = document.getElementById('msg');
-      if (!m) return;
-      m.textContent = text; 
-      m.style.display = 'block';
-      setTimeout(() => { 
-        if (m && navigator.onLine) m.style.display = 'none'; 
-      }, 2500);
-    }
-
-    // --- customization logic ---
-    document.addEventListener('DOMContentLoaded', function() {
-      const container = document.getElementById('appContainer');
-      const gear = document.getElementById('gearBtn');
-      const customPanel = document.getElementById('customPanel');
-      const applyPreviewBtn = document.getElementById('applyPreviewBtn');
-      const saveServerBtn = document.getElementById('saveServerBtn');
-      const cancelCustomBtn = document.getElementById('cancelCustomBtn');
-      const loadDefaultBtn = document.getElementById('loadDefaultBtn');
-      const panelCloseX = document.getElementById('panelCloseX');
-      const addCategorySelect = document.getElementById('addCategorySelect');
-      const addSubLabelInput = document.getElementById('addSubLabelInput');
-      const addSubBtn = document.getElementById('addSubBtn');
-      const newUnitInput = document.getElementById('newUnitInput');
-      const addUnitBtn = document.getElementById('addUnitBtn');
-      const unitList = document.getElementById('unitList');
-
-      // Initialize unit management
-      renderUnitList();
-      rebuildAllUnitSelects();
-
-      // Add Unit button event listener
-      if (addUnitBtn && newUnitInput) {
-        addUnitBtn.addEventListener('click', function() {
-          addGlobalUnit(newUnitInput.value);
-          newUnitInput.value = '';
-        });
-        
-        newUnitInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            addGlobalUnit(newUnitInput.value);
-            newUnitInput.value = '';
-          }
-        });
-      }
-
-      // Delegated event listener for Remove Unit buttons
-      if (unitList) {
-        unitList.addEventListener('click', function(event) {
-          const target = event.target;
-          if (target.classList.contains('remove-unit')) {
-            const unit = target.dataset.unit;
-            removeGlobalUnit(unit);
-          }
-        });
-      }
-
-      let customizeMode = false;
-      let editingSession = false;
-
-      function registerEditable(el) {
-        if (!el) return;
-        el.setAttribute('contenteditable','false');
-        el.addEventListener('click', function(ev) {
-          if (!customizeMode) return;
-          if (editingSession) return;
-          alert('Click "Apply Preview" in the customization panel to start editing labels.');
-        });
-        el.addEventListener('blur', function() {
-          if (el.getAttribute('data-editing')) {
-            el.contentEditable = "false";
-            el.removeAttribute('data-editing');
-          }
-        });
-        el.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            el.blur();
-          }
-        });
-      }
-
-      Array.from(document.querySelectorAll('.editable')).forEach(registerEditable);
-
-      function setCustomizeMode(on) {
-        customizeMode = !!on;
-        container.classList.toggle('customize-mode', customizeMode);
-
-        const interactive = container.querySelectorAll('input, textarea, button');
-        interactive.forEach(el => {
-          if (el.id === 'gearBtn' || el.closest('#customPanel')) return;
-          if (customizeMode) {
-            el.classList.add('no-pointer');
-          } else {
-            el.classList.remove('no-pointer');
-          }
-        });
-
-        if (customizeMode) {
-          customPanel.style.display = 'block';
-          addRemoveButtons();
-        } else {
-          customPanel.style.display = 'none';
-          endEditingSession();
-          hideRemoveButtons();
-        }
-      }
-
-      gear.addEventListener('click', function() {
-        if (!customizeMode) {
-          setCustomizeMode(true);
-        } else {
-          setCustomizeMode(false);
-        }
-      });
-
-      function startEditingSession() {
-        editingSession = true;
-        Array.from(document.querySelectorAll('.editable')).forEach(el => {
-          el.contentEditable = "true";
-          el.classList.add('editing');
-          el.classList.remove('no-pointer');
-        });
-        customPanel.style.display = 'none';
-        const first = document.querySelector('.editable');
-        if (first) {
-          first.focus();
-          try {
-            if (document.createRange && window.getSelection) {
-              const range = document.createRange();
-              range.selectNodeContents(first);
-              range.collapse(false);
-              const sel = window.getSelection();
-              sel.removeAllRanges();
-              sel.addRange(range);
-            }
-          } catch (e){}
-        }
-      }
-
-      function endEditingSession() {
-        editingSession = false;
-        Array.from(document.querySelectorAll('.editable')).forEach(el => {
-          try { el.contentEditable = "false"; } catch(e){}
-          el.classList.remove('editing');
-        });
-      }
-
-      applyPreviewBtn.addEventListener('click', function() {
-        if (!customizeMode) setCustomizeMode(true);
-        startEditingSession();
-        alert('Preview: labels are now editable inline. Click any label to edit. When done click Save (server) to persist or Cancel to exit.');
-      });
-
-      loadDefaultBtn.addEventListener('click', function(){
-        if (!confirm('Reload page to restore defaults? Unsaved edits will be lost.')) return;
-        window.location.reload();
-      });
-
-      cancelCustomBtn.addEventListener('click', function() {
-        if (!confirm('Exit customization mode? Unsaved edits will be lost.')) {
-          return;
-        }
-        endEditingSession();
-        setCustomizeMode(false);
-      });
-
-      panelCloseX.addEventListener('click', function() {
-        if (editingSession) {
-          if (!confirm('Editing in progress. Close panel but keep edit mode? (Choose Cancel in panel to abort edits)')) {
-            return;
-          }
-        }
-        customPanel.style.display = 'none';
-      });
-
-      document.addEventListener('keydown', function(ev) {
-        if (ev.key === 'Escape') {
-          if (customPanel.style.display === 'block') {
-            customPanel.style.display = 'none';
-            return;
-          }
-          if (editingSession) {
-            if (confirm('Exit edit mode? Unsaved changes remain only locally.')) {
-              endEditingSession();
-              setCustomizeMode(false);
-            }
-          }
-        }
-      });
-
-      function makeRemoveButton() {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'remove-checkbox';
-        b.title = 'Remove this item';
-        b.textContent = '❌';
-        b.style.marginLeft = '8px';
-        b.style.background = '#ff6b6b';
-        b.style.color = '#fff';
-        b.style.border = 'none';
-        b.style.borderRadius = '50%';
-        b.style.width = '26px';
-        b.style.height = '26px';
-        b.style.lineHeight = '20px';
-        b.style.padding = '0';
-        b.style.cursor = 'pointer';
-        b.style.fontWeight = '700';
-        b.style.display = 'inline-flex';
-        b.style.alignItems = 'center';
-        b.style.justifyContent = 'center';
-        b.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
-        return b;
-      }
-
-      function addRemoveButtons() {
-        hideRemoveButtons();
-        document.querySelectorAll('.item-row').forEach(function(row) {
-          if (row.querySelector('.remove-checkbox')) return;
-          const btn = makeRemoveButton();
-          btn.setAttribute('data-remove-role','main');
-          row.appendChild(btn);
-        });
-        document.querySelectorAll('.sub-item').forEach(function(si) {
-          if (si.querySelector('.remove-checkbox')) return;
-          const btn = makeRemoveButton();
-          btn.setAttribute('data-remove-role','sub');
-          si.appendChild(btn);
-        });
-        document.querySelectorAll('.mode-row').forEach(function(mr) {
-          if (mr.querySelector('.remove-checkbox')) return;
-          const btn = makeRemoveButton();
-          btn.setAttribute('data-remove-role','mode');
-          mr.appendChild(btn);
-        });
-      }
-
-      function hideRemoveButtons() {
-        document.querySelectorAll('.remove-checkbox').forEach(function(b){ b.remove(); });
-      }
-
-      function removeWrapperForButton(btn) {
-        if (!btn) return;
-        const subItem = btn.closest('.sub-item');
-        const itemRow = btn.closest('.item-row');
-        const modeRow = btn.closest('.mode-row');
-
-        if (subItem) {
-          if (!confirm('Remove this sub-item? This cannot be undone.')) return;
-          subItem.remove();
-        } else if (itemRow) {
-          if (!confirm('Remove this main item and its sub-items? This cannot be undone.')) return;
-          try {
-            const cb = itemRow.querySelector('input[type="checkbox"].purchased, input[type="checkbox"]');
-            if (cb && cb.id) {
-              const parts = cb.id.split('_');
-              const suffix = parts.length > 1 ? parts.slice(1).join('_') : cb.id;
-              const sublistId = 'sublist_' + suffix;
-              const sublist = document.getElementById(sublistId);
-              if (sublist) sublist.remove();
-            }
-          } catch(e){}
-          itemRow.remove();
-        } else if (modeRow) {
-          if (!confirm('Remove this payment mode? This cannot be undone.')) return;
-          modeRow.remove();
-        } else {
-          const parent = btn.parentElement;
-          if (parent) parent.remove();
-        }
-        bindSubitemHandlers();
-        setupMainToSubBindings();
-      }
-
-      container.addEventListener('click', function(ev) {
-        const btn = ev && ev.target && ev.target.closest && ev.target.closest('.remove-checkbox');
-        if (!btn) return;
-        if (!customizeMode) {
-          alert('Enable Customize mode to remove items.');
-          return;
-        }
-        ev.stopPropagation(); ev.preventDefault();
-        removeWrapperForButton(btn);
-      });
-
-      function bindSubitemHandlers() {
-        document.querySelectorAll('.subitem').forEach(function(sb){
-          const suffix = sb.id.slice(4);
-          const qtyId = 'q' + sb.id.slice(3);
-          const qtyEl = document.getElementById(qtyId);
-          const unitEl = document.getElementById('unit_' + suffix);
-          const unitCustomEl = document.getElementById('unit_custom_' + suffix);
-
-          if (sb._custom_qty_handler) {
-            sb.removeEventListener('change', sb._custom_qty_handler);
-            sb._custom_qty_handler = null;
-          }
-
-          const handler = function() {
-            const enabled = !!sb.checked;
-            if (qtyEl) {
-              qtyEl.disabled = !enabled;
-              if (!enabled) qtyEl.value = '';
-            }
-            if (unitEl) {
-              unitEl.disabled = !enabled;
-              if (!enabled) { unitEl.selectedIndex = 0; }
-            }
-            if (unitCustomEl) {
-              unitCustomEl.disabled = !enabled;
-              if (!enabled) { unitCustomEl.style.display = 'none'; unitCustomEl.value = ''; }
-            }
-
-            // Apply saved unit preference when enabling
-            if (enabled && unitEl) {
-              const preferences = loadUnitPreferences();
-              const savedUnit = preferences[unitEl.id];
-              if (savedUnit) {
-                const opts = Array.from(unitEl.options).map(o => o.value);
-                if (opts.indexOf(savedUnit) !== -1) {
-                  unitEl.value = savedUnit;
-                  if (unitCustomEl) unitCustomEl.style.display = 'none';
-                } else if (savedUnit) {
-                  // Create temporary custom option
-                  const tempOption = document.createElement('option');
-                  tempOption.value = savedUnit;
-                  tempOption.textContent = savedUnit + ' (custom)';
-                  unitEl.appendChild(tempOption);
-                  unitEl.value = savedUnit;
-                  if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = savedUnit; }
-                }
-              } else if (unitEl.value === 'Custom' && unitCustomEl) {
-                unitCustomEl.style.display = '';
-              }
-            }
-          };
-          sb._custom_qty_handler = handler;
-          sb.addEventListener('change', handler);
-          if (qtyEl) qtyEl.disabled = !sb.checked;
-
-          // Unit change handler with preference saving
-          if (unitEl) {
-            if (unitEl._unit_change_bound) {
-              unitEl.removeEventListener('change', unitEl._unit_change_bound);
-            }
-            const unitChange = function() {
-              const v = unitEl.value;
-              if (unitCustomEl) {
-                if (v === 'Custom') {
-                  unitCustomEl.style.display = '';
-                  unitCustomEl.disabled = false;
-                  unitCustomEl.focus && unitCustomEl.focus();
-                } else {
-                  unitCustomEl.style.display = 'none';
-                  unitCustomEl.value = '';
-                  unitCustomEl.disabled = true;
-                }
-              }
-              
-              // Save unit preference when changed
-              if (sb.checked) {
-                const finalValue = v === 'Custom' && unitCustomEl && unitCustomEl.value.trim() 
-                  ? unitCustomEl.value.trim() 
-                  : v;
-                saveUnitPreference(unitEl.id, finalValue);
-              }
-            };
-            unitEl._unit_change_bound = unitChange;
-            unitEl.addEventListener('change', unitChange);
-            if (unitEl) unitEl.disabled = !sb.checked;
-            if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
-          }
-
-          // Custom unit text input with preference saving
-          if (unitCustomEl) {
-            if (unitCustomEl._custom_input_bound) {
-              unitCustomEl.removeEventListener('input', unitCustomEl._custom_input_bound);
-            }
-            const customInputHandler = function() {
-              if (sb.checked && unitEl && unitEl.value === 'Custom') {
-                saveUnitPreference(unitEl.id, unitCustomEl.value.trim());
-              }
-            };
-            unitCustomEl._custom_input_bound = customInputHandler;
-            unitCustomEl.addEventListener('input', customInputHandler);
-            unitCustomEl.disabled = !sb.checked;
-          }
-
-          if (sb.checked) {
-            handler();
-          } else {
-            if (qtyEl) qtyEl.disabled = true;
-            if (unitEl) unitEl.disabled = true;
-            if (unitCustomEl) { unitCustomEl.disabled = true; unitCustomEl.style.display = 'none'; }
-          }
-        });
-
-        // Handle "Others" main item
-        const otherMain = document.getElementById('p_other');
-        const otherQty = document.getElementById('q_other');
-        const otherUnit = document.getElementById('unit_other');
-        const otherUnitCustom = document.getElementById('unit_custom_other');
-        if (otherMain && otherQty) {
-          if (otherMain._custom_other_handler) otherMain.removeEventListener('change', otherMain._custom_other_handler);
-          const oh = function() {
-            const enabled = otherMain.checked;
-            otherQty.disabled = !enabled;
-            if (!enabled) otherQty.value = '';
-            if (otherUnit) {
-              otherUnit.disabled = !enabled;
-              if (!enabled) otherUnit.selectedIndex = 0;
-            }
-            if (otherUnitCustom) {
-              otherUnitCustom.disabled = !enabled;
-              if (!enabled) { otherUnitCustom.style.display = 'none'; otherUnitCustom.value = ''; }
-            }
-
-            if (enabled && otherUnit) {
-              const preferences = loadUnitPreferences();
-              const savedUnit = preferences[otherUnit.id];
-              if (savedUnit) {
-                const opts = Array.from(otherUnit.options).map(o => o.value);
-                if (opts.indexOf(savedUnit) !== -1) {
-                  otherUnit.value = savedUnit;
-                  if (otherUnitCustom) otherUnitCustom.style.display = 'none';
-                } else if (savedUnit) {
-                  const tempOption = document.createElement('option');
-                  tempOption.value = savedUnit;
-                  tempOption.textContent = savedUnit + ' (custom)';
-                  otherUnit.appendChild(tempOption);
-                  otherUnit.value = savedUnit;
-                  if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = savedUnit; }
-                }
-              } else if (otherUnit.value === 'Custom' && otherUnitCustom) {
-                otherUnitCustom.style.display = '';
-              }
-            }
-          };
-          otherMain._custom_other_handler = oh;
-          otherMain.addEventListener('change', oh);
-
-          // Unit change handler for Others
-          if (otherUnit) {
-            if (otherUnit._unit_change_bound) {
-              otherUnit.removeEventListener('change', otherUnit._unit_change_bound);
-            }
-            const otherUnitChange = function() {
-              const v = otherUnit.value;
-              if (otherUnitCustom) {
-                if (v === 'Custom') {
-                  otherUnitCustom.style.display = '';
-                  otherUnitCustom.disabled = false;
-                  otherUnitCustom.focus && otherUnitCustom.focus();
-                } else {
-                  otherUnitCustom.style.display = 'none';
-                  otherUnitCustom.value = '';
-                  otherUnitCustom.disabled = true;
-                }
-              }
-              
-              if (otherMain.checked) {
-                const finalValue = v === 'Custom' && otherUnitCustom && otherUnitCustom.value.trim() 
-                  ? otherUnitCustom.value.trim() 
-                  : v;
-                saveUnitPreference(otherUnit.id, finalValue);
-              }
-            };
-            otherUnit._unit_change_bound = otherUnitChange;
-            otherUnit.addEventListener('change', otherUnitChange);
-          }
-
-          if (otherUnitCustom) {
-            if (otherUnitCustom._custom_input_bound) {
-              otherUnitCustom.removeEventListener('input', otherUnitCustom._custom_input_bound);
-            }
-            const otherCustomInputHandler = function() {
-              if (otherMain.checked && otherUnit && otherUnit.value === 'Custom') {
-                saveUnitPreference(otherUnit.id, otherUnitCustom.value.trim());
-              }
-            };
-            otherUnitCustom._custom_input_bound = otherCustomInputHandler;
-            otherUnitCustom.addEventListener('input', otherCustomInputHandler);
-          }
-
-          oh();
-        }
-      }
-      
-      function setupMainToSubBindings() {
-        const mainToSub = {
-          'p_floor': 'sublist_floor',
-          'p_wall': 'sublist_wall',
-          'p_san':  'sublist_san',
-          'p_acc':  'sublist_acc'
-        };
-        Object.keys(mainToSub).forEach(mainId => {
-          const mainCb = document.getElementById(mainId);
-          const subDiv = document.getElementById(mainToSub[mainId]);
-          if (!mainCb || !subDiv) return;
-          if (mainCb._custom_main_toggle) mainCb.removeEventListener('change', mainCb._custom_main_toggle);
-          const update = function() {
-            subDiv.style.display = mainCb.checked ? 'block' : 'none';
-            if (!mainCb.checked) {
-              subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
-              subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
-              subDiv.querySelectorAll('.unit-select').forEach(u => { u.selectedIndex = 0; u.disabled = true; });
-              subDiv.querySelectorAll('.unit-custom').forEach(uc => { uc.value=''; uc.style.display='none'; uc.disabled = true; });
-            }
-          };
-          mainCb._custom_main_toggle = update;
-          mainCb.addEventListener('change', update);
-          update();
-        });
-      }
-
-      function bindModeToggle(modeCheckbox) {
-        if (!modeCheckbox) return;
-        if (modeCheckbox._boundModeToggle) return;
-        modeCheckbox._boundModeToggle = true;
-        const parent = modeCheckbox.closest('.mode-row');
-        if (!parent) return;
-        const amtInput = parent.querySelector('input[type="number"].mode-amount');
-        modeCheckbox.addEventListener('change', function() {
-          if (amtInput) {
-            amtInput.disabled = !modeCheckbox.checked;
-            if (!modeCheckbox.checked) amtInput.value = '';
-          }
-        });
-        if (amtInput) amtInput.disabled = !modeCheckbox.checked;
-      }
-
-      // Run initial binds
-      bindSubitemHandlers();
-      setupMainToSubBindings();
-      document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
-
-      // Add subitem functionality
-      if (addSubBtn) {
-        addSubBtn.addEventListener('click', function() {
-          const cat = addCategorySelect && addCategorySelect.value ? addCategorySelect.value : 'floor';
-          const rawLabel = (addSubLabelInput && addSubLabelInput.value) ? addSubLabelInput.value.trim() : '';
-          if (!rawLabel) { alert('Enter a label for the new sub-item.'); return; }
-          const slug = rawLabel.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
-          let baseId = (cat === 'mode') ? 'mode_' + (slug || Date.now()) : 'sub_' + cat + (slug ? '_' + slug : '');
-          let candidate = baseId;
-          let i = 1;
-          while (document.getElementById(candidate)) {
-            candidate = baseId + '_' + i;
-            i++;
-          }
-          const elementId = candidate;
-
-          if (cat === 'mode') {
-            const modeDiv = document.createElement('div');
-            modeDiv.className = 'mode-row';
-            modeDiv.setAttribute('data-generated','true');
-
-            const labelEl = document.createElement('label');
-            labelEl.className = 'mode-label';
-
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.name = 'modeOfPayment';
-            cb.value = rawLabel;
-            cb.id = elementId;
-
-            const span = document.createElement('span');
-            span.className = 'editable';
-            const cfgId = elementId + '_label';
-            span.setAttribute('data-config-id', cfgId);
-            span.id = 'label_' + elementId;
-            span.textContent = rawLabel;
-
-            const delBtn = document.createElement('button');
-            delBtn.className = 'del-btn';
-            delBtn.type = 'button';
-            delBtn.title = 'Remove mode';
-            delBtn.setAttribute('aria-label','Remove');
-            delBtn.textContent = '❌';
-
-            labelEl.appendChild(cb);
-            labelEl.appendChild(span);
-            labelEl.appendChild(delBtn);
-
-            const amt = document.createElement('input');
-            amt.type = 'number';
-            amt.min = '0';
-            amt.step = '0.01';
-            amt.placeholder = rawLabel + ' Rs.';
-            amt.className = 'mode-amount';
-            amt.id = 'amt_' + elementId;
-            amt.disabled = true;
-            amt.setAttribute('data-mode-amount', rawLabel);
-
-            modeDiv.appendChild(labelEl);
-            modeDiv.appendChild(amt);
-
-            const modesContainer = document.getElementById('modes');
-            if (!modesContainer) { alert('Modes container not found'); return; }
-            modesContainer.appendChild(modeDiv);
-
-            registerEditable(span);
-            bindModeToggle(cb);
-            bindSubitemHandlers();
-            if (addSubLabelInput) addSubLabelInput.value = '';
-            showTempMessage('Added payment mode: ' + rawLabel);
-            return;
-          }
-
-          // Non-mode subitem
-          const subId = elementId;
-          const suffix = subId.slice(4);
-          const qtyId = 'q' + subId.slice(3);
-
-          const subDiv = document.createElement('div');
-          subDiv.className = 'sub-item';
-          subDiv.setAttribute('data-generated','true');
-
-          const labelEl = document.createElement('label');
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.className = 'subitem';
-          cb.id = subId;
-          cb.value = rawLabel;
-
-          const span = document.createElement('span');
-          span.className = 'editable';
-          span.setAttribute('data-config-id', subId + '_label');
-          span.id = 'label_' + subId;
-          span.textContent = rawLabel;
-
-          const delBtn = document.createElement('button');
-          delBtn.className = 'del-btn';
-          delBtn.type = 'button';
-          delBtn.title = 'Remove sub-item';
-          delBtn.setAttribute('aria-label','Remove');
-          delBtn.textContent = '❌';
-
-          labelEl.appendChild(cb);
-          labelEl.appendChild(span);
-          labelEl.appendChild(delBtn);
-
-          const qtyUnitDiv = document.createElement('div');
-          qtyUnitDiv.className = 'qty-unit';
-
-          const qty = document.createElement('input');
-          qty.type = 'number';
-          qty.min = '0';
-          qty.step = '1';
-          qty.placeholder = 'Quantity';
-          qty.className = 'subqty qty';
-          qty.id = qtyId;
-          qty.disabled = true;
-
-          const unitSel = document.createElement('select');
-          unitSel.id = 'unit_' + suffix;
-          unitSel.className = 'unit-select';
-          unitSel.disabled = true;
-          
-          const defaultUnits = ['Boxes','Pieces','Kg'];
-          defaultUnits.forEach(unit => {
-            const o = document.createElement('option'); 
-            o.value = unit; 
-            o.textContent = unit; 
-            unitSel.appendChild(o);
-          });
-          
-          const globalUnits = loadGlobalUnits();
-          globalUnits.forEach(unit => {
-            const o = document.createElement('option'); 
-            o.value = unit; 
-            o.textContent = unit; 
-            unitSel.appendChild(o);
-          });
-
-          const unitCustom = document.createElement('input');
-          unitCustom.type = 'text';
-          unitCustom.id = 'unit_custom_' + suffix;
-          unitCustom.className = 'unit-custom';
-          unitCustom.placeholder = 'Custom unit';
-          unitCustom.style.display = 'none';
-          unitCustom.disabled = true;
-
-          qtyUnitDiv.appendChild(qty);
-          qtyUnitDiv.appendChild(unitSel);
-          qtyUnitDiv.appendChild(unitCustom);
-
-          subDiv.appendChild(labelEl);
-          subDiv.appendChild(qtyUnitDiv);
-
-          const map = { floor: 'sublist_floor', wall: 'sublist_wall', san: 'sublist_san', acc: 'sublist_acc' };
-          const target = document.getElementById(map[cat] || 'sublist_floor');
-          if (!target) {
-            alert('Could not find category container. Aborting.');
-            return;
-          }
-          target.appendChild(subDiv);
-
-          registerEditable(span);
-          bindSubitemHandlers();
-          if (addSubLabelInput) addSubLabelInput.value = '';
-          showTempMessage('Added: ' + rawLabel);
-        });
-      }
-
-      // Config save/load functions
-      function buildConfigObject() {
-        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
-
-        cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
-        Array.from(document.querySelectorAll('.editable')).forEach(el => {
-          const key = el.getAttribute('data-config-id') || el.id || null;
-          if (key) cfg.labels[key] = el.textContent.trim();
-        });
-
-        const purchasedList = document.getElementById('purchasedList');
-        if (purchasedList) {
-          const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
-          itemRows.forEach(row => {
-            const cb = row.querySelector('input[type="checkbox"]');
-            if (!cb || !cb.id) return;
-            const mainId = cb.id;
-            const labelEl = row.querySelector('[data-config-id="' + mainId + '_label"]') || row.querySelector('#label_' + mainId) || row.querySelector('.editable');
-            const labelText = labelEl ? (labelEl.textContent || "").trim() : (cb.value || "");
-            let sublistId = null;
-            const suffixParts = mainId.split('_');
-            const suffix = suffixParts.length > 1 ? suffixParts.slice(1).join('_') : mainId;
-            const candidateId = 'sublist_' + suffix;
-            if (document.getElementById(candidateId)) sublistId = candidateId;
-            else {
-              const next = row.nextElementSibling;
-              if (next && next.classList && next.classList.contains('sublist')) sublistId = next.id || null;
-            }
-
-            const mainObj = { id: mainId, label: labelText, sublistId: sublistId, subitems: [] };
-            if (mainObj.sublistId) {
-              const sl = document.getElementById(mainObj.sublistId);
-              if (sl) {
-                const subs = Array.from(sl.querySelectorAll('.sub-item'));
-                subs.forEach(si => {
-                  const subCb = si.querySelector('input[type="checkbox"].subitem') || si.querySelector('input[type="checkbox"]');
-                  if (!subCb || !subCb.id) return;
-                  const subId = subCb.id;
-                  const lab = si.querySelector('[data-config-id="' + subId + '_label"]') || si.querySelector('#label_' + subId) || si.querySelector('.editable');
-                  const subLabel = lab ? (lab.textContent || "").trim() : (subCb.value || "");
-                  mainObj.subitems.push({ id: subId, label: subLabel });
-                });
-              }
-            }
-            cfg.structure.mainItems.push(mainObj);
-          });
-        }
-
-        const modesContainer = document.getElementById('modes');
-        if (modesContainer) {
-          const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
-          modeRows.forEach(mr => {
-            const cb = mr.querySelector('input[type="checkbox"], input[type="radio"]');
-            if (!cb) return;
-            const id = cb.id || ('mode_' + Math.random().toString(36).slice(2,8));
-            const lab = mr.querySelector('[data-config-id="' + id + '_label"]') || mr.querySelector('#label_' + id) || mr.querySelector('.editable');
-            const labelText = lab ? (lab.textContent || "").trim() : (cb.value || "");
-            const amt = mr.querySelector('input[type="number"].mode-amount');
-            const amountInputId = amt ? (amt.id || null) : null;
-            const amountAttrName = amt ? (amt.getAttribute('data-mode-amount') || "") : "";
-            cfg.structure.modes.push({ id: id, label: labelText, amountInputId: amountInputId, amountAttrName: amountAttrName });
-          });
-        }
-
-        try {
-          const sel = document.getElementById('purchasedFromSelect');
-          const txt = document.getElementById('purchasedFrom');
-          const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
-          const items = [];
-          if (sel && sel.options) {
-            for (let i=0;i<sel.options.length;i++){
-              const o = sel.options[i];
-              if (fixed.indexOf(o.value) === -1) items.push(o.value);
-            }
-          }
-          const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
-          cfg.purchasedFromCustom = { items: items, selected: selectedValue };
-        } catch(e){}
-
-        return cfg;
-      }
-
-      function applyConfigObject(cfg) {
-        if (!cfg) return;
-
-        if (cfg.title) {
-          const titleEl = document.getElementById('appTitle');
-          if (titleEl) titleEl.textContent = cfg.title;
-        }
-
-        if (cfg.labels) {
-          Object.keys(cfg.labels).forEach(key => {
-            const el = document.querySelector('[data-config-id="' + key + '"]') || document.getElementById(key);
-            if (el) el.textContent = cfg.labels[key];
-          });
-        }
-
-        if (cfg.globalUnits) {
-          saveGlobalUnits(cfg.globalUnits);
-          renderUnitList();
-          rebuildAllUnitSelects();
-        }
-
-        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
-          saveCustomVendors(cfg.purchasedFromCustom.items);
-          rebuildVendorSelect();
-          renderVendorList();
-        }
-
-        if (!cfg.structure) return;
-
-        // Rebuild structure
-        const purchasedList = document.getElementById('purchasedList');
-
-        function findItemRowByMainId(mainId) {
-          const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
-          return allRows.find(row => {
-            const cb = row.querySelector('input[type="checkbox"]');
-            return cb && cb.id === mainId;
-          });
-        }
-
-        function createMainItem(main) {
-          const row = document.createElement('div');
-          row.className = 'item-row';
-          row.setAttribute('data-generated', 'true');
-
-          const label = document.createElement('label');
-          label.className = 'cb';
-
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.className = 'purchased';
-          cb.id = main.id;
-          cb.value = main.label || main.id;
-
-          const span = document.createElement('span');
-          span.className = 'editable';
-          span.setAttribute('data-config-id', main.id + '_label');
-          span.id = 'label_' + main.id;
-          span.textContent = main.label || main.id;
-
-          label.appendChild(cb);
-          label.appendChild(span);
-          row.appendChild(label);
-
-          const otherRow = Array.from(purchasedList.querySelectorAll('.item-row')).find(r => {
-            const ch = r.querySelector('input[type="checkbox"]');
-            return ch && ch.id === 'p_other';
-          });
-          if (otherRow) purchasedList.insertBefore(row, otherRow);
-          else purchasedList.appendChild(row);
-
-          registerEditable(span);
-          return row;
-        }
-
-        function ensureSublist(main) {
-          let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
-          let sl = document.getElementById(sublistId);
-          if (!sl) {
-            sl = document.createElement('div');
-            sl.className = 'sublist';
-            sl.id = sublistId;
-            const row = findItemRowByMainId(main.id) || createMainItem(main);
-            row.insertAdjacentElement('afterend', sl);
-          }
-          return sl;
-        }
-
-        if (cfg.structure.mainItems) {
-          cfg.structure.mainItems.forEach(main => {
-            const existing = findItemRowByMainId(main.id);
-            if (!existing) {
-              createMainItem(main);
-            }
-
-            const sl = ensureSublist(main);
-
-            if (main.subitems) {
-              main.subitems.forEach(sub => {
-                const existingSubitem = document.getElementById(sub.id);
-                if (!existingSubitem) {
-                  const suffix = sub.id.slice(4);
-                  const qtyId = 'q' + sub.id.slice(3);
-
-                  const subDiv = document.createElement('div');
-                  subDiv.className = 'sub-item';
-                  subDiv.setAttribute('data-generated', 'true');
-
-                  const labelEl = document.createElement('label');
-                  const cb = document.createElement('input');
-                  cb.type = 'checkbox';
-                  cb.className = 'subitem';
-                  cb.id = sub.id;
-                  cb.value = sub.label || sub.id;
-
-                  const span = document.createElement('span');
-                  span.className = 'editable';
-                  span.setAttribute('data-config-id', sub.id + '_label');
-                  span.id = 'label_' + sub.id;
-                  span.textContent = sub.label || sub.id;
-
-                  const delBtn = document.createElement('button');
-                  delBtn.className = 'del-btn';
-                  delBtn.type = 'button';
-                  delBtn.title = 'Remove sub-item';
-                  delBtn.setAttribute('aria-label', 'Remove');
-                  delBtn.textContent = '❌';
-
-                  labelEl.appendChild(cb);
-                  labelEl.appendChild(span);
-                  labelEl.appendChild(delBtn);
-
-                  const qtyUnitDiv = document.createElement('div');
-                  qtyUnitDiv.className = 'qty-unit';
-
-                  const qty = document.createElement('input');
-                  qty.type = 'number';
-                  qty.min = '0';
-                  qty.step = '1';
-                  qty.placeholder = 'Quantity';
-                  qty.className = 'subqty qty';
-                  qty.id = qtyId;
-                  qty.disabled = true;
-
-                  const unitSel = document.createElement('select');
-                  unitSel.id = 'unit_' + suffix;
-                  unitSel.className = 'unit-select';
-                  unitSel.disabled = true;
-                  
-                  const defaultUnits = ['Boxes','Pieces','Kg'];
-                  defaultUnits.forEach(unit => {
-                    const o = document.createElement('option'); 
-                    o.value = unit; 
-                    o.textContent = unit; 
-                    unitSel.appendChild(o);
-                  });
-                  
-                  const globalUnits = loadGlobalUnits();
-                  globalUnits.forEach(unit => {
-                    const o = document.createElement('option'); 
-                    o.value = unit; 
-                    o.textContent = unit; 
-                    unitSel.appendChild(o);
-                  });
-
-                  const unitCustom = document.createElement('input');
-                  unitCustom.type = 'text';
-                  unitCustom.id = 'unit_custom_' + suffix;
-                  unitCustom.className = 'unit-custom';
-                  unitCustom.placeholder = 'Custom unit';
-                  unitCustom.style.display = 'none';
-                  unitCustom.disabled = true;
-
-                  qtyUnitDiv.appendChild(qty);
-                  qtyUnitDiv.appendChild(unitSel);
-                  qtyUnitDiv.appendChild(unitCustom);
-
-                  subDiv.appendChild(labelEl);
-                  subDiv.appendChild(qtyUnitDiv);
-
-                  sl.appendChild(subDiv);
-
-                  registerEditable(span);
-                }
-              });
-            }
-          });
-        }
-
-        if (cfg.structure.modes) {
-          const modesContainer = document.getElementById('modes');
-          cfg.structure.modes.forEach(mode => {
-            const existing = document.getElementById(mode.id);
-            if (existing) return;
-
-            const modeDiv = document.createElement('div');
-            modeDiv.className = 'mode-row';
-            modeDiv.setAttribute('data-generated', 'true');
-
-            const labelEl = document.createElement('label');
-            labelEl.className = 'mode-label';
-
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.name = 'modeOfPayment';
-            cb.value = mode.label || mode.id;
-            cb.id = mode.id;
-
-            const span = document.createElement('span');
-            span.className = 'editable';
-            span.setAttribute('data-config-id', mode.id + '_label');
-            span.id = 'label_' + mode.id;
-            span.textContent = mode.label || mode.id;
-
-            const delBtn = document.createElement('button');
-            delBtn.className = 'del-btn';
-            delBtn.type = 'button';
-            delBtn.title = 'Remove mode';
-            delBtn.setAttribute('aria-label', 'Remove');
-            delBtn.textContent = '❌';
-
-            labelEl.appendChild(cb);
-            labelEl.appendChild(span);
-            labelEl.appendChild(delBtn);
-
-            const amt = document.createElement('input');
-            amt.type = 'number';
-            amt.min = '0';
-            amt.step = '0.01';
-            amt.placeholder = (mode.label || mode.id) + ' Rs.';
-            amt.className = 'mode-amount';
-            amt.id = mode.amountInputId || ('amt_' + mode.id);
-            amt.disabled = true;
-            amt.setAttribute('data-mode-amount', mode.amountAttrName || mode.label || mode.id);
-
-            modeDiv.appendChild(labelEl);
-            modeDiv.appendChild(amt);
-
-            modesContainer.appendChild(modeDiv);
-
-            registerEditable(span);
-            bindModeToggle(cb);
-          });
-        }
-
-        // Re-bind handlers after structural changes
-        bindSubitemHandlers();
-        setupMainToSubBindings();
-        document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
-      }
-
-      // Save server
-      saveServerBtn.addEventListener('click', async function() {
-        const cfg = buildConfigObject();
-        
-        try {
-          saveServerBtn.disabled = true;
-          saveServerBtn.textContent = 'Saving...';
-          
-          const submitData = {
-            action: 'saveConfig',
-            token: SERVER_TOKEN,
-            config: JSON.stringify(cfg)
-          };
-          
-          const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
-            encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
-          ).join('&');
-          
-          const response = await jsonpCall(url, 30000);
-          
-          if (response && response.success) {
-            alert('Configuration saved successfully!');
-            setCustomizeMode(false);
-          } else {
-            throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
-          }
-          
-        } catch (error) {
-          console.error('Save error:', error);
-          alert('Failed to save configuration: ' + error.message);
-        } finally {
-          saveServerBtn.disabled = false;
-          saveServerBtn.textContent = 'Save (server)';
-        }
-      });
-
-      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-      const purchasedFromText = document.getElementById('purchasedFrom');
-      const customVendorManager = document.getElementById('customVendorManager');
-      const vendorList = document.getElementById('vendorList');
-      const addVendorBtn = document.getElementById('addVendorBtn');
-      const newVendorInput = document.getElementById('newVendorInput');
-
-      if (purchasedFromSelect && purchasedFromText) {
-        purchasedFromSelect.addEventListener('change', function() {
-          const isOther = this.value === 'Other';
-          const isCustomised = this.value === 'Customised';
-          
-          purchasedFromText.style.display = isOther ? 'block' : 'none';
-          customVendorManager.style.display = isCustomised ? 'block' : 'none';
-          
-          if (!isOther) purchasedFromText.value = '';
-        });
-        
-        purchasedFromSelect.dispatchEvent(new Event('change'));
-      }
-
-          function getCustomVendors() {
-        try {
-          const stored = localStorage.getItem('purchasedFromCustom');
-          const parsed = stored ? JSON.parse(stored) : {};
-          return parsed.items || [];
-        } catch(e) {
-          console.error('Error loading custom vendors:', e);
-          return [];
-        }
-      }
-
-      function saveCustomVendors(vendors) {
-        try {
-          localStorage.setItem('purchasedFromCustom', JSON.stringify({ items: vendors }));
-        } catch(e) {
-          console.error('Error saving custom vendors:', e);
-        }
-      }
-
-      function rebuildVendorSelect() {
-        if (!purchasedFromSelect) return;
-        
-        const currentValue = purchasedFromSelect.value;
-        const fixedOptions = ['Delhi Tiles Company', 'Mumbai Tiles Company', 'Mumbai Marble Company', 'Customised', 'Other'];
-        const customVendors = getCustomVendors();
-        
-        // Clear current options
-        purchasedFromSelect.innerHTML = '';
-        
-        // Add fixed options
-        fixedOptions.forEach(option => {
-          const opt = document.createElement('option');
-          opt.value = option;
-          opt.textContent = option;
-          purchasedFromSelect.appendChild(opt);
-        });
-        
-        // Add custom vendors before "Customised"
-        const customisedOption = Array.from(purchasedFromSelect.options).find(opt => opt.value === 'Customised');
-        customVendors.forEach(vendor => {
-          const opt = document.createElement('option');
-          opt.value = vendor;
-          opt.textContent = vendor;
-          if (customisedOption) {
-            purchasedFromSelect.insertBefore(opt, customisedOption);
-          } else {
-            purchasedFromSelect.appendChild(opt);
-          }
-        });
-        
-        // Restore selection if it exists
-        const allValues = Array.from(purchasedFromSelect.options).map(opt => opt.value);
-        if (allValues.includes(currentValue)) {
-          purchasedFromSelect.value = currentValue;
-        }
-      }
-
-      function renderVendorList() {
-        if (!vendorList) return;
-        
-        const vendors = getCustomVendors();
-        vendorList.innerHTML = '';
-        
-        if (vendors.length === 0) {
-          vendorList.innerHTML = '<div style="color:#666;font-size:13px">No custom vendors added yet.</div>';
-          return;
-        }
-        
-        vendors.forEach(vendor => {
-          const div = document.createElement('div');
-          div.className = 'vendor-item';
-          
-          const span = document.createElement('span');
-          span.textContent = vendor;
-          span.style.flex = '1';
-          
-          const removeBtn = document.createElement('button');
-          removeBtn.textContent = 'Remove';
-          removeBtn.dataset.vendor = vendor;
-          removeBtn.style.background = '#dc3545';
-          removeBtn.style.color = 'white';
-          removeBtn.style.border = 'none';
-          removeBtn.style.padding = '4px 8px';
-          removeBtn.style.borderRadius = '4px';
-          removeBtn.style.cursor = 'pointer';
-          
-          div.appendChild(span);
-          div.appendChild(removeBtn);
-          vendorList.appendChild(div);
-        });
-      }
-
-      function addCustomVendor(vendorName) {
-        if (!vendorName || !vendorName.trim()) return;
-        vendorName = vendorName.trim();
-        
-        const vendors = getCustomVendors();
-        if (vendors.includes(vendorName)) {
-          alert('Vendor already exists!');
-          return;
-        }
-        
-        vendors.push(vendorName);
-        saveCustomVendors(vendors);
-        rebuildVendorSelect();
-        renderVendorList();
-        showTempMessage('Added vendor: ' + vendorName);
-      }
-
-      function removeCustomVendor(vendorName) {
-        if (!confirm(`Remove vendor "${vendorName}"?`)) return;
-        
-        const vendors = getCustomVendors().filter(v => v !== vendorName);
-        saveCustomVendors(vendors);
-        rebuildVendorSelect();
-        renderVendorList();
-        showTempMessage('Removed vendor: ' + vendorName);
-      }
-
-      // Initialize vendor management
-      rebuildVendorSelect();
-      renderVendorList();
-
-      if (addVendorBtn && newVendorInput) {
-        addVendorBtn.addEventListener('click', function() {
-          addCustomVendor(newVendorInput.value);
-          newVendorInput.value = '';
-        });
-        
-        newVendorInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            addCustomVendor(newVendorInput.value);
-            newVendorInput.value = '';
-          }
-        });
-      }
-
-      if (vendorList) {
-        vendorList.addEventListener('click', function(event) {
-          if (event.target.dataset.vendor) {
-            removeCustomVendor(event.target.dataset.vendor);
-          }
-        });
-      }
-
-      // Load saved configuration on startup
-      async function loadServerConfig() {
-        try {
-          const url = SERVER_ENDPOINT + '?action=loadConfig&token=' + encodeURIComponent(SERVER_TOKEN);
-          const response = await jsonpCall(url, 15000);
-          
-          if (response && response.success && response.config) {
-            const cfg = JSON.parse(response.config);
-            applyConfigObject(cfg);
-            console.log('Configuration loaded from server');
-          }
-        } catch (error) {
-          console.log('Could not load server config (using defaults):', error.message);
-        }
-      }
-
-      // Load config when page loads
-      loadServerConfig();
-    });
-
-    // --- Network Status Management ---
+    // Network Status Management
     function updateOnlineStatus() {
       const statusEls = [document.getElementById('status'), document.getElementById('status-duplicate')];
       const offlineNotice = document.getElementById('offlineNotice');
@@ -2607,7 +1077,7 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // --- Main Submission Logic ---
+    // Main Submission Logic - FIXED VERSION
     async function submitMainForm() {
       const submitBtn = document.getElementById('submitBtn');
       if (!submitBtn) return;
@@ -2635,16 +1105,16 @@
           }
         }
         
-        // Collect form data
+        // Collect form data - SIMPLIFIED VERSION
         const formData = collectFormData();
         
-        // Add photo link to Column D if available
+        // Add photo link to form data if available
         if (photoUploadResult) {
           formData.photoLink = photoUploadResult;
         }
         
-        // Submit main form data
-        const mainSubmitResult = await submitFormData(formData);
+        // Submit main form data using the unified submission
+        const mainSubmitResult = await submitFormDataUnified(formData);
         
         if (mainSubmitResult.success) {
           showTempMessage('Entry submitted successfully!');
@@ -2663,10 +1133,11 @@
       }
     }
 
+    // SIMPLIFIED form data collection
     function collectFormData() {
       const data = {};
       
-      // Collect purchased items with quantities and units
+      // Collect purchased items with quantities and units - SIMPLE FORMAT
       const purchased = [];
       const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
       
@@ -2797,7 +1268,8 @@
       return mapping[mainCheckboxId] || null;
     }
 
-    async function submitFormData(formData) {
+    // UNIFIED form submission with photo link and all data
+    async function submitFormDataUnified(formData) {
       const submitData = {
         action: 'submit',
         token: SERVER_TOKEN,
@@ -2846,9 +1318,19 @@
       });
     }
 
+    function showTempMessage(text) {
+      const m = document.getElementById('msg');
+      if (!m) return;
+      m.textContent = text; 
+      m.style.display = 'block';
+      setTimeout(() => { 
+        if (m && navigator.onLine) m.style.display = 'none'; 
+      }, 2500);
+    }
+
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
-      const submitBtn = document.getElementById('submitBtn');
+      const submitBtn = document.getElementById('submitBtn');  
       const clearBtn = document.getElementById('clearBtn');
       
       if (submitBtn) {
@@ -2863,26 +1345,172 @@
           }
         });
       }
+
+      // Initialize form bindings
+      bindSubitemHandlers();
+      setupMainToSubBindings();
+      document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+      
+      // Setup purchased from select
+      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+      const purchasedFromText = document.getElementById('purchasedFrom');
+      
+      if (purchasedFromSelect && purchasedFromText) {
+        purchasedFromSelect.addEventListener('change', function() {
+          const isOther = this.value === 'Other';
+          purchasedFromText.style.display = isOther ? 'block' : 'none';
+          if (!isOther) purchasedFromText.value = '';
+        });
+      }
     });
 
-    // Initialize form bindings when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      // Trigger change events to set initial states
-      document.querySelectorAll('.purchased').forEach(cb => {
-        cb.dispatchEvent(new Event('change'));
+    // Simplified binding functions
+    function bindSubitemHandlers() {
+      document.querySelectorAll('.subitem').forEach(function(sb){
+        const suffix = sb.id.slice(4);
+        const qtyId = 'q_' + suffix;
+        const qtyEl = document.getElementById(qtyId);
+        const unitEl = document.getElementById('unit_' + suffix);
+        const unitCustomEl = document.getElementById('unit_custom_' + suffix);
+
+        if (sb._custom_qty_handler) {
+          sb.removeEventListener('change', sb._custom_qty_handler);
+        }
+
+        const handler = function() {
+          const enabled = !!sb.checked;
+          if (qtyEl) {
+            qtyEl.disabled = !enabled;
+            if (!enabled) qtyEl.value = '';
+          }
+          if (unitEl) {
+            unitEl.disabled = !enabled;
+            if (!enabled) { unitEl.selectedIndex = 0; }
+          }
+          if (unitCustomEl) {
+            unitCustomEl.disabled = !enabled;
+            if (!enabled) { unitCustomEl.style.display = 'none'; unitCustomEl.value = ''; }
+          }
+        };
+        sb._custom_qty_handler = handler;
+        sb.addEventListener('change', handler);
+        
+        // Unit change handler
+        if (unitEl) {
+          if (unitEl._unit_change_bound) {
+            unitEl.removeEventListener('change', unitEl._unit_change_bound);
+          }
+          const unitChange = function() {
+            const v = unitEl.value;
+            if (unitCustomEl) {
+              if (v === 'Custom') {
+                unitCustomEl.style.display = '';
+                unitCustomEl.disabled = false;
+              } else {
+                unitCustomEl.style.display = 'none';
+                unitCustomEl.value = '';
+                unitCustomEl.disabled = true;
+              }
+            }
+          };
+          unitEl._unit_change_bound = unitChange;
+          unitEl.addEventListener('change', unitChange);
+        }
+
+        handler();
       });
-      
-      document.querySelectorAll('.subitem').forEach(cb => {
-        cb.dispatchEvent(new Event('change'));
+
+      // Handle "Others" main item
+      const otherMain = document.getElementById('p_other');
+      const otherQty = document.getElementById('q_other');
+      const otherUnit = document.getElementById('unit_other');
+      const otherUnitCustom = document.getElementById('unit_custom_other');
+      if (otherMain && otherQty) {
+        if (otherMain._custom_other_handler) otherMain.removeEventListener('change', otherMain._custom_other_handler);
+        const oh = function() {
+          const enabled = otherMain.checked;
+          otherQty.disabled = !enabled;
+          if (!enabled) otherQty.value = '';
+          if (otherUnit) {
+            otherUnit.disabled = !enabled;
+            if (!enabled) otherUnit.selectedIndex = 0;
+          }
+          if (otherUnitCustom) {
+            otherUnitCustom.disabled = !enabled;
+            if (!enabled) { otherUnitCustom.style.display = 'none'; otherUnitCustom.value = ''; }
+          }
+        };
+        otherMain._custom_other_handler = oh;
+        otherMain.addEventListener('change', oh);
+
+        // Unit change handler for Others
+        if (otherUnit) {
+          if (otherUnit._unit_change_bound) {
+            otherUnit.removeEventListener('change', otherUnit._unit_change_bound);
+          }
+          const otherUnitChange = function() {
+            const v = otherUnit.value;
+            if (otherUnitCustom) {
+              if (v === 'Custom') {
+                otherUnitCustom.style.display = '';
+                otherUnitCustom.disabled = false;
+              } else {
+                otherUnitCustom.style.display = 'none';
+                otherUnitCustom.value = '';
+                otherUnitCustom.disabled = true;
+              }
+            }
+          };
+          otherUnit._unit_change_bound = otherUnitChange;
+          otherUnit.addEventListener('change', otherUnitChange);
+        }
+
+        oh();
+      }
+    }
+    
+    function setupMainToSubBindings() {
+      const mainToSub = {
+        'p_floor': 'sublist_floor',
+        'p_wall': 'sublist_wall',
+        'p_san':  'sublist_san',
+        'p_acc':  'sublist_acc'
+      };
+      Object.keys(mainToSub).forEach(mainId => {
+        const mainCb = document.getElementById(mainId);
+        const subDiv = document.getElementById(mainToSub[mainId]);
+        if (!mainCb || !subDiv) return;
+        if (mainCb._custom_main_toggle) mainCb.removeEventListener('change', mainCb._custom_main_toggle);
+        const update = function() {
+          subDiv.style.display = mainCb.checked ? 'block' : 'none';
+          if (!mainCb.checked) {
+            subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
+            subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
+            subDiv.querySelectorAll('.unit-select').forEach(u => { u.selectedIndex = 0; u.disabled = true; });
+            subDiv.querySelectorAll('.unit-custom').forEach(uc => { uc.value=''; uc.style.display='none'; uc.disabled = true; });
+          }
+        };
+        mainCb._custom_main_toggle = update;
+        mainCb.addEventListener('change', update);
+        update();
       });
-      
-      document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => {
-        cb.dispatchEvent(new Event('change'));
+    }
+
+    function bindModeToggle(modeCheckbox) {
+      if (!modeCheckbox) return;
+      if (modeCheckbox._boundModeToggle) return;
+      modeCheckbox._boundModeToggle = true;
+      const parent = modeCheckbox.closest('.mode-row');
+      if (!parent) return;
+      const amtInput = parent.querySelector('input[type="number"].mode-amount');
+      modeCheckbox.addEventListener('change', function() {
+        if (amtInput) {
+          amtInput.disabled = !modeCheckbox.checked;
+          if (!modeCheckbox.checked) amtInput.value = '';
+        }
       });
-    });
+      if (amtInput) amtInput.disabled = !modeCheckbox.checked;
+    }
   </script>
 </body>
 </html>
-
-
-
