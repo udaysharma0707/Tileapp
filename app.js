@@ -1,11 +1,7 @@
-const ENDPOINT = "https://script.google.com/macros/s/AKfycby9-sWqfr-uGmD2AiFD6j3j0gbRzOg0DU13UsSjluTan6PH0pZVGOXjfKg59GHqKlgvUQ/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzAnmQO5x4iwIQo5epkz9mLWhCG6K2ueDXnl3w_YGmt1cD2k2fHSK22tmwwrnffiQ8h8g/exec";
 const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
-
-// ---------- INTEGRATED: Photo WebApp Variables ----------
-let selectedFile = null;
-let selectedImage = null;
 
 // ---------- helpers ----------
 function updateStatus(){ /* same as before - unchanged */
@@ -65,227 +61,8 @@ function jsonpRequest(url, timeoutMs) {
     document.body.appendChild(script);
   });
 }
-// ---------- INTEGRATED: Photo WebApp Functions (FIXED) ----------
-function openCamera() {
-  document.getElementById('cameraInput').click();
-}
 
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (file && file.type.startsWith('image/')) {
-    handleFile(file);
-  }
-}
-
-function handleFile(file) {
-  selectedFile = file;
-  
-  // Compress and create preview
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // REDUCED max dimensions to avoid large uploads
-      const maxWidth = 800;  // Reduced from 1920
-      const maxHeight = 600; // Reduced from 1080
-      let { width, height } = img;
-      
-      // Calculate new dimensions
-      if (width > height) {
-        if (width > maxWidth) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
-      
-      // Draw and compress MORE
-      ctx.drawImage(img, 0, 0, width, height);
-      selectedImage = canvas.toDataURL('image/jpeg', 0.3); // Reduced quality from 0.7 to 0.3
-      
-      // Show preview
-      const previewImg = document.getElementById('previewImage');
-      const previewContainer = document.getElementById('previewContainer');
-      if (previewImg && previewContainer) {
-        previewImg.src = selectedImage;
-        previewContainer.style.display = 'block';
-      }
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-// FIXED: Use correct endpoint and POST method
-async function uploadPhoto() {
-  if (!selectedImage) {
-    showPhotoStatus('Please select a photo first', 'error');
-    return null;
-  }
-  
-  showPhotoLoading(true);
-  
-  try {
-    // Use POST method with correct endpoint
-    const uploadResult = await uploadViaPost();
-    showPhotoLoading(false);
-    
-    if (uploadResult && uploadResult.success) {
-      showPhotoStatus('Photo uploaded successfully!', 'success');
-      resetPhotoForm();
-      return uploadResult.photoUrl;
-    } else {
-      throw new Error(uploadResult ? uploadResult.error : 'Upload failed');
-    }
-  } catch (error) {
-    console.error('Photo upload error:', error);
-    showPhotoLoading(false);
-    showPhotoStatus(`Upload failed: ${error.message}`, 'error');
-    return null;
-  }
-}
-
-// FIXED: Use correct endpoint with POST
-function uploadViaPost() {
-  return new Promise((resolve, reject) => {
-    // Use the same endpoint as the form submission
-    const SERVER_ENDPOINT = ENDPOINT || "https://script.google.com/macros/s/AKfycbxj91Aa0SypmZgWZe7Zk7AC4SKIfHvCxCPDRJY-Bv2D0reQMl9LacK9KmS7retmn900/exec";
-    
-    // Create a hidden iframe for form submission (avoids CORS)
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.name = 'upload_iframe_' + Date.now();
-    document.body.appendChild(iframe);
-    
-    // Create a form
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SERVER_ENDPOINT;
-    form.target = iframe.name;
-    form.enctype = 'application/x-www-form-urlencoded';
-    
-    // Create hidden inputs
-    const imageInput = document.createElement('input');
-    imageInput.type = 'hidden';
-    imageInput.name = 'imageData';
-    imageInput.value = selectedImage;
-    
-    const fileNameInput = document.createElement('input');
-    fileNameInput.type = 'hidden';
-    fileNameInput.name = 'fileName';
-    fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
-    
-    form.appendChild(imageInput);
-    form.appendChild(fileNameInput);
-    document.body.appendChild(form);
-    
-    // Handle iframe load (response)
-    let responded = false;
-    const cleanup = () => {
-      if (document.body.contains(form)) document.body.removeChild(form);
-      if (document.body.contains(iframe)) document.body.removeChild(iframe);
-    };
-    
-    iframe.onload = function() {
-      if (responded) return;
-      responded = true;
-      
-      try {
-        // Try to read the response (may fail due to cross-origin)
-        const response = iframe.contentDocument.body.textContent;
-        const result = JSON.parse(response);
-        
-        cleanup();
-        
-        if (result.success) {
-          resolve(result);
-        } else {
-          reject(new Error(result.error || 'Upload failed'));
-        }
-      } catch (e) {
-        // Cross-origin restriction, assume success after delay
-        cleanup();
-        // Return a success response with a placeholder URL since we can't read the actual response
-        resolve({
-          success: true,
-          photoUrl: 'https://drive.google.com/uc?id=uploaded_photo_' + Date.now(),
-          message: 'Photo uploaded successfully!'
-        });
-      }
-    };
-    
-    // Set a timeout for cleanup in case iframe doesn't load
-    setTimeout(() => {
-      if (!responded) {
-        responded = true;
-        cleanup();
-        // Assume success since Google Apps Script doesn't always return readable responses due to CORS
-        resolve({
-          success: true,
-          photoUrl: 'https://drive.google.com/uc?id=uploaded_photo_' + Date.now(),
-          message: 'Photo uploaded successfully!'
-        });
-      }
-    }, 10000); // 10 second timeout
-    
-    // Submit the form
-    form.submit();
-  });
-}
-
-function resetPhotoForm() {
-  selectedFile = null;
-  selectedImage = null;
-  const fileInput = document.getElementById('fileInput');
-  const cameraInput = document.getElementById('cameraInput');
-  const previewContainer = document.getElementById('previewContainer');
-  const statusDiv = document.getElementById('photoStatus');
-  
-  if (fileInput) fileInput.value = '';
-  if (cameraInput) cameraInput.value = '';
-  if (previewContainer) previewContainer.style.display = 'none';
-  if (statusDiv) statusDiv.innerHTML = '';
-}
-
-function showPhotoLoading(show) {
-  const loadingDiv = document.getElementById('photoLoading');
-  if (loadingDiv) {
-    loadingDiv.style.display = show ? 'block' : 'none';
-  }
-}
-
-function showPhotoStatus(message, type) {
-  const statusDiv = document.getElementById('photoStatus');
-  if (statusDiv) {
-    statusDiv.innerHTML = `<div class="photo-status ${type}">${message}</div>`;
-    
-    if (type === 'success') {
-      setTimeout(() => {
-        statusDiv.innerHTML = '';
-      }, 5000);
-    }
-  }
-}
-
-// Expose photo functions globally
-window.openCamera = openCamera;
-window.handleFileSelect = handleFileSelect;
-window.handleFile = handleFile;
-window.uploadPhoto = uploadPhoto;
-window.resetPhotoForm = resetPhotoForm;
-
-
-// Build JSONP URL and call (form submit) - UPDATED to include photo URL
+// Build JSONP URL and call (form submit)
 function sendToServerJSONP(formData, clientTs, opts) {
   var params = [];
   function add(k,v){ if (v === undefined || v === null) v=""; params.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v))); }
@@ -298,8 +75,6 @@ function sendToServerJSONP(formData, clientTs, opts) {
   add("modeBreakdown", formData.modeBreakdown || "");
   add("paymentPaid", formData.paymentPaid === undefined ? "" : String(formData.paymentPaid));
   add("otherInfo", formData.otherInfo || "");
-  // INTEGRATED: Add photo URL parameter
-  add("photoUrl", formData.photoUrl || "");
   if (formData.submissionId) { add("submissionId", formData.submissionId); add("clientId", formData.submissionId); }
   if (clientTs) add("clientTs", String(clientTs));
 
@@ -362,7 +137,7 @@ function saveGlobalUnits(units) {
   }
 }
 
-// ---------- MAIN: collectFormData (UPDATED to include photo URL) ----------
+// ---------- MAIN: collectFormData (updated to read edited labels and build items array) ----------
 function collectFormData(){
   const selectedParts = [];
   const items = []; // structured items: { id, qty, unit, label }
@@ -596,14 +371,6 @@ function collectFormData(){
   } catch (e) { /* ignore */ }
   const modeBreakdown = breakdownParts.join(', ');
 
-  // INTEGRATED: Get photo URL from uploaded photo (if any)
-  let photoUrl = '';
-  if (selectedImage) {
-    // If photo is selected but not yet uploaded, upload it now
-    console.log('Photo selected but not uploaded, attempting upload...');
-    // Note: This should be handled in the submit flow, not here
-  }
-
   return {
     // NOTE: join by newline so the sheet cell will show each entry on its own line
     purchasedItem: selectedParts.join("\n"),
@@ -614,14 +381,12 @@ function collectFormData(){
     modeBreakdown: modeBreakdown,
     paymentPaid: (document.getElementById('paymentPaid') || {}).value || '',
     otherInfo: (document.getElementById('otherInfo') || {}).value ? document.getElementById('otherInfo').value.trim() : '',
-    // INTEGRATED: Include photo URL in form data
-    photoUrl: photoUrl,
     // Structured items array - server will prefer this if present (now includes unit)
     items: items
   };
 }
 
-// showMessage, clearForm, makeSubmissionId - UPDATED to include photo clearing
+// showMessage, clearForm, makeSubmissionId - keep same semantics as before
 function showMessage(text){
   var m = document.getElementById('msg');
   if (!m) { console.log('[UI]', text); return; }
@@ -668,10 +433,6 @@ function clearForm(){
     });
     const payEl = document.getElementById('paymentPaid'); if (payEl) payEl.value = '';
     const oi = document.getElementById('otherInfo'); if (oi) oi.value = '';
-    
-    // INTEGRATED: Clear photo when clearing form
-    resetPhotoForm();
-    
   } catch(e){ console.warn('clearForm error', e); }
 }
 
@@ -877,7 +638,7 @@ function recomputePaymentFromModes() {
   } catch (e) { console.warn('recomputePaymentFromModes err', e); }
 }
 
-// ---------- MAIN DOM bindings (UPDATED to include photo functionality) ----------
+// ---------- MAIN DOM bindings ----------
 document.addEventListener('DOMContentLoaded', function() {
   updateStatus();
   const submitBtn = document.getElementById('submitBtn');
@@ -887,42 +648,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!submitBtn) { console.warn('[INIT] submitBtn not found in DOM'); return; }
   try { submitBtn.setAttribute('type','button'); } catch(e){}
-
-  // INTEGRATED: Photo WebApp Event Listeners Setup
-  const uploadArea = document.getElementById('uploadArea');
-  const fileInput = document.getElementById('fileInput');
-  const cameraInput = document.getElementById('cameraInput');
-
-  // Drag and drop functionality (if upload area exists)
-  if (uploadArea) {
-    uploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-      uploadArea.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      
-      const files = e.dataTransfer.files;
-      if (files.length > 0 && files[0].type.startsWith('image/')) {
-        handleFile(files[0]);
-      }
-    });
-  }
-
-  // File input change handlers
-  if (fileInput) {
-    fileInput.addEventListener('change', handleFileSelect);
-  }
-  
-  if (cameraInput) {
-    cameraInput.addEventListener('change', handleFileSelect);
-  }
 
   // attempt to load saved customization (apply if present)
   (async function(){
@@ -988,7 +713,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return errors;
   }
 
-  // UPDATED: Submit flow to include photo upload
   async function doSubmitFlow() {
     try {
       if (!navigator.onLine) { alert('Connect to internet. Your entry cannot be saved while offline.'); updateStatus(); return; }
@@ -1021,26 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!modeChecked) { alert('Please select a mode of payment.'); return; }
       if (!payment || isNaN(Number(payment)) ) { alert('Please enter a valid payment amount.'); return; }
 
-      // INTEGRATED: Upload photo first if selected
-      let photoUrl = '';
-      if (selectedImage) {
-        try {
-          showMessage('Uploading photo...');
-          const uploadResult = await uploadPhoto();
-          if (uploadResult) {
-            photoUrl = uploadResult;
-            showMessage('Photo uploaded successfully!');
-          }
-        } catch (photoError) {
-          console.warn('Photo upload failed:', photoError);
-          // Continue with form submission even if photo upload fails
-        }
-      }
-
       var formData = collectFormData();
-      // INTEGRATED: Add photo URL to form data
-      formData.photoUrl = photoUrl;
-      
       if (!formData.purchasedItem || formData.purchasedItem.trim() === "") {
         alert('No sub-item selected. Please select at least one specific item and quantity.');
         return;
@@ -1191,15 +896,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, { passive:true });
 
-  // INTEGRATED: Network status handling for photo uploads
-  window.addEventListener('online', () => {
-    showMessage('Back online! You can upload photos and submit forms now.');
-  });
-
-  window.addEventListener('offline', () => {
-    showMessage('You\'re offline. Features may be limited.');
-  });
-
   // Unregister service workers & clear caches (as before)
   if ('serviceWorker' in navigator) {
     try { navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(r => { r.unregister().catch(()=>{}); }); }).catch(()=>{}); } catch(e){ console.warn('sw unregister err', e); }
@@ -1209,5 +905,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
-
