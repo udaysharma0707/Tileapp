@@ -451,43 +451,7 @@
     <h1>
       <span id="appTitle">Tile Purchase Entry</span>
 
-       <!-- NEW: Photo Upload Section (integrated from photo webapp) -->
-    <div class="photo-section">
-      <label class="q-label">📷 Attach Photo (optional)</label>
       
-      <div class="upload-area" id="uploadArea">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">
-          Click to select a photo or drag & drop here
-        </div>
-        <button class="btn" type="button" onclick="document.getElementById('fileInput').click()">
-          Choose from Gallery
-        </button>
-        <button class="btn camera-btn" type="button" onclick="openCamera()">
-          Take Photo
-        </button>
-      </div>
-      
-      <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
-      <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
-      
-      <div class="preview-container" id="previewContainer">
-        <img id="previewImage" class="preview-image" alt="Preview">
-        <br>
-        <button class="btn" type="button" onclick="uploadPhoto()">Upload Photo</button>
-        <button class="btn" type="button" onclick="resetPhotoForm()">Remove Photo</button>
-      </div>
-      
-      <div class="loading" id="photoLoading">
-        <div class="spinner"></div>
-        <p>Uploading photo...</p>
-      </div>
-      
-      <div id="photoStatus"></div>
-      
-      <!-- Hidden input to store photo URL for form submission -->
-      <input type="hidden" id="photoUrl" name="photoUrl">
-    </div>
       
       <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
     </h1>
@@ -547,6 +511,43 @@
         </div>
       </div>
     </div>
+
+
+     <div class="container">
+        <h1>📸 Photo Upload</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">
+                Click to select a photo or drag & drop here
+            </div>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">
+                Choose from Gallery
+            </button>
+            <button class="btn camera-btn" onclick="openCamera()">
+                Take Photo
+            </button>
+        </div>
+        
+        <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
+        <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+        
+        <div class="preview-container" id="previewContainer">
+            <img id="previewImage" class="preview-image" alt="Preview">
+            <br>
+            <button class="btn" onclick="uploadPhoto()">Submit Photo</button>
+            <button class="btn" onclick="resetForm()">Cancel</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Uploading photo...</p>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    
 
     <!-- Purchased items with inline qty and nested subitems -->
     <label class="q-label">1. <span id="qPurchasedLabel">Purchased what (check items and enter quantity for specific sub-items)</span></label>
@@ -2632,6 +2633,7 @@
   </script>
 </body>
 </html>
+
 
 
 
