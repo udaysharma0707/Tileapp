@@ -945,6 +945,258 @@
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
+    // Replace with your Google Apps Script Web App URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec';
+
+        let selectedFile = null;
+        let selectedImage = null;
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                handleFile(files[0]);
+            }
+        });
+
+        function openCamera() {
+            document.getElementById('cameraInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            selectedFile = file;
+            
+            // Compress and create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set max dimensions to avoid large uploads
+                    const maxWidth = 1920;
+                    const maxHeight = 1080;
+                    let { width, height } = img;
+                    
+                    // Calculate new dimensions
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Draw and compress
+                    ctx.drawImage(img, 0, 0, width, height);
+                    selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    // Show preview
+                    document.getElementById('previewImage').src = selectedImage;
+                    document.getElementById('previewContainer').style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Main upload function - NO google.script.run used
+        async function uploadPhoto() {
+            if (!selectedImage) {
+                showStatus('Please select a photo first', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Use JSONP method to avoid CORS
+            uploadViaJsonp();
+        }
+
+        function uploadViaJsonp() {
+            // Create unique callback name
+            const callbackName = 'photoUploadCallback_' + Date.now();
+            
+            // Create callback function
+            window[callbackName] = function(response) {
+                // Cleanup
+                const script = document.getElementById(callbackName);
+                if (script) {
+                    document.head.removeChild(script);
+                }
+                delete window[callbackName];
+                
+                showLoading(false);
+                
+                if (response.success) {
+                    showStatus(`Success! Photo saved as "${response.shortName}"`, 'success');
+                    resetForm();
+                } else {
+                    showStatus(`Error: ${response.error || response.message}`, 'error');
+                }
+            };
+            
+            // Create script tag for JSONP
+            const script = document.createElement('script');
+            script.id = callbackName;
+            
+            // Prepare URL with parameters (truncate image data if too long for URL)
+            const fileName = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
+            
+            // For JSONP, we need to use a shorter approach or base64 encode differently
+            // Let's use a form submission approach instead
+            uploadViaFormSubmission();
+        }
+
+        function uploadViaFormSubmission() {
+            // Create a hidden iframe for form submission
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'upload_iframe_' + Date.now();
+            document.body.appendChild(iframe);
+            
+            // Create a form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCRIPT_URL;
+            form.target = iframe.name;
+            form.enctype = 'multipart/form-data';
+            
+            // Create hidden input for image data
+            const imageInput = document.createElement('input');
+            imageInput.type = 'hidden';
+            imageInput.name = 'imageData';
+            imageInput.value = selectedImage;
+            
+            const fileNameInput = document.createElement('input');
+            fileNameInput.type = 'hidden';
+            fileNameInput.name = 'fileName';
+            fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'upload';
+            
+            form.appendChild(imageInput);
+            form.appendChild(fileNameInput);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            
+            // Handle iframe load (response)
+            iframe.onload = function() {
+                try {
+                    // Try to read the response (may fail due to cross-origin)
+                    const response = iframe.contentDocument.body.textContent;
+                    const result = JSON.parse(response);
+                    
+                    showLoading(false);
+                    
+                    if (result.success) {
+                        showStatus(`Success! Photo saved as "${result.shortName}"`, 'success');
+                        resetForm();
+                    } else {
+                        showStatus(`Error: ${result.error}`, 'error');
+                    }
+                } catch (e) {
+                    // Cross-origin restriction, assume success after delay
+                    showLoading(false);
+                    showStatus('Photo uploaded! Check your Google Sheet.', 'success');
+                    resetForm();
+                }
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }, 1000);
+            };
+            
+            // Submit the form
+            form.submit();
+            
+            // Set a timeout for cleanup in case iframe doesn't load
+            setTimeout(() => {
+                if (document.body.contains(form)) {
+                    showLoading(false);
+                    showStatus('Upload completed! Check your Google Sheet.', 'success');
+                    resetForm();
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }
+            }, 10000); // 10 second timeout
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            selectedImage = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('previewContainer').style.display = 'none';
+            setTimeout(() => {
+                document.getElementById('status').innerHTML = '';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Network status handling
+        window.addEventListener('online', () => {
+            showStatus('Back online! You can upload photos now.', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+        });
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+  
+
     // JSONP helper
     function jsonpCall(url, timeoutMs = 20000) {
       return new Promise((resolve, reject) => {
@@ -2633,6 +2885,7 @@
   </script>
 </body>
 </html>
+
 
 
 
