@@ -669,7 +669,7 @@ function recomputePaymentFromModes() {
   } catch (e) { console.warn('recomputePaymentFromModes err', e); }
 }
 
-// ---------- Photo Upload Functions (integrated and fixed) ----------
+// ---------- Photo Upload Functions (MOVED OUTSIDE DOMContentLoaded for global access) ----------
 function openCamera() {
     const cameraInput = document.getElementById('cameraInput');
     if (cameraInput) cameraInput.click();
@@ -742,7 +742,7 @@ async function uploadPhoto() {
         const directResponse = await tryDirectUpload();
         if (directResponse.success) {
             showPhotoStatus(`Success! Photo uploaded`, 'success');
-            // FIXED: Store the photo URL in hidden input
+            // Store the photo URL in hidden input
             const photoUrlInput = document.getElementById('photoUrl');
             if (photoUrlInput && directResponse.fileUrl) {
                 photoUrlInput.value = directResponse.fileUrl;
@@ -802,7 +802,7 @@ function uploadViaJsonp() {
             
             if (response.success) {
                 showPhotoStatus(`Success! Photo uploaded`, 'success');
-                // FIXED: Store the photo URL in hidden input
+                // Store the photo URL in hidden input
                 const photoUrlInput = document.getElementById('photoUrl');
                 if (photoUrlInput && response.fileUrl) {
                     photoUrlInput.value = response.fileUrl;
@@ -887,15 +887,11 @@ function showPhotoStatus(message, type) {
             }, 5000);
         }
     }
-    // Also show in main message area
-    showMessage(message);
+    // Also show in main message area if available
+    if (typeof showMessage === 'function') {
+        showMessage(message);
+    }
 }
-
-// Expose photo functions globally
-window.openCamera = openCamera;
-window.handleFileSelect = handleFileSelect;
-window.uploadPhoto = uploadPhoto;
-window.resetPhotoForm = resetPhotoForm;
 
 // ---------- MAIN DOM bindings ----------
 document.addEventListener('DOMContentLoaded', function() {
