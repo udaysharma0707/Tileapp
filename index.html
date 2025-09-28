@@ -872,7 +872,6 @@ if (uploadArea) {
 }
 
 function openCamera() {
-    const cameraInput = document.getElementById('cameraInput');
     if (cameraInput) cameraInput.click();
 }
 
@@ -886,7 +885,7 @@ function handleFileSelect(event) {
 // SINGLE handleFile function - no duplicates
 function handleFile(file) {
     selectedFile = file;
-    console.log('handleFile called with:', file.name); // Debug
+    
     
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -920,73 +919,113 @@ function handleFile(file) {
             ctx.drawImage(img, 0, 0, width, height);
             selectedImage = canvas.toDataURL('image/jpeg', 0.7);
             
-            console.log('selectedImage created, length:', selectedImage.length); // Debug
-            
-            // Show preview - ENSURE elements exist
-            const previewImg = document.getElementById('previewImage');
-            const previewContainer = document.getElementById('previewContainer');
-            
-            console.log('previewImg found:', !!previewImg); // Debug
-            console.log('previewContainer found:', !!previewContainer); // Debug
-            
-            if (previewImg && previewContainer) {
-                previewImg.src = selectedImage;
-                previewContainer.style.display = 'block';
-                showPhotoStatus('Photo selected successfully!', 'success');
-                console.log('Preview should now be visible'); // Debug
-            } else {
-                console.error('Preview elements not found!');
-                // Fallback - create preview elements if they don't exist
-                createPreviewElements();
-            }
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
 
-// Fallback function to create preview elements if missing
-function createPreviewElements() {
-    const photoSection = document.querySelector('.photo-section');
-    if (!photoSection) return;
-    
-    let previewContainer = document.getElementById('previewContainer');
-    if (!previewContainer) {
-        previewContainer = document.createElement('div');
-        previewContainer.id = 'previewContainer';
-        previewContainer.className = 'preview-container';
-        previewContainer.style.display = 'none';
-        previewContainer.style.textAlign = 'center';
-        previewContainer.style.margin = '20px 0';
-        
-        const previewImg = document.createElement('img');
-        previewImg.id = 'previewImage';
-        previewImg.className = 'preview-image';
-        previewImg.style.maxWidth = '100%';
-        previewImg.style.maxHeight = '250px';
-        previewImg.style.borderRadius = '10px';
-        previewImg.style.marginBottom = '15px';
-        
-        const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'btn';
-        cancelBtn.textContent = 'Cancel Photo';
-        cancelBtn.onclick = resetPhotoForm;
-        
-        previewContainer.appendChild(previewImg);
-        previewContainer.appendChild(document.createElement('br'));
-        previewContainer.appendChild(cancelBtn);
-        
-        photoSection.appendChild(previewContainer);
+            
+            // Show preview
+                document.getElementById('previewImage').src = selectedImage;
+                document.getElementById('previewContainer').style.display = 'block';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
-    
-    // Now show the preview
-    const previewImg = document.getElementById('previewImage');
-    if (previewImg && selectedImage) {
-        previewImg.src = selectedImage;
-        previewContainer.style.display = 'block';
-        showPhotoStatus('Photo selected successfully!', 'success');
+
+    // Photo upload function (integrated with main submit)
+    async function uploadPhotoToServer() {
+        if (!selectedImage) {
+            return null; // No photo to upload
+        }
+        
+        showLoading(true);
+        
+        try {
+            // Use form submission approach for photo upload
+            return await uploadViaFormSubmission();
+        } catch (error) {
+            console.error('Photo upload error:', error);
+            return null;
+        } finally {
+            showLoading(false);
+        }
     }
-}
+
+    function uploadViaFormSubmission() {
+        return new Promise((resolve, reject) => {
+            // Create a hidden iframe for form submission
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'upload_iframe_' + Date.now();
+            document.body.appendChild(iframe);
+            
+            // Create a form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCRIPT_URL;
+            form.target = iframe.name;
+            form.enctype = 'multipart/form-data';
+            
+            // Create hidden input for image data
+            const imageInput = document.createElement('input');
+            imageInput.type = 'hidden';
+            imageInput.name = 'imageData';
+            imageInput.value = selectedImage;
+            
+            const fileNameInput = document.createElement('input');
+            fileNameInput.type = 'hidden';
+            fileNameInput.name = 'fileName';
+            fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'upload';
+            
+            form.appendChild(imageInput);
+            form.appendChild(fileNameInput);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            
+            // Handle iframe load (response)
+            iframe.onload = function() {
+                try {
+                    // Try to read the response (may fail due to cross-origin)
+                    const response = iframe.contentDocument.body.textContent;
+                    const result = JSON.parse(response);
+                    
+                    if (result.success) {
+                        resolve(result.shortName || 'Photo uploaded');
+                    } else {
+                        reject(new Error(result.error || 'Upload failed'));
+                    }
+                } catch (e) {
+                    // Cross-origin restriction, assume success after delay
+                    resolve('Photo uploaded successfully');
+                }
+                
+                // Cleanup
+                setTimeout(() => {
+                    if (document.body.contains(form)) {
+                        document.body.removeChild(form);
+                    }
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 1000);
+            };
+            
+            // Submit the form
+            form.submit();
+            
+            // Set a timeout for cleanup in case iframe doesn't load
+            setTimeout(() => {
+                if (document.body.contains(form)) {
+                    resolve('Photo upload completed');
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }
+            }, 10000); // 10 second timeout
+        });
+    }
 
 function resetPhotoForm() {
     selectedFile = null;
@@ -2972,6 +3011,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
