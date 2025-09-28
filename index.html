@@ -839,26 +839,18 @@
 
 
 <script>
-/* Unified submit script — NO CANVAS used.
-   - Single POST to SCRIPT_URL?action=submit via hidden iframe
-   - Includes imageData (base64) if a photo is selected (read via FileReader)
-   - Clears form after successful submit
-   - Shows debug box with exactly what is being posted
-*/
+/* Unified submit script — FIXED VERSION */
 
 const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
 const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
-  
-
-   
-
 
 let selectedFile = null;
-    let selectedImage = null;
+let selectedImage = null;
 
-    // Drag and drop functionality
-    const uploadArea = document.getElementById('uploadArea');
+// Drag and drop functionality
+const uploadArea = document.getElementById('uploadArea');
 
+if (uploadArea) {
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.classList.add('dragover');
@@ -877,192 +869,164 @@ let selectedFile = null;
             handleFile(files[0]);
         }
     });
+}
 
-    function openCamera() {
-        document.getElementById('cameraInput').click();
+function openCamera() {
+    const cameraInput = document.getElementById('cameraInput');
+    if (cameraInput) cameraInput.click();
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        handleFile(file);
     }
+}
 
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            handleFile(file);
-        }
-    }
-
-    function handleFile(file) {
-        selectedFile = file;
-        
-        // Compress and create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Set max dimensions to avoid large uploads
-                const maxWidth = 1920;
-                const maxHeight = 1080;
-                let { width, height } = img;
-                
-                // Calculate new dimensions
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
+// SINGLE handleFile function - no duplicates
+function handleFile(file) {
+    selectedFile = file;
+    console.log('handleFile called with:', file.name); // Debug
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set max dimensions
+            const maxWidth = 1920;
+            const maxHeight = 1080;
+            let { width, height } = img;
+            
+            // Calculate new dimensions
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
                 }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                // Draw and compress
-                ctx.drawImage(img, 0, 0, width, height);
-                selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-                
-                // Show preview
-                document.getElementById('previewImage').src = selectedImage;
-                document.getElementById('previewContainer').style.display = 'block';
-            };
-            img.src = e.target.result;
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+            
+            console.log('selectedImage created, length:', selectedImage.length); // Debug
+            
+            // Show preview - ENSURE elements exist
+            const previewImg = document.getElementById('previewImage');
+            const previewContainer = document.getElementById('previewContainer');
+            
+            console.log('previewImg found:', !!previewImg); // Debug
+            console.log('previewContainer found:', !!previewContainer); // Debug
+            
+            if (previewImg && previewContainer) {
+                previewImg.src = selectedImage;
+                previewContainer.style.display = 'block';
+                showPhotoStatus('Photo selected successfully!', 'success');
+                console.log('Preview should now be visible'); // Debug
+            } else {
+                console.error('Preview elements not found!');
+                // Fallback - create preview elements if they don't exist
+                createPreviewElements();
+            }
         };
-        reader.readAsDataURL(file);
-    }
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
 
-    // Photo upload function (integrated with main submit)
-    async function uploadPhotoToServer() {
-        if (!selectedImage) {
-            return null; // No photo to upload
-        }
+// Fallback function to create preview elements if missing
+function createPreviewElements() {
+    const photoSection = document.querySelector('.photo-section');
+    if (!photoSection) return;
+    
+    let previewContainer = document.getElementById('previewContainer');
+    if (!previewContainer) {
+        previewContainer = document.createElement('div');
+        previewContainer.id = 'previewContainer';
+        previewContainer.className = 'preview-container';
+        previewContainer.style.display = 'none';
+        previewContainer.style.textAlign = 'center';
+        previewContainer.style.margin = '20px 0';
         
-        showLoading(true);
+        const previewImg = document.createElement('img');
+        previewImg.id = 'previewImage';
+        previewImg.className = 'preview-image';
+        previewImg.style.maxWidth = '100%';
+        previewImg.style.maxHeight = '250px';
+        previewImg.style.borderRadius = '10px';
+        previewImg.style.marginBottom = '15px';
         
-        try {
-            // Use form submission approach for photo upload
-            return await uploadViaFormSubmission();
-        } catch (error) {
-            console.error('Photo upload error:', error);
-            return null;
-        } finally {
-            showLoading(false);
-        }
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn';
+        cancelBtn.textContent = 'Cancel Photo';
+        cancelBtn.onclick = resetPhotoForm;
+        
+        previewContainer.appendChild(previewImg);
+        previewContainer.appendChild(document.createElement('br'));
+        previewContainer.appendChild(cancelBtn);
+        
+        photoSection.appendChild(previewContainer);
     }
-
-    function uploadViaFormSubmission() {
-        return new Promise((resolve, reject) => {
-            // Create a hidden iframe for form submission
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.name = 'upload_iframe_' + Date.now();
-            document.body.appendChild(iframe);
-            
-            // Create a form
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = SCRIPT_URL;
-            form.target = iframe.name;
-            form.enctype = 'multipart/form-data';
-            
-            // Create hidden input for image data
-            const imageInput = document.createElement('input');
-            imageInput.type = 'hidden';
-            imageInput.name = 'imageData';
-            imageInput.value = selectedImage;
-            
-            const fileNameInput = document.createElement('input');
-            fileNameInput.type = 'hidden';
-            fileNameInput.name = 'fileName';
-            fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
-            
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'upload';
-            
-            form.appendChild(imageInput);
-            form.appendChild(fileNameInput);
-            form.appendChild(actionInput);
-            document.body.appendChild(form);
-            
-            // Handle iframe load (response)
-            iframe.onload = function() {
-                try {
-                    // Try to read the response (may fail due to cross-origin)
-                    const response = iframe.contentDocument.body.textContent;
-                    const result = JSON.parse(response);
-                    
-                    if (result.success) {
-                        resolve(result.shortName || 'Photo uploaded');
-                    } else {
-                        reject(new Error(result.error || 'Upload failed'));
-                    }
-                } catch (e) {
-                    // Cross-origin restriction, assume success after delay
-                    resolve('Photo uploaded successfully');
-                }
-                
-                // Cleanup
-                setTimeout(() => {
-                    if (document.body.contains(form)) {
-                        document.body.removeChild(form);
-                    }
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                }, 1000);
-            };
-            
-            // Submit the form
-            form.submit();
-            
-            // Set a timeout for cleanup in case iframe doesn't load
-            setTimeout(() => {
-                if (document.body.contains(form)) {
-                    resolve('Photo upload completed');
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                }
-            }, 10000); // 10 second timeout
-        });
+    
+    // Now show the preview
+    const previewImg = document.getElementById('previewImage');
+    if (previewImg && selectedImage) {
+        previewImg.src = selectedImage;
+        previewContainer.style.display = 'block';
+        showPhotoStatus('Photo selected successfully!', 'success');
     }
+}
 
-    function resetPhotoForm() {
-        selectedFile = null;
-        selectedImage = null;
-        document.getElementById('fileInput').value = '';
-        document.getElementById('cameraInput').value = '';
-        document.getElementById('previewContainer').style.display = 'none';
-        document.getElementById('photoStatus').innerHTML = '';
-    }
+function resetPhotoForm() {
+    selectedFile = null;
+    selectedImage = null;
+    const fileInput = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const photoStatus = document.getElementById('photoStatus');
+    
+    if (fileInput) fileInput.value = '';
+    if (cameraInput) cameraInput.value = '';
+    if (previewContainer) previewContainer.style.display = 'none';
+    if (photoStatus) photoStatus.innerHTML = '';
+}
 
-    function showLoading(show) {
-        document.getElementById('loading').style.display = show ? 'block' : 'none';
-    }
+function showLoading(show) {
+    const loading = document.getElementById('loading');
+    if (loading) loading.style.display = show ? 'block' : 'none';
+}
 
-    function showPhotoStatus(message, type) {
-        const statusDiv = document.getElementById('photoStatus');
+function showPhotoStatus(message, type) {
+    const statusDiv = document.getElementById('photoStatus');
+    if (statusDiv) {
         statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
     }
+    console.log('Photo status:', message, type); // Debug
+}
 
-    // Network status handling
-    window.addEventListener('online', () => {
-        showPhotoStatus('Back online! You can upload photos now.', 'success');
-    });
+// Network status handling
+window.addEventListener('online', () => {
+    showPhotoStatus('Back online! You can upload photos now.', 'success');
+});
 
-    window.addEventListener('offline', () => {
-        showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-    });
+window.addEventListener('offline', () => {
+    showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+});
 
-  
 function showTempMessage(text) {
   const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
   if (!el) {
-    // fallback alert if no message container
     try { alert(text); } catch(e) {}
     return;
   }
@@ -1071,9 +1035,7 @@ function showTempMessage(text) {
   setTimeout(() => { try { el.style.display = 'none'; } catch(e) {} }, 3000);
 }
 
-
-
-/* ---------- Collect form data (purchased items -> Column C etc.) ---------- */
+/* ---------- Collect form data ---------- */
 function getSublistId(mainCheckboxId) {
   const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
   return mapping[mainCheckboxId] || null;
@@ -1125,7 +1087,6 @@ function collectFormData() {
               else if (subValue) purchased.push(subValue);
             });
           } else {
-            // main checked but no subitems checked -> record main label
             purchased.push(value);
           }
         } else {
@@ -1163,54 +1124,25 @@ function collectFormData() {
   const otherInfoEl = document.getElementById('otherInfo');
   data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
 
-  data.photoLink = ''; // will be set by submit flow if photo attached
   return data;
 }
-  
 
-/* ---------- Debug box (temporary) ---------- */
-function showDebugBox(text) {
-  let dbg = document.getElementById('clientDebugBox');
-  if (!dbg) {
-    dbg = document.createElement('pre');
-    dbg.id = 'clientDebugBox';
-    dbg.style.position = 'fixed';
-    dbg.style.right = '10px';
-    dbg.style.bottom = '10px';
-    dbg.style.zIndex = 99999;
-    dbg.style.background = 'rgba(0,0,0,0.75)';
-    dbg.style.color = '#fff';
-    dbg.style.padding = '8px';
-    dbg.style.maxWidth = '420px';
-    dbg.style.maxHeight = '320px';
-    dbg.style.overflow = 'auto';
-    dbg.style.fontSize = '12px';
-    document.body.appendChild(dbg);
-  }
-  dbg.textContent = text;
-}
-
-// Replace the submitMainForm function in your working manual entry file with this:
 async function submitMainForm() {
   const submitBtn = document.getElementById('submitBtn');
   if (!submitBtn) return;
   
-  // Disable button during submission
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting...';
   
   try {
-    // Collect form data FIRST
     const formData = collectFormData();
     
-    // Add photo data if selected
     if (selectedImage) {
       formData.imageData = selectedImage;
       formData.fileName = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
       showPhotoStatus('Attaching photo to submission...', 'success');
     }
     
-    // Single unified submission with BOTH manual data AND photo
     const result = await submitUnifiedForm(formData);
     
     if (result.success) {
@@ -1230,23 +1162,19 @@ async function submitMainForm() {
   }
 }
 
-// Add this new function for unified submission
 async function submitUnifiedForm(formData) {
   return new Promise((resolve, reject) => {
-    // Create hidden iframe
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     iframe.name = 'unified_submit_' + Date.now();
     document.body.appendChild(iframe);
     
-    // Create form with ALL data
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = SCRIPT_URL;
     form.target = iframe.name;
     form.enctype = 'multipart/form-data';
     
-    // Add all form fields
     function addField(name, value) {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -1263,7 +1191,6 @@ async function submitUnifiedForm(formData) {
     addField('paymentPaid', formData.paymentPaid);
     addField('otherInfo', formData.otherInfo);
     
-    // Add photo data if present
     if (formData.imageData) {
       addField('imageData', formData.imageData);
       addField('fileName', formData.fileName);
@@ -1271,28 +1198,23 @@ async function submitUnifiedForm(formData) {
     
     document.body.appendChild(form);
     
-    // Handle response
     iframe.onload = function() {
       try {
         const response = iframe.contentDocument.body.textContent;
         const result = JSON.parse(response);
         resolve(result);
       } catch (e) {
-        // Cross-origin, assume success
         resolve({ success: true });
       }
       
-      // Cleanup
       setTimeout(() => {
         document.body.removeChild(form);
         document.body.removeChild(iframe);
       }, 1000);
     };
     
-    // Submit form
     form.submit();
     
-    // Timeout fallback
     setTimeout(() => {
       resolve({ success: true });
       if (document.body.contains(form)) {
@@ -1303,261 +1225,34 @@ async function submitUnifiedForm(formData) {
   });
 }
 
-
-
-/* ---------- Clear form (only after successful submit) ---------- */
 function clearForm() {
-  // uncheck checkboxes
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
-  // clear text/number/textarea (skip helper inputs)
   document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
     if (['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(inp.id) === -1) inp.value = '';
   });
-  // reset selects
   document.querySelectorAll('select').forEach(sel => { if (sel.id !== 'addCategorySelect') { sel.selectedIndex = 0; try { sel.dispatchEvent(new Event('change')); } catch(e){} } });
-  // hide custom unit inputs
   document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; if (uc.value !== undefined) uc.value = ''; });
 }
 
-/* ---------- Remove stray upload/submit buttons in photo area at runtime & wire submit button ---------- */
 document.addEventListener('DOMContentLoaded', function() {
-  // Remove any accidental "Submit" or "Upload" buttons inside photo area
-  const photoAreas = document.querySelectorAll('.photo-section, #uploadArea, #previewContainer');
-  photoAreas.forEach(area => {
-    if (!area) return;
-    area.querySelectorAll('button').forEach(btn => {
-      const t = (btn.textContent || '').trim().toLowerCase();
-      if (t === 'submit' || t === 'upload' || t === 'upload photo') btn.remove();
-    });
-  });
-
-  // Wire main submit button
   const submitBtn = document.getElementById('submitBtn');
   if (submitBtn) {
-    // ensure we don't double-wire
     submitBtn.removeEventListener('click', submitMainForm);
     submitBtn.addEventListener('click', submitMainForm);
-    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent || 'Submit';
   }
 
- // Wire clear button if present
-const clearBtn = document.getElementById('clearBtn');
-if (clearBtn) {
-  clearBtn.removeEventListener('click', function(){});
-  clearBtn.addEventListener('click', function() { 
-    if (confirm('Clear all form data?')) { 
-      clearForm(); 
-      resetPhotoForm(); 
-    } 
-  });
-}
-
-  function openCamera() {
-    document.getElementById('cameraInput').click();
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        handleFile(file);
-    }
-}
-
-function handleFile(file) {
-    selectedFile = file;
-    
-    // Create preview immediately
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Set max dimensions to avoid large uploads
-            const maxWidth = 1920;
-            const maxHeight = 1080;
-            let { width, height } = img;
-            
-            // Calculate new dimensions
-            if (width > height) {
-                if (width > maxWidth) {
-                    height *= maxWidth / width;
-                    width = maxWidth;
-                }
-            } else {
-                if (height > maxHeight) {
-                    width *= maxHeight / height;
-                    height = maxHeight;
-                }
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Draw and compress
-            ctx.drawImage(img, 0, 0, width, height);
-            selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-            
-            // Show preview - FIXED
-            const previewImg = document.getElementById('previewImage');
-            const previewContainer = document.getElementById('previewContainer');
-            
-            if (previewImg && previewContainer) {
-                previewImg.src = selectedImage;
-                previewContainer.style.display = 'block';
-                
-                // Show success status
-                showPhotoStatus('Photo selected successfully!', 'success');
-            }
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-async function uploadPhoto() {
-    if (!selectedImage) {
-        showStatus('Please select a photo first', 'error');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        // Method 1: Try direct POST (might work after recent Google updates)
-        const directResponse = await tryDirectUpload();
-        if (directResponse.success) {
-            showStatus(`Success! Photo saved as "${directResponse.shortName}"`, 'success');
-            resetForm();
-            showLoading(false);
-            return;
-        }
-    } catch (error) {
-        console.log('Direct upload failed, trying JSONP method...');
-    }
-    
-    // Method 2: Fallback to JSONP method
-    try {
-        await uploadViaJsonp();
-    } catch (error) {
-        showStatus(`Upload failed: ${error.message}`, 'error');
-        showLoading(false);
-    }
-}
-
-async function tryDirectUpload() {
-    const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            imageData: selectedImage,
-            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
-        })
+  const clearBtn = document.getElementById('clearBtn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() { 
+      if (confirm('Clear all form data?')) { 
+        clearForm(); 
+        resetPhotoForm(); 
+      } 
     });
-    
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-}
-
-function uploadViaJsonp() {
-    return new Promise((resolve, reject) => {
-        // Create unique callback name
-        const callbackName = 'photoUploadCallback_' + Date.now();
-        
-        // Create callback function
-        window[callbackName] = function(response) {
-            // Cleanup
-            document.head.removeChild(script);
-            delete window[callbackName];
-            
-            showLoading(false);
-            
-            if (response.success) {
-                showStatus(`Success! Photo saved as "${response.shortName}"`, 'success');
-                resetForm();
-                resolve(response);
-            } else {
-                showStatus(`Error: ${response.error}`, 'error');
-                reject(new Error(response.error));
-            }
-        };
-        
-        // Create script tag for JSONP
-        const script = document.createElement('script');
-        
-        // Prepare URL with parameters
-        const params = new URLSearchParams({
-            action: 'upload',
-            callback: callbackName,
-            imageData: selectedImage,
-            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
-        });
-        
-        script.src = SCRIPT_URL + '?' + params.toString();
-        script.onerror = () => {
-            document.head.removeChild(script);
-            delete window[callbackName];
-            showLoading(false);
-            reject(new Error('JSONP request failed'));
-        };
-        
-        // Add script to head to trigger the request
-        document.head.appendChild(script);
-        
-        // Set timeout for cleanup
-        setTimeout(() => {
-            if (window[callbackName]) {
-                document.head.removeChild(script);
-                delete window[callbackName];
-                showLoading(false);
-                reject(new Error('Upload timeout'));
-            }
-        }, 30000); // 30 second timeout
-    });
-}
-
-function resetForm() {
-    selectedFile = null;
-    selectedImage = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('cameraInput').value = '';
-    document.getElementById('previewContainer').style.display = 'none';
-    document.getElementById('status').innerHTML = '';
-}
-
-function showLoading(show) {
-    document.getElementById('loading').style.display = show ? 'block' : 'none';
-}
-
-function showStatus(message, type) {
-    const statusDiv = document.getElementById('status');
-    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-    
-    if (type === 'success') {
-        setTimeout(() => {
-            statusDiv.innerHTML = '';
-        }, 5000);
-    }
-}
-
-// Network status handling
-window.addEventListener('online', () => {
-    showStatus('Back online! You can upload photos now.', 'success');
+  }
 });
+</script>
 
-window.addEventListener('offline', () => {
-    showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-});
-  </script>
-
-  
-  <script>
   
 
     <!-- Service Worker Registration -->
@@ -3277,5 +2972,6 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
