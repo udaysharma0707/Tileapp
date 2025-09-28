@@ -1070,23 +1070,26 @@ let selectedImage = null; // dataURL string (base64) read directly from file wit
             }, 5000);
         }
 
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
+       function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+}
 
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-        }
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+}
 
-        // Network status handling
-        window.addEventListener('online', () => {
-            showStatus('Back online! You can upload photos now.', 'success');
-        });
+// Network status handling
+window.addEventListener('online', () => {
+    showStatus('Back online! You can upload photos now.', 'success');
+});
 
-        window.addEventListener('offline', () => {
-            showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-        
+window.addEventListener('offline', () => {
+    showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+} // This is the line missing the closing parenthesis
+); // <-- The missing closing parenthesis for window.addEventListener()
+
+  
 function showTempMessage(text) {
   const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
   if (!el) {
@@ -3066,7 +3069,7 @@ function jsonpCall(url, timeoutMs = 20000) {
           try {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
-            
+            const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
             const submitData = {
               action: 'submitForm',
               token: SERVER_TOKEN,
@@ -3137,6 +3140,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
