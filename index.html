@@ -425,8 +425,6 @@
         
         <div class="preview-container" id="previewContainer">
             <img id="previewImage" class="preview-image" alt="Preview">
-          <div id="photoStatus"></div>
-          
             <br>
             
             <button class="btn" onclick="resetPhotoForm()">Cancel</button>
@@ -839,18 +837,26 @@
 
 
 <script>
-/* Unified submit script — FIXED VERSION */
+/* Unified submit script — NO CANVAS used.
+   - Single POST to SCRIPT_URL?action=submit via hidden iframe
+   - Includes imageData (base64) if a photo is selected (read via FileReader)
+   - Clears form after successful submit
+   - Shows debug box with exactly what is being posted
+*/
 
 const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
 const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
+  
+
+   
+
 
 let selectedFile = null;
-let selectedImage = null;
+    let selectedImage = null;
 
-// Drag and drop functionality
-const uploadArea = document.getElementById('uploadArea');
+    // Drag and drop functionality
+    const uploadArea = document.getElementById('uploadArea');
 
-if (uploadArea) {
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.classList.add('dragover');
@@ -869,59 +875,55 @@ if (uploadArea) {
             handleFile(files[0]);
         }
     });
-}
 
-function openCamera() {
-    if (cameraInput) cameraInput.click();
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        handleFile(file);
+    function openCamera() {
+        document.getElementById('cameraInput').click();
     }
-}
 
-// SINGLE handleFile function - no duplicates
-function handleFile(file) {
-    selectedFile = file;
-    
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Set max dimensions
-            const maxWidth = 1920;
-            const maxHeight = 1080;
-            let { width, height } = img;
-            
-            // Calculate new dimensions
-            if (width > height) {
-                if (width > maxWidth) {
-                    height *= maxWidth / width;
-                    width = maxWidth;
-                }
-            } else {
-                if (height > maxHeight) {
-                    width *= maxHeight / height;
-                    height = maxHeight;
-                }
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Draw and compress
-            ctx.drawImage(img, 0, 0, width, height);
-            selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-            
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleFile(file);
+        }
+    }
 
-            
-            // Show preview
+    function handleFile(file) {
+        selectedFile = file;
+        
+        // Compress and create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set max dimensions to avoid large uploads
+                const maxWidth = 1920;
+                const maxHeight = 1080;
+                let { width, height } = img;
+                
+                // Calculate new dimensions
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Show preview
                 document.getElementById('previewImage').src = selectedImage;
                 document.getElementById('previewContainer').style.display = 'block';
             };
@@ -1027,7 +1029,7 @@ function handleFile(file) {
         });
     }
 
- function resetPhotoForm() {
+    function resetPhotoForm() {
         selectedFile = null;
         selectedImage = null;
         document.getElementById('fileInput').value = '';
@@ -1035,17 +1037,17 @@ function handleFile(file) {
         document.getElementById('previewContainer').style.display = 'none';
         document.getElementById('photoStatus').innerHTML = '';
     }
-function showLoading(show) {
+
+    function showLoading(show) {
         document.getElementById('loading').style.display = show ? 'block' : 'none';
     }
 
-function showPhotoStatus(message, type) {
+    function showPhotoStatus(message, type) {
         const statusDiv = document.getElementById('photoStatus');
         statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
     }
-    
 
-// Network status handling
+    // Network status handling
     window.addEventListener('online', () => {
         showPhotoStatus('Back online! You can upload photos now.', 'success');
     });
@@ -1053,35 +1055,12 @@ function showPhotoStatus(message, type) {
     window.addEventListener('offline', () => {
         showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
     });
- // Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('SW registered'))
-                .catch(error => console.log('SW registration failed'));
-        });
-    }
 
-    // JSONP helper
-    function jsonpCall(url, timeoutMs = 20000) {
-      return new Promise((resolve, reject) => {
-        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
-        window[cbName] = function(data) {
-          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
-        };
-        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
-        const script = document.createElement('script');
-        script.src = full;
-        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
-        document.body.appendChild(script);
-        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
-      });
-    }
-
-
+  
 function showTempMessage(text) {
   const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
   if (!el) {
+    // fallback alert if no message container
     try { alert(text); } catch(e) {}
     return;
   }
@@ -1090,7 +1069,9 @@ function showTempMessage(text) {
   setTimeout(() => { try { el.style.display = 'none'; } catch(e) {} }, 3000);
 }
 
-/* ---------- Collect form data ---------- */
+
+
+/* ---------- Collect form data (purchased items -> Column C etc.) ---------- */
 function getSublistId(mainCheckboxId) {
   const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
   return mapping[mainCheckboxId] || null;
@@ -1142,6 +1123,7 @@ function collectFormData() {
               else if (subValue) purchased.push(subValue);
             });
           } else {
+            // main checked but no subitems checked -> record main label
             purchased.push(value);
           }
         } else {
@@ -1179,163 +1161,34 @@ function collectFormData() {
   const otherInfoEl = document.getElementById('otherInfo');
   data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
 
+  data.photoLink = ''; // will be set by submit flow if photo attached
   return data;
 }
+  
 
+/* ---------- Debug box (temporary) ---------- */
+function showDebugBox(text) {
+  let dbg = document.getElementById('clientDebugBox');
+  if (!dbg) {
+    dbg = document.createElement('pre');
+    dbg.id = 'clientDebugBox';
+    dbg.style.position = 'fixed';
+    dbg.style.right = '10px';
+    dbg.style.bottom = '10px';
+    dbg.style.zIndex = 99999;
+    dbg.style.background = 'rgba(0,0,0,0.75)';
+    dbg.style.color = '#fff';
+    dbg.style.padding = '8px';
+    dbg.style.maxWidth = '420px';
+    dbg.style.maxHeight = '320px';
+    dbg.style.overflow = 'auto';
+    dbg.style.fontSize = '12px';
+    document.body.appendChild(dbg);
+  }
+  dbg.textContent = text;
+}
 
-        
-        // Collect form data
-        const formData = collectFormData();
-        
-        // Add photo link to Column D if available
-        if (photoUploadResult) {
-          formData.photoLink = photoUploadResult;
-        }
-        
-        // Submit main form data
-        const mainSubmitResult = await submitFormData(formData);
-        
-        if (mainSubmitResult.success) {
-          showTempMessage('Entry submitted successfully!');
-          clearForm();
-          resetPhotoForm();
-        } else {
-          throw new Error(mainSubmitResult.error || 'Submission failed');
-        }
-        
-      } catch (error) {
-        console.error('Submission error:', error);
-        showTempMessage('Error: ' + error.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
-      }
-    }
-
-    function collectFormData() {
-      const data = {};
-      
-      // Collect purchased items with quantities and units
-      const purchased = [];
-      const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-      
-      purchasedCheckboxes.forEach(cb => {
-        const value = cb.value;
-        
-        // Check if this is the "Others" checkbox
-        if (cb.id === 'p_other') {
-          const qtyEl = document.getElementById('q_other');
-          const unitEl = document.getElementById('unit_other');
-          const unitCustomEl = document.getElementById('unit_custom_other');
-          const otherTextEl = document.getElementById('purchasedOtherText');
-          
-          let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-          let unit = '';
-          
-          if (unitEl && unitEl.value) {
-            if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-              unit = unitCustomEl.value.trim();
-            } else {
-              unit = unitEl.value;
-            }
-          }
-          
-          let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
-          
-          if (qty && unit) {
-            purchased.push(`${qty} ${unit} ${description}`);
-          } else if (description) {
-            purchased.push(description);
-          } else {
-            purchased.push(value);
-          }
-        } else {
-          // Handle main category with subitems
-          const sublistId = getSublistId(cb.id);
-          if (sublistId) {
-            const sublist = document.getElementById(sublistId);
-            if (sublist) {
-              const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-              if (checkedSubs.length > 0) {
-                checkedSubs.forEach(subCb => {
-                  const subValue = subCb.value;
-                  const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
-                  const qtyEl = document.getElementById('q_' + subSuffix);
-                  const unitEl = document.getElementById('unit_' + subSuffix);
-                  const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-                  
-                  let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-                  let unit = '';
-                  
-                  if (unitEl && unitEl.value) {
-                    if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-                      unit = unitCustomEl.value.trim();
-                    } else {
-                      unit = unitEl.value;
-                    }
-                  }
-                  
-                  if (qty && unit) {
-                    purchased.push(`${qty} ${unit} ${subValue}`);
-                  } else {
-                    purchased.push(subValue);
-                  }
-                });
-              } else {
-                purchased.push(value);
-              }
-            } else {
-              purchased.push(value);
-            }
-          } else {
-            purchased.push(value);
-          }
-        }
-      });
-      
-      data.purchased = purchased.join(', ');
-      
-      // Purchased from
-      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-      const purchasedFromText = document.getElementById('purchasedFrom');
-      
-      if (purchasedFromSelect) {
-        if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
-          data.purchasedFrom = purchasedFromText.value.trim();
-        } else {
-          data.purchasedFrom = purchasedFromSelect.value;
-        }
-      }
-      
-      // Payment modes and amounts
-      const paymentModes = [];
-      const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
-      
-      modeCheckboxes.forEach(cb => {
-        const mode = cb.value;
-        const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
-        let amount = amountInput && amountInput.value ? amountInput.value : '';
-        
-        if (amount) {
-          paymentModes.push(`${mode}: â‚¹${amount}`);
-        } else {
-          paymentModes.push(mode);
-        }
-      });
-      
-      data.paymentModes = paymentModes.join(', ');
-      
-      // Total payment
-      const paymentPaidEl = document.getElementById('paymentPaid');
-      data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-      
-      // Other information
-      const otherInfoEl = document.getElementById('otherInfo');
-      data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-      
-      return data;
-    }
-   /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
+/* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
 async function submitMainForm(e) {
   if (e && e.preventDefault) e.preventDefault();
 
@@ -1487,36 +1340,250 @@ async function submitMainForm(e) {
 }
 
 
-
-
+/* ---------- Clear form (only after successful submit) ---------- */
 function clearForm() {
+  // uncheck checkboxes
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
+  // clear text/number/textarea (skip helper inputs)
   document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
     if (['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(inp.id) === -1) inp.value = '';
   });
+  // reset selects
   document.querySelectorAll('select').forEach(sel => { if (sel.id !== 'addCategorySelect') { sel.selectedIndex = 0; try { sel.dispatchEvent(new Event('change')); } catch(e){} } });
+  // hide custom unit inputs
   document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; if (uc.value !== undefined) uc.value = ''; });
 }
 
+/* ---------- Remove stray upload/submit buttons in photo area at runtime & wire submit button ---------- */
 document.addEventListener('DOMContentLoaded', function() {
+  // Remove any accidental "Submit" or "Upload" buttons inside photo area
+  const photoAreas = document.querySelectorAll('.photo-section, #uploadArea, #previewContainer');
+  photoAreas.forEach(area => {
+    if (!area) return;
+    area.querySelectorAll('button').forEach(btn => {
+      const t = (btn.textContent || '').trim().toLowerCase();
+      if (t === 'submit' || t === 'upload' || t === 'upload photo') btn.remove();
+    });
+  });
+
+  // Wire main submit button
   const submitBtn = document.getElementById('submitBtn');
   if (submitBtn) {
+    // ensure we don't double-wire
     submitBtn.removeEventListener('click', submitMainForm);
     submitBtn.addEventListener('click', submitMainForm);
+    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent || 'Submit';
   }
 
-  const clearBtn = document.getElementById('clearBtn');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function() { 
-      if (confirm('Clear all form data?')) { 
-        clearForm(); 
-        resetPhotoForm(); 
-      } 
+ // Wire clear button if present
+const clearBtn = document.getElementById('clearBtn');
+if (clearBtn) {
+  clearBtn.removeEventListener('click', function(){});
+  clearBtn.addEventListener('click', function() { 
+    if (confirm('Clear all form data?')) { 
+      clearForm(); 
+      resetPhotoForm(); 
+    } 
+  });
+}
+
+  function openCamera() {
+    document.getElementById('cameraInput').click();
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        handleFile(file);
+    }
+}
+
+function handleFile(file) {
+    selectedFile = file;
+    
+    // Compress and create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set max dimensions to avoid large uploads
+            const maxWidth = 1920;
+            const maxHeight = 1080;
+            let { width, height } = img;
+            
+            // Calculate new dimensions
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            selectedImage = canvas.toDataURL('image/jpeg', 0.7); // Reduced quality for faster upload
+            
+            // Show preview
+            document.getElementById('previewImage').src = selectedImage;
+            document.getElementById('previewContainer').style.display = 'block';
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function uploadPhoto() {
+    if (!selectedImage) {
+        showStatus('Please select a photo first', 'error');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        // Method 1: Try direct POST (might work after recent Google updates)
+        const directResponse = await tryDirectUpload();
+        if (directResponse.success) {
+            showStatus(`Success! Photo saved as "${directResponse.shortName}"`, 'success');
+            resetForm();
+            showLoading(false);
+            return;
+        }
+    } catch (error) {
+        console.log('Direct upload failed, trying JSONP method...');
+    }
+    
+    // Method 2: Fallback to JSONP method
+    try {
+        await uploadViaJsonp();
+    } catch (error) {
+        showStatus(`Upload failed: ${error.message}`, 'error');
+        showLoading(false);
+    }
+}
+
+async function tryDirectUpload() {
+    const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            imageData: selectedImage,
+            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
+        })
     });
-  }
-});
-</script>
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+}
 
+function uploadViaJsonp() {
+    return new Promise((resolve, reject) => {
+        // Create unique callback name
+        const callbackName = 'photoUploadCallback_' + Date.now();
+        
+        // Create callback function
+        window[callbackName] = function(response) {
+            // Cleanup
+            document.head.removeChild(script);
+            delete window[callbackName];
+            
+            showLoading(false);
+            
+            if (response.success) {
+                showStatus(`Success! Photo saved as "${response.shortName}"`, 'success');
+                resetForm();
+                resolve(response);
+            } else {
+                showStatus(`Error: ${response.error}`, 'error');
+                reject(new Error(response.error));
+            }
+        };
+        
+        // Create script tag for JSONP
+        const script = document.createElement('script');
+        
+        // Prepare URL with parameters
+        const params = new URLSearchParams({
+            action: 'upload',
+            callback: callbackName,
+            imageData: selectedImage,
+            fileName: selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg'
+        });
+        
+        script.src = SCRIPT_URL + '?' + params.toString();
+        script.onerror = () => {
+            document.head.removeChild(script);
+            delete window[callbackName];
+            showLoading(false);
+            reject(new Error('JSONP request failed'));
+        };
+        
+        // Add script to head to trigger the request
+        document.head.appendChild(script);
+        
+        // Set timeout for cleanup
+        setTimeout(() => {
+            if (window[callbackName]) {
+                document.head.removeChild(script);
+                delete window[callbackName];
+                showLoading(false);
+                reject(new Error('Upload timeout'));
+            }
+        }, 30000); // 30 second timeout
+    });
+}
+
+function resetForm() {
+    selectedFile = null;
+    selectedImage = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('cameraInput').value = '';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('status').innerHTML = '';
+}
+
+function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    }
+}
+
+// Network status handling
+window.addEventListener('online', () => {
+    showStatus('Back online! You can upload photos now.', 'success');
+});
+
+window.addEventListener('offline', () => {
+    showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+});
+  </script>
+
+  
   <script>
   
 
@@ -2991,100 +3058,7 @@ function jsonpCall(url, timeoutMs = 20000) {
           }
         });
       }
-// Load saved configuration on startup
-      async function loadServerConfig() {
-        try {
-          const url = SERVER_ENDPOINT + '?action=loadConfig&token=' + encodeURIComponent(SERVER_TOKEN);
-          const response = await jsonpCall(url, 15000);
-          
-          if (response && response.success && response.config) {
-            const cfg = JSON.parse(response.config);
-            applyConfigObject(cfg);
-            console.log('Configuration loaded from server');
-          }
-        } catch (error) {
-          console.log('Could not load server config (using defaults):', error.message);
-        }
-      }
 
-      // Load config when page loads
-      loadServerConfig();
-    });
-
-    // --- Network Status Management ---
-    function updateOnlineStatus() {
-      const statusEls = [document.getElementById('status'), document.getElementById('status-duplicate')];
-      const offlineNotice = document.getElementById('offlineNotice');
-      
-      statusEls.forEach(el => {
-        if (el) el.textContent = navigator.onLine ? 'online' : 'offline';
-      });
-      
-      if (offlineNotice) {
-        offlineNotice.style.display = navigator.onLine ? 'none' : 'block';
-      }
-    }
-
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-
-    // --- Main Submission Logic ---
-    async function submitMainForm() {
-      const submitBtn = document.getElementById('submitBtn');
-      if (!submitBtn) return;
-      
-      // Disable button during submission
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-      
-      try {
-        let photoUploadResult = null;
-        
-        // First, handle photo upload if there's a selected image
-        if (selectedImage) {
-          showPhotoStatus('Uploading photo...', 'success');
-          try {
-            photoUploadResult = await uploadPhotoToServer();
-            if (photoUploadResult) {
-              showPhotoStatus('Photo uploaded successfully!', 'success');
-            } else {
-              showPhotoStatus('Photo upload failed, but form will continue', 'error');
-            }
-          } catch (error) {
-            console.error('Photo upload error:', error);
-            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
-          }
-        }
-        
-        // Collect form data
-        const formData = collectFormData();
-        
-        // Add photo link to Column D if available
-        if (photoUploadResult) {
-          formData.photoLink = photoUploadResult;
-        }
-        
-        // Submit main form data
-        const mainSubmitResult = await submitFormData(formData);
-        
-        if (mainSubmitResult.success) {
-          showTempMessage('Entry submitted successfully!');
-          clearForm();
-          resetPhotoForm();
-        } else {
-          throw new Error(mainSubmitResult.error || 'Submission failed');
-        }
-        
-      } catch (error) {
-        console.error('Submission error:', error);
-        showTempMessage('Error: ' + error.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
-      }
-    }
-  
       // Submit and clear functionality
       const submitBtn = document.getElementById('submitBtn');
       const clearBtn = document.getElementById('clearBtn');
@@ -3330,13 +3304,5 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
 
