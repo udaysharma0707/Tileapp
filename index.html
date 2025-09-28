@@ -933,7 +933,222 @@
 
   <script src="app.js"></script>
 
+ 
+
   <script>
+    // --- Config / server endpoint detection ---
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec";
+    const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
+
+    // Replace with your Google Apps Script Web App URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+
+    let selectedFile = null;
+    let selectedImage = null;
+
+    // Drag and drop functionality
+    const uploadArea = document.getElementById('uploadArea');
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+            handleFile(files[0]);
+        }
+    });
+
+    function openCamera() {
+        document.getElementById('cameraInput').click();
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleFile(file);
+        }
+    }
+
+    function handleFile(file) {
+        selectedFile = file;
+        
+        // Compress and create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set max dimensions to avoid large uploads
+                const maxWidth = 1920;
+                const maxHeight = 1080;
+                let { width, height } = img;
+                
+                // Calculate new dimensions
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Show preview
+                document.getElementById('previewImage').src = selectedImage;
+                document.getElementById('previewContainer').style.display = 'block';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Photo upload function (integrated with main submit)
+    async function uploadPhotoToServer() {
+        if (!selectedImage) {
+            return null; // No photo to upload
+        }
+        
+        showLoading(true);
+        
+        try {
+            // Use form submission approach for photo upload
+            return await uploadViaFormSubmission();
+        } catch (error) {
+            console.error('Photo upload error:', error);
+            return null;
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function uploadViaFormSubmission() {
+        return new Promise((resolve, reject) => {
+            // Create a hidden iframe for form submission
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'upload_iframe_' + Date.now();
+            document.body.appendChild(iframe);
+            
+            // Create a form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCRIPT_URL;
+            form.target = iframe.name;
+            form.enctype = 'multipart/form-data';
+            
+            // Create hidden input for image data
+            const imageInput = document.createElement('input');
+            imageInput.type = 'hidden';
+            imageInput.name = 'imageData';
+            imageInput.value = selectedImage;
+            
+            const fileNameInput = document.createElement('input');
+            fileNameInput.type = 'hidden';
+            fileNameInput.name = 'fileName';
+            fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'upload';
+            
+            form.appendChild(imageInput);
+            form.appendChild(fileNameInput);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            
+            // Handle iframe load (response)
+            iframe.onload = function() {
+                try {
+                    // Try to read the response (may fail due to cross-origin)
+                    const response = iframe.contentDocument.body.textContent;
+                    const result = JSON.parse(response);
+                    
+                    if (result.success) {
+                        resolve(result.shortName || 'Photo uploaded');
+                    } else {
+                        reject(new Error(result.error || 'Upload failed'));
+                    }
+                } catch (e) {
+                    // Cross-origin restriction, assume success after delay
+                    resolve('Photo uploaded successfully');
+                }
+                
+                // Cleanup
+                setTimeout(() => {
+                    if (document.body.contains(form)) {
+                        document.body.removeChild(form);
+                    }
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 1000);
+            };
+            
+            // Submit the form
+            form.submit();
+            
+            // Set a timeout for cleanup in case iframe doesn't load
+            setTimeout(() => {
+                if (document.body.contains(form)) {
+                    resolve('Photo upload completed');
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }
+            }, 10000); // 10 second timeout
+        });
+    }
+
+    function resetPhotoForm() {
+        selectedFile = null;
+        selectedImage = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('cameraInput').value = '';
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('photoStatus').innerHTML = '';
+    }
+
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    function showPhotoStatus(message, type) {
+        const statusDiv = document.getElementById('photoStatus');
+        statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    // Network status handling
+    window.addEventListener('online', () => {
+        showPhotoStatus('Back online! You can upload photos now.', 'success');
+    });
+
+    window.addEventListener('offline', () => {
+        showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+    });
+
+     <script>
 /* Unified submit script — NO CANVAS used.
    - Single POST to SCRIPT_URL?action=submit via hidden iframe
    - Includes imageData (base64) if a photo is selected (read via FileReader)
@@ -1374,219 +1589,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-
-  <script>
-    // --- Config / server endpoint detection ---
-    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec";
-    const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
-
-    // Replace with your Google Apps Script Web App URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
-
-    let selectedFile = null;
-    let selectedImage = null;
-
-    // Drag and drop functionality
-    const uploadArea = document.getElementById('uploadArea');
-
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0 && files[0].type.startsWith('image/')) {
-            handleFile(files[0]);
-        }
-    });
-
-    function openCamera() {
-        document.getElementById('cameraInput').click();
-    }
-
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            handleFile(file);
-        }
-    }
-
-    function handleFile(file) {
-        selectedFile = file;
-        
-        // Compress and create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Set max dimensions to avoid large uploads
-                const maxWidth = 1920;
-                const maxHeight = 1080;
-                let { width, height } = img;
-                
-                // Calculate new dimensions
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                // Draw and compress
-                ctx.drawImage(img, 0, 0, width, height);
-                selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-                
-                // Show preview
-                document.getElementById('previewImage').src = selectedImage;
-                document.getElementById('previewContainer').style.display = 'block';
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Photo upload function (integrated with main submit)
-    async function uploadPhotoToServer() {
-        if (!selectedImage) {
-            return null; // No photo to upload
-        }
-        
-        showLoading(true);
-        
-        try {
-            // Use form submission approach for photo upload
-            return await uploadViaFormSubmission();
-        } catch (error) {
-            console.error('Photo upload error:', error);
-            return null;
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    function uploadViaFormSubmission() {
-        return new Promise((resolve, reject) => {
-            // Create a hidden iframe for form submission
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.name = 'upload_iframe_' + Date.now();
-            document.body.appendChild(iframe);
-            
-            // Create a form
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = SCRIPT_URL;
-            form.target = iframe.name;
-            form.enctype = 'multipart/form-data';
-            
-            // Create hidden input for image data
-            const imageInput = document.createElement('input');
-            imageInput.type = 'hidden';
-            imageInput.name = 'imageData';
-            imageInput.value = selectedImage;
-            
-            const fileNameInput = document.createElement('input');
-            fileNameInput.type = 'hidden';
-            fileNameInput.name = 'fileName';
-            fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
-            
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'upload';
-            
-            form.appendChild(imageInput);
-            form.appendChild(fileNameInput);
-            form.appendChild(actionInput);
-            document.body.appendChild(form);
-            
-            // Handle iframe load (response)
-            iframe.onload = function() {
-                try {
-                    // Try to read the response (may fail due to cross-origin)
-                    const response = iframe.contentDocument.body.textContent;
-                    const result = JSON.parse(response);
-                    
-                    if (result.success) {
-                        resolve(result.shortName || 'Photo uploaded');
-                    } else {
-                        reject(new Error(result.error || 'Upload failed'));
-                    }
-                } catch (e) {
-                    // Cross-origin restriction, assume success after delay
-                    resolve('Photo uploaded successfully');
-                }
-                
-                // Cleanup
-                setTimeout(() => {
-                    if (document.body.contains(form)) {
-                        document.body.removeChild(form);
-                    }
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                }, 1000);
-            };
-            
-            // Submit the form
-            form.submit();
-            
-            // Set a timeout for cleanup in case iframe doesn't load
-            setTimeout(() => {
-                if (document.body.contains(form)) {
-                    resolve('Photo upload completed');
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                }
-            }, 10000); // 10 second timeout
-        });
-    }
-
-    function resetPhotoForm() {
-        selectedFile = null;
-        selectedImage = null;
-        document.getElementById('fileInput').value = '';
-        document.getElementById('cameraInput').value = '';
-        document.getElementById('previewContainer').style.display = 'none';
-        document.getElementById('photoStatus').innerHTML = '';
-    }
-
-    function showLoading(show) {
-        document.getElementById('loading').style.display = show ? 'block' : 'none';
-    }
-
-    function showPhotoStatus(message, type) {
-        const statusDiv = document.getElementById('photoStatus');
-        statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-    }
-
-    // Network status handling
-    window.addEventListener('online', () => {
-        showPhotoStatus('Back online! You can upload photos now.', 'success');
-    });
-
-    window.addEventListener('offline', () => {
-        showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-    });
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
@@ -3325,5 +3327,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
