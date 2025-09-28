@@ -1400,6 +1400,31 @@ function uploadViaJsonp() {
         }, 30000); // 30 second timeout
     });
 }
+  
+
+function resetForm() {
+    selectedFile = null;
+    selectedImage = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('cameraInput').value = '';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('status').innerHTML = '';
+}
+
+function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    }
+}
   /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
 async function submitMainForm(e) {
   if (e && e.preventDefault) e.preventDefault();
@@ -1551,30 +1576,6 @@ async function submitMainForm(e) {
   }
 }
 
-
-function resetForm() {
-    selectedFile = null;
-    selectedImage = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('cameraInput').value = '';
-    document.getElementById('previewContainer').style.display = 'none';
-    document.getElementById('status').innerHTML = '';
-}
-
-function showLoading(show) {
-    document.getElementById('loading').style.display = show ? 'block' : 'none';
-}
-
-function showStatus(message, type) {
-    const statusDiv = document.getElementById('status');
-    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-    
-    if (type === 'success') {
-        setTimeout(() => {
-            statusDiv.innerHTML = '';
-        }, 5000);
-    }
-}
 
 // Network status handling
 window.addEventListener('online', () => {
@@ -3307,6 +3308,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
