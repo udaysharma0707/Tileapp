@@ -1182,103 +1182,186 @@ function collectFormData() {
   return data;
 }
 
-async function submitMainForm() {
-  const submitBtn = document.getElementById('submitBtn');
-  if (!submitBtn) return;
-  
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
-  
-  try {
-    const formData = collectFormData();
-    
-    if (selectedImage) {
-      formData.imageData = selectedImage;
-      formData.fileName = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
-      showPhotoStatus('Attaching photo to submission...', 'success');
-    }
-    
-    const result = await submitUnifiedForm(formData);
-    
-    if (result.success) {
-      showTempMessage('Entry submitted successfully!');
-      clearForm();
-      resetPhotoForm();
-    } else {
-      throw new Error(result.error || 'Submission failed');
-    }
-    
-  } catch (error) {
-    console.error('Submission error:', error);
-    showTempMessage('Error: ' + error.message);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit';
-  }
-}
-
-async function submitUnifiedForm(formData) {
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.name = 'unified_submit_' + Date.now();
-    document.body.appendChild(iframe);
-    
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SCRIPT_URL;
-    form.target = iframe.name;
-    form.enctype = 'multipart/form-data';
-    
-    function addField(name, value) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value || '';
-      form.appendChild(input);
-    }
-    
-    addField('action', 'submit');
-    addField('token', SERVER_TOKEN);
-    addField('purchased', formData.purchased);
-    addField('purchasedFrom', formData.purchasedFrom);
-    addField('paymentModes', formData.paymentModes);
-    addField('paymentPaid', formData.paymentPaid);
-    addField('otherInfo', formData.otherInfo);
-    
-    if (formData.imageData) {
-      addField('imageData', formData.imageData);
-      addField('fileName', formData.fileName);
-    }
-    
-    document.body.appendChild(form);
-    
-    iframe.onload = function() {
+ // --- Main Submission Logic ---
+    async function submitMainForm() {
+      const submitBtn = document.getElementById('submitBtn');
+      if (!submitBtn) return;
+      
+      // Disable button during submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
       try {
-        const response = iframe.contentDocument.body.textContent;
-        const result = JSON.parse(response);
-        resolve(result);
-      } catch (e) {
-        resolve({ success: true });
+        let photoUploadResult = null;
+        
+        // First, handle photo upload if there's a selected image
+        if (selectedImage) {
+          showPhotoStatus('Uploading photo...', 'success');
+          try {
+            photoUploadResult = await uploadPhotoToServer();
+            if (photoUploadResult) {
+              showPhotoStatus('Photo uploaded successfully!', 'success');
+            } else {
+              showPhotoStatus('Photo upload failed, but form will continue', 'error');
+            }
+          } catch (error) {
+            console.error('Photo upload error:', error);
+            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
+          }
+        }
+        
+        // Collect form data
+        const formData = collectFormData();
+        
+        // Add photo link to Column D if available
+        if (photoUploadResult) {
+          formData.photoLink = photoUploadResult;
+        }
+        
+        // Submit main form data
+        const mainSubmitResult = await submitFormData(formData);
+        
+        if (mainSubmitResult.success) {
+          showTempMessage('Entry submitted successfully!');
+          clearForm();
+          resetPhotoForm();
+        } else {
+          throw new Error(mainSubmitResult.error || 'Submission failed');
+        }
+        
+      } catch (error) {
+        console.error('Submission error:', error);
+        showTempMessage('Error: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    }
+
+    function collectFormData() {
+      const data = {};
+      
+      // Collect purchased items with quantities and units
+      const purchased = [];
+      const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+      
+      purchasedCheckboxes.forEach(cb => {
+        const value = cb.value;
+        
+        // Check if this is the "Others" checkbox
+        if (cb.id === 'p_other') {
+          const qtyEl = document.getElementById('q_other');
+          const unitEl = document.getElementById('unit_other');
+          const unitCustomEl = document.getElementById('unit_custom_other');
+          const otherTextEl = document.getElementById('purchasedOtherText');
+          
+          let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+          let unit = '';
+          
+          if (unitEl && unitEl.value) {
+            if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+              unit = unitCustomEl.value.trim();
+            } else {
+              unit = unitEl.value;
+            }
+          }
+          
+          let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+          
+          if (qty && unit) {
+            purchased.push(`${qty} ${unit} ${description}`);
+          } else if (description) {
+            purchased.push(description);
+          } else {
+            purchased.push(value);
+          }
+        } else {
+          // Handle main category with subitems
+          const sublistId = getSublistId(cb.id);
+          if (sublistId) {
+            const sublist = document.getElementById(sublistId);
+            if (sublist) {
+              const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+              if (checkedSubs.length > 0) {
+                checkedSubs.forEach(subCb => {
+                  const subValue = subCb.value;
+                  const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
+                  const qtyEl = document.getElementById('q_' + subSuffix);
+                  const unitEl = document.getElementById('unit_' + subSuffix);
+                  const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+                  
+                  let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+                  let unit = '';
+                  
+                  if (unitEl && unitEl.value) {
+                    if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+                      unit = unitCustomEl.value.trim();
+                    } else {
+                      unit = unitEl.value;
+                    }
+                  }
+                  
+                  if (qty && unit) {
+                    purchased.push(`${qty} ${unit} ${subValue}`);
+                  } else {
+                    purchased.push(subValue);
+                  }
+                });
+              } else {
+                purchased.push(value);
+              }
+            } else {
+              purchased.push(value);
+            }
+          } else {
+            purchased.push(value);
+          }
+        }
+      });
+      
+      data.purchased = purchased.join(', ');
+      
+      // Purchased from
+      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+      const purchasedFromText = document.getElementById('purchasedFrom');
+      
+      if (purchasedFromSelect) {
+        if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+          data.purchasedFrom = purchasedFromText.value.trim();
+        } else {
+          data.purchasedFrom = purchasedFromSelect.value;
+        }
       }
       
-      setTimeout(() => {
-        document.body.removeChild(form);
-        document.body.removeChild(iframe);
-      }, 1000);
-    };
-    
-    form.submit();
-    
-    setTimeout(() => {
-      resolve({ success: true });
-      if (document.body.contains(form)) {
-        document.body.removeChild(form);
-        document.body.removeChild(iframe);
-      }
-    }, 15000);
-  });
-}
+      // Payment modes and amounts
+      const paymentModes = [];
+      const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+      
+      modeCheckboxes.forEach(cb => {
+        const mode = cb.value;
+        const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+        let amount = amountInput && amountInput.value ? amountInput.value : '';
+        
+        if (amount) {
+          paymentModes.push(`${mode}: â‚¹${amount}`);
+        } else {
+          paymentModes.push(mode);
+        }
+      });
+      
+      data.paymentModes = paymentModes.join(', ');
+      
+      // Total payment
+      const paymentPaidEl = document.getElementById('paymentPaid');
+      data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+      
+      // Other information
+      const otherInfoEl = document.getElementById('otherInfo');
+      data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+      
+      return data;
+    }
+
 
 function clearForm() {
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
@@ -3027,6 +3110,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
