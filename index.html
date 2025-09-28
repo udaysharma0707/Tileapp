@@ -1439,7 +1439,19 @@ window.addEventListener('offline', () => {
 
   
   <script>
-  /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
+  
+
+
+    <!-- Service Worker Registration -->
+   
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+   /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
 async function submitMainForm(e) {
   if (e && e.preventDefault) e.preventDefault();
 
@@ -1590,17 +1602,6 @@ async function submitMainForm(e) {
   }
 }
 
-
-    <!-- Service Worker Registration -->
-   
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => console.log('SW registered'))
-                    .catch(error => console.log('SW registration failed'));
-            });
-        }
-  
 
    
 
@@ -3308,6 +3309,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
