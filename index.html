@@ -936,30 +936,7 @@
  
 
   <script>
-     // Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('SW registered'))
-                .catch(error => console.log('SW registration failed'));
-        });
-    }
-
-    // JSONP helper
-    function jsonpCall(url, timeoutMs = 20000) {
-      return new Promise((resolve, reject) => {
-        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
-        window[cbName] = function(data) {
-          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
-        };
-        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
-        const script = document.createElement('script');
-        script.src = full;
-        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
-        document.body.appendChild(script);
-        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
-      });
-    }
+     
     // --- Config / server endpoint detection ---
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
@@ -1612,7 +1589,31 @@ document.addEventListener('DOMContentLoaded', function() {
     clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); } });
   }
 });
-</script>
+// Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        });
+    }
+
+    // JSONP helper
+    function jsonpCall(url, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+        window[cbName] = function(data) {
+          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
+        };
+        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+        const script = document.createElement('script');
+        script.src = full;
+        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
+        document.body.appendChild(script);
+        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
+      });
+    }   </script>
+
 
 
     
@@ -3355,6 +3356,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
 
