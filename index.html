@@ -1405,13 +1405,18 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent || 'Submit';
   }
 
-  // Wire clear button if present
-  const clearBtn = document.getElementById('clearBtn');
-  if (clearBtn) {
-    clearBtn.removeEventListener('click', function(){});
-    clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); } });
-  }}
-});
+ // Wire clear button if present
+const clearBtn = document.getElementById('clearBtn');
+if (clearBtn) {
+  clearBtn.removeEventListener('click', function(){});
+  clearBtn.addEventListener('click', function() { 
+    if (confirm('Clear all form data?')) { 
+      clearForm(); 
+      resetPhotoForm(); 
+    } 
+  });
+}
+
 </script>
 
 
@@ -3132,6 +3137,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
