@@ -425,6 +425,8 @@
         
         <div class="preview-container" id="previewContainer">
             <img id="previewImage" class="preview-image" alt="Preview">
+          <div id="photoStatus"></div>
+          
             <br>
             
             <button class="btn" onclick="resetPhotoForm()">Cancel</button>
@@ -1205,7 +1207,7 @@ async function submitMainForm() {
     if (selectedImage) {
       formData.imageData = selectedImage;
       formData.fileName = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
-      showStatus('Attaching photo to submission...', 'success');
+      showPhotoStatus('Attaching photo to submission...', 'success');
     }
     
     // Single unified submission with BOTH manual data AND photo
@@ -1364,7 +1366,7 @@ function handleFileSelect(event) {
 function handleFile(file) {
     selectedFile = file;
     
-    // Compress and create preview
+    // Create preview immediately
     const reader = new FileReader();
     reader.onload = (e) => {
         const img = new Image();
@@ -1395,11 +1397,19 @@ function handleFile(file) {
             
             // Draw and compress
             ctx.drawImage(img, 0, 0, width, height);
-            selectedImage = canvas.toDataURL('image/jpeg', 0.7); // Reduced quality for faster upload
+            selectedImage = canvas.toDataURL('image/jpeg', 0.7);
             
-            // Show preview
-            document.getElementById('previewImage').src = selectedImage;
-            document.getElementById('previewContainer').style.display = 'block';
+            // Show preview - FIXED
+            const previewImg = document.getElementById('previewImage');
+            const previewContainer = document.getElementById('previewContainer');
+            
+            if (previewImg && previewContainer) {
+                previewImg.src = selectedImage;
+                previewContainer.style.display = 'block';
+                
+                // Show success status
+                showPhotoStatus('Photo selected successfully!', 'success');
+            }
         };
         img.src = e.target.result;
     };
@@ -3267,4 +3277,5 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
