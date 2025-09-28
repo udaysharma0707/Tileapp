@@ -1027,41 +1027,57 @@ function handleFile(file) {
         });
     }
 
-function resetPhotoForm() {
-    selectedFile = null;
-    selectedImage = null;
-    const fileInput = document.getElementById('fileInput');
-    const cameraInput = document.getElementById('cameraInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const photoStatus = document.getElementById('photoStatus');
-    
-    if (fileInput) fileInput.value = '';
-    if (cameraInput) cameraInput.value = '';
-    if (previewContainer) previewContainer.style.display = 'none';
-    if (photoStatus) photoStatus.innerHTML = '';
-}
-
+ function resetPhotoForm() {
+        selectedFile = null;
+        selectedImage = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('cameraInput').value = '';
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('photoStatus').innerHTML = '';
+    }
 function showLoading(show) {
-    const loading = document.getElementById('loading');
-    if (loading) loading.style.display = show ? 'block' : 'none';
-}
+        document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
 
 function showPhotoStatus(message, type) {
-    const statusDiv = document.getElementById('photoStatus');
-    if (statusDiv) {
+        const statusDiv = document.getElementById('photoStatus');
         statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
     }
-    console.log('Photo status:', message, type); // Debug
-}
+    
 
 // Network status handling
-window.addEventListener('online', () => {
-    showPhotoStatus('Back online! You can upload photos now.', 'success');
-});
+    window.addEventListener('online', () => {
+        showPhotoStatus('Back online! You can upload photos now.', 'success');
+    });
 
-window.addEventListener('offline', () => {
-    showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-});
+    window.addEventListener('offline', () => {
+        showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+    });
+ // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        });
+    }
+
+    // JSONP helper
+    function jsonpCall(url, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+        window[cbName] = function(data) {
+          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
+        };
+        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+        const script = document.createElement('script');
+        script.src = full;
+        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
+        document.body.appendChild(script);
+        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
+      });
+    }
+
 
 function showTempMessage(text) {
   const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
@@ -3011,6 +3027,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
