@@ -1086,7 +1086,7 @@ let selectedImage = null; // dataURL string (base64) read directly from file wit
 
         window.addEventListener('offline', () => {
             showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-        }
+        
 function showTempMessage(text) {
   const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
   if (!el) {
@@ -3132,6 +3132,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
