@@ -1425,6 +1425,20 @@ function showStatus(message, type) {
         }, 5000);
     }
 }
+  
+
+// Network status handling
+window.addEventListener('online', () => {
+    showStatus('Back online! You can upload photos now.', 'success');
+});
+
+window.addEventListener('offline', () => {
+    showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+});
+  </script>
+
+  
+  <script>
   /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
 async function submitMainForm(e) {
   if (e && e.preventDefault) e.preventDefault();
@@ -1576,20 +1590,6 @@ async function submitMainForm(e) {
   }
 }
 
-
-// Network status handling
-window.addEventListener('online', () => {
-    showStatus('Back online! You can upload photos now.', 'success');
-});
-
-window.addEventListener('offline', () => {
-    showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-});
-  </script>
-
-  
-  <script>
-  
 
     <!-- Service Worker Registration -->
    
@@ -3308,6 +3308,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
