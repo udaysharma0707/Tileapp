@@ -847,6 +847,9 @@
 const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
 const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+
+
 let selectedFile = null;
 let selectedImage = null; // dataURL string (base64) read directly from file with FileReader
 
@@ -2188,6 +2191,8 @@ document.addEventListener('DOMContentLoaded', function() {
         endEditingSession();
         const cfg = buildConfigObject();
         const cfgStr = JSON.stringify(cfg);
+        const SERVER_ENDPOINT = SCRIPT_URL;
+
         const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
         try {
           saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
@@ -2848,7 +2853,8 @@ document.addEventListener('DOMContentLoaded', function() {
               token: SERVER_TOKEN,
               data: JSON.stringify(data)
             };
-            
+           const SERVER_ENDPOINT = SCRIPT_URL;
+ 
             const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
               encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
             ).join('&');
@@ -2912,6 +2918,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
 
