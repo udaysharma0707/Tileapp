@@ -1335,6 +1335,61 @@ function collectFormData() {
       
       return data;
     }
+   // --- Main Submission Logic ---
+    async function submitMainForm() {
+      const submitBtn = document.getElementById('submitBtn');
+      if (!submitBtn) return;
+      
+      // Disable button during submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        let photoUploadResult = null;
+        
+        // First, handle photo upload if there's a selected image
+        if (selectedImage) {
+          showPhotoStatus('Uploading photo...', 'success');
+          try {
+            photoUploadResult = await uploadPhotoToServer();
+            if (photoUploadResult) {
+              showPhotoStatus('Photo uploaded successfully!', 'success');
+            } else {
+              showPhotoStatus('Photo upload failed, but form will continue', 'error');
+            }
+          } catch (error) {
+            console.error('Photo upload error:', error);
+            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
+          }
+        }
+        
+        // Collect form data
+        const formData = collectFormData();
+        
+        // Add photo link to Column D if available
+        if (photoUploadResult) {
+          formData.photoLink = photoUploadResult;
+        }
+        
+        // Submit main form data
+        const mainSubmitResult = await submitFormData(formData);
+        
+        if (mainSubmitResult.success) {
+          showTempMessage('Entry submitted successfully!');
+          clearForm();
+          resetPhotoForm();
+        } else {
+          throw new Error(mainSubmitResult.error || 'Submission failed');
+        }
+        
+      } catch (error) {
+        console.error('Submission error:', error);
+        showTempMessage('Error: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    }
 
 
 function clearForm() {
@@ -3178,6 +3233,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
