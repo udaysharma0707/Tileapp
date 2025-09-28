@@ -942,20 +942,21 @@
 
 
 <script>
-/* ===== Unified submit script (single POST to action=submit) =====
-   - No canvas used (image read via FileReader)
-   - Sends purchased -> Column C, photoLink -> Column D, purchasedFrom -> E,
-     paymentModes -> F, paymentPaid -> G, otherInfo -> H, clientId -> I
-   - Posts all fields + imageData (if present) in single POST to SCRIPT_URL
+/* Updated unified submit script — JSONP submit only (no separate upload)
+   - Ensures all fields (purchased, photoLink, purchasedFrom, paymentModes, paymentPaid, otherInfo, clientId)
+     are sent together using the server's JSONP/GET submit path so a single row is created.
+   - Does NOT attempt to upload imageData to the upload endpoint (which created photo-only rows).
+   - If a photo is selected, only its filename is saved into photoLink (Column D).
 */
 
 const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+const SERVER_ENDPOINT = window.SERVER_ENDPOINT || SCRIPT_URL; // avoid undefined global errors
 const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
 
 let selectedFile = null;
-let selectedImage = null; // data URL (base64)
+let selectedImage = null; // we may still allow previewing the image, but we will not upload it
 
-/* ---------- File pick / drag-drop (NO canvas) ---------- */
+/* ---------------- File selection (preview only) ---------------- */
 (function wireFileInputs() {
   const uploadArea = document.getElementById('uploadArea');
   if (uploadArea) {
@@ -965,28 +966,27 @@ let selectedImage = null; // data URL (base64)
       e.preventDefault();
       uploadArea.classList.remove('dragover');
       const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      if (f && f.type && f.type.startsWith('image/')) handleFileDirect(f);
+      if (f && f.type && f.type.startsWith('image/')) handleFilePreview(f);
     });
   }
-
   const fileInput = document.getElementById('fileInput');
   const cameraInput = document.getElementById('cameraInput');
-  if (fileInput) fileInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
-  if (cameraInput) cameraInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+  if (fileInput) fileInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFilePreview(f); });
+  if (cameraInput) cameraInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFilePreview(f); });
 })();
 
-function handleFileDirect(file) {
+function handleFilePreview(file) {
+  // only keep for preview & filename; do NOT upload
   selectedFile = file;
   const reader = new FileReader();
   reader.onload = (e) => {
-    selectedImage = e.target.result; // data:image/...;base64,...
+    selectedImage = e.target.result;
     const preview = document.getElementById('previewImage');
     const previewContainer = document.getElementById('previewContainer');
     if (preview) preview.src = selectedImage;
     if (previewContainer) previewContainer.style.display = 'block';
   };
-  reader.onerror = (err) => {
-    console.error('FileReader error', err);
+  reader.onerror = () => {
     selectedFile = null;
     selectedImage = null;
     showTempMessage('Failed to read selected photo.');
@@ -994,44 +994,33 @@ function handleFileDirect(file) {
   reader.readAsDataURL(file);
 }
 
-/* ---------- Small UI helpers ---------- */
+/* ---------------- Small UI helpers ---------------- */
 function showLoading(show) {
-  const el = document.getElementById('loading');
-  if (el) el.style.display = show ? 'block' : 'none';
-}
-function showPhotoStatus(msg, type='info') {
-  const el = document.getElementById('photoStatus');
-  if (!el) return;
-  el.innerHTML = `<div class="status ${type}">${msg}</div>`;
+  const el = document.getElementById('loading'); if (el) el.style.display = show ? 'block' : 'none';
 }
 function showTempMessage(text) {
   const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
-  if (!el) { try { alert(text); } catch(e){}; return; }
-  el.textContent = text;
-  el.style.display = 'block';
+  if (!el) { try { alert(text); } catch(e) {} return; }
+  el.textContent = text; el.style.display = 'block';
   setTimeout(() => { try { el.style.display = 'none'; } catch(e){} }, 3000);
 }
 function resetPhotoForm() {
   selectedFile = null;
   selectedImage = null;
   const fi = document.getElementById('fileInput'), ci = document.getElementById('cameraInput'), pc = document.getElementById('previewContainer'), ps = document.getElementById('photoStatus');
-  if (fi) fi.value = '';
-  if (ci) ci.value = '';
-  if (pc) pc.style.display = 'none';
-  if (ps) ps.innerHTML = '';
+  if (fi) fi.value = ''; if (ci) ci.value = ''; if (pc) pc.style.display = 'none'; if (ps) ps.innerHTML = '';
 }
 
-/* ---------- Collect form data (for Columns C-H) ---------- */
-function getSublistId(id) {
+/* ---------------- Collect form data (columns C-H) ---------------- */
+function getSublistId(mainCheckboxId) {
   const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
-  return mapping[id] || null;
+  return mapping[mainCheckboxId] || null;
 }
 
 function collectFormData() {
   const data = {};
   const purchased = [];
   const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-
   purchasedCheckboxes.forEach(cb => {
     const value = cb.value || '';
     if (cb.id === 'p_other') {
@@ -1039,7 +1028,6 @@ function collectFormData() {
       const unitEl = document.getElementById('unit_other');
       const unitCustomEl = document.getElementById('unit_custom_other');
       const otherTextEl = document.getElementById('purchasedOtherText');
-
       let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
       let unit = '';
       if (unitEl && unitEl.value) {
@@ -1075,12 +1063,8 @@ function collectFormData() {
           } else {
             purchased.push(value);
           }
-        } else {
-          purchased.push(value);
-        }
-      } else {
-        purchased.push(value);
-      }
+        } else purchased.push(value);
+      } else purchased.push(value);
     }
   });
 
@@ -1102,27 +1086,119 @@ function collectFormData() {
     else paymentModes.push(mode);
   });
   data.paymentModes = paymentModes.join(', ');
-
   const paymentPaidEl = document.getElementById('paymentPaid');
   data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
   const otherInfoEl = document.getElementById('otherInfo');
   data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
 
-  data.photoLink = ''; // set later in submitMainForm if photo exists
+  data.photoLink = ''; // set by submit flow (filename)
   return data;
 }
 
-/* ---------- Client ID generator (UUID-like) ---------- */
+/* ---------------- clientId generator ---------------- */
 function generateClientId() {
-  // simple v4-style id (requires crypto)
-  const r = () => crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+  // small client-side uuid
   return 'c-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const v = c === 'x' ? r() : (r() & 0x3 | 0x8);
+    const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
 
-/* ---------- Debug box (temporary) ---------- */
+/* ---------------- JSONP helper ---------------- */
+function jsonpCall(url, timeoutMs = 20000) {
+  return new Promise((resolve, reject) => {
+    const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    window[cbName] = function(data) {
+      try { resolve(data); } finally { try { delete window[cbName]; } catch(e) {} }
+    };
+    const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+    const script = document.createElement('script');
+    script.src = full;
+    script.onerror = function() { try { delete window[cbName]; } catch(e) {} reject(new Error('JSONP load error')); };
+    document.body.appendChild(script);
+    setTimeout(() => { try { delete window[cbName]; } catch(e) {} reject(new Error('JSONP timeout')); }, timeoutMs);
+  });
+}
+
+/* ---------------- submit via JSONP GET — main flow ---------------- */
+async function submitMainForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
+  showLoading(true);
+
+  try {
+    // collect first
+    const fd = collectFormData();
+
+    // validate purchased
+    if (!fd.purchased || !fd.purchased.trim()) {
+      showTempMessage('No sub-item selected. Please select at least one specific item and quantity.');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+      showLoading(false);
+      return;
+    }
+
+    // generate clientId
+    fd.clientId = generateClientId();
+
+    // set photoLink to filename marker if photo present
+    if (selectedFile && selectedFile.name) fd.photoLink = selectedFile.name;
+    else fd.photoLink = '';
+
+    // Build submit query (server expects query params for submit)
+    const submitData = {
+      action: 'submit',
+      token: SERVER_TOKEN,
+      purchased: fd.purchased || '',
+      photoLink: fd.photoLink || '',
+      purchasedFrom: fd.purchasedFrom || '',
+      paymentModes: fd.paymentModes || '',
+      paymentPaid: fd.paymentPaid || '',
+      otherInfo: fd.otherInfo || '',
+      clientId: fd.clientId || ''
+    };
+
+    // Debug snapshot to display what is being sent
+    const debugText = Object.keys(submitData).map(k => {
+      if (k === 'purchased' && submitData[k].length > 300) return k + '=' + submitData[k].slice(0, 300) + '...';
+      return k + '=' + submitData[k];
+    }).join('\n');
+    console.log('Submitting via JSONP:\n' + debugText);
+    try { showDebugBox && showDebugBox('Submitting via JSONP:\n' + debugText); } catch(e) {}
+
+    // Build URL
+    const url = SCRIPT_URL + '?' + Object.keys(submitData).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])).join('&');
+
+    // Call JSONP (server must support JSONP for submit; your previous code did)
+    const result = await jsonpCall(url, 25000);
+
+    // Process response (tolerant)
+    const success = result && (result.success === true || result.result === 'ok' || result.status === 'success') || (typeof result === 'string' && (result.toLowerCase() === 'ok' || result.toLowerCase()==='success'));
+    console.log('Server JSONP submit result:', result);
+
+    if (success) {
+      showTempMessage('Entry submitted successfully!');
+      clearForm();
+      resetPhotoForm();
+    } else {
+      // show server message if any
+      const err = result && (result.error || result.message) ? (result.error || result.message) : 'Submission failed (server did not return success).';
+      showTempMessage('Error: ' + err);
+    }
+  } catch (err) {
+    console.error('submitMainForm JSONP error:', err);
+    showTempMessage('Failed to submit form: ' + (err && err.message ? err.message : err));
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+    showLoading(false);
+    // remove debug box after a few seconds
+    setTimeout(() => { const d = document.getElementById('clientDebugBox'); if (d) d.remove(); }, 6000);
+  }
+}
+
+/* ---------------- helper: debug box ---------------- */
 function showDebugBox(text) {
   let dbg = document.getElementById('clientDebugBox');
   if (!dbg) {
@@ -1144,143 +1220,7 @@ function showDebugBox(text) {
   dbg.textContent = text;
 }
 
-/* ---------- Main submit: collect first, add clientId, POST everything (one request) ---------- */
-async function submitMainForm(e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
-  showLoading(true);
-
-  try {
-    // 1) collect data
-    const fd = collectFormData();
-
-    // 2) client validation
-    if (!fd.purchased || !fd.purchased.trim()) {
-      showTempMessage('No sub-item selected. Please select at least one specific item and quantity.');
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
-      showLoading(false);
-      return;
-    }
-
-    // 3) add clientId
-    fd.clientId = generateClientId();
-
-    // 4) attach photoLink marker and include imageData if photo selected
-    if (selectedImage) {
-      fd.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
-    } else {
-      fd.photoLink = '';
-    }
-
-    // 5) build hidden POST form (target iframe)
-    const iframeName = 'submit_iframe_single';
-    let iframe = document.getElementById(iframeName);
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = iframeName; iframe.name = iframeName; iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SCRIPT_URL; // server reads 'action' from fields
-    form.target = iframeName;
-    form.enctype = 'multipart/form-data';
-
-    function addHidden(name, value) {
-      const inp = document.createElement('input');
-      inp.type = 'hidden'; inp.name = name; inp.value = value != null ? String(value) : '';
-      form.appendChild(inp);
-    }
-
-    addHidden('token', SERVER_TOKEN || '');
-    addHidden('action', 'submit');
-
-    // Map to sheet columns:
-    addHidden('purchased', fd.purchased || '');      // Column C
-    addHidden('photoLink', fd.photoLink || '');      // Column D
-    addHidden('purchasedFrom', fd.purchasedFrom || ''); // Column E
-    addHidden('paymentModes', fd.paymentModes || ''); // Column F
-    addHidden('paymentPaid', fd.paymentPaid || '');   // Column G
-    addHidden('otherInfo', fd.otherInfo || '');       // Column H
-    addHidden('clientId', fd.clientId || '');         // Column I
-
-    if (selectedImage) {
-      addHidden('imageData', selectedImage); // base64 image included in same request
-      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now()));
-      showPhotoStatus('Attaching photo to submission...', 'info');
-    }
-
-    document.body.appendChild(form);
-
-    // Debug snapshot
-    const inputsSnapshot = Array.from(form.querySelectorAll('input')).map(inp => {
-      if (inp.name === 'imageData') return `${inp.name}=[BASE64:${Math.min(200, (selectedImage?selectedImage.length:0))} chars]`;
-      return `${inp.name}=${inp.value}`;
-    }).join('\n');
-    console.log('Submitting form:\n' + inputsSnapshot);
-    showDebugBox('Submitting form:\n' + inputsSnapshot);
-
-    // 6) submit to iframe and handle response (or fallback)
-    let handled = false;
-    function finalize(success, serverText, serverJson) {
-      if (handled) return; handled = true;
-      showLoading(false);
-
-      console.log('Server iframe response:', serverText, serverJson);
-      const ok = success || (serverJson && (serverJson.success === true || serverJson.result === 'ok' || serverJson.status === 'success'));
-      if (ok) {
-        showTempMessage('Entry submitted successfully!');
-        clearForm();
-        resetPhotoForm();
-      } else {
-        const err = (serverJson && (serverJson.error || serverJson.message)) || serverText || 'Submission may have failed';
-        showTempMessage('Error: ' + err);
-      }
-
-      try { if (form.parentNode) form.parentNode.removeChild(form); } catch(e) {}
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
-      setTimeout(() => { const dbg = document.getElementById('clientDebugBox'); if (dbg) dbg.remove(); }, 5000);
-    }
-
-    iframe.onload = function() {
-      try {
-        const bodyText = iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.textContent;
-        if (bodyText) {
-          try {
-            const parsed = JSON.parse(bodyText);
-            finalize(true, bodyText, parsed);
-            return;
-          } catch (e) {
-            finalize(true, bodyText, null);
-            return;
-          }
-        } else {
-          // no readable body: cross-origin -> assume server received it
-          finalize(true, null, null);
-        }
-      } catch (err) {
-        // cross-origin blocked -> optimistic success
-        finalize(true, null, null);
-      }
-    };
-
-    form.submit();
-    // fallback timeout
-    setTimeout(() => { finalize(true, null, null); }, 10000);
-
-  } catch (err) {
-    console.error('submitMainForm error', err);
-    showTempMessage('Error: ' + (err && err.message ? err.message : 'Unknown error'));
-    const sb = document.getElementById('submitBtn');
-    if (sb) { sb.disabled = false; sb.textContent = sb.dataset.origText || 'Submit'; }
-    showLoading(false);
-  }
-}
-
-/* ---------- Clear form (only after successful submit) ---------- */
+/* ---------------- Clear form (only after success) ---------------- */
 function clearForm() {
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
   document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
@@ -1290,9 +1230,8 @@ function clearForm() {
   document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; if (uc.value !== undefined) uc.value = ''; });
 }
 
-/* ---------- Remove stray upload/submit buttons in photo UI and wire main buttons ---------- */
+/* ---------------- Remove stray upload/submit buttons in photo area (safety) & wire submit ---------------- */
 document.addEventListener('DOMContentLoaded', function() {
-  // Remove any accidental "Submit" or "Upload" buttons inside upload area
   document.querySelectorAll('.photo-section, #uploadArea, #previewContainer').forEach(area => {
     if (!area) return;
     area.querySelectorAll('button').forEach(btn => {
@@ -1301,14 +1240,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Wire main submit
+  // wire submit
   const submitBtn = document.getElementById('submitBtn');
   if (submitBtn) {
     submitBtn.removeEventListener('click', submitMainForm);
     submitBtn.addEventListener('click', submitMainForm);
   }
 
-  // Wire clear button
+  // wire clear if present
   const clearBtn = document.getElementById('clearBtn');
   if (clearBtn) {
     clearBtn.removeEventListener('click', function(){});
@@ -1316,6 +1255,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
 
     <!-- Service Worker Registration -->
     <script>
@@ -3016,6 +2956,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
 
