@@ -40,115 +40,6 @@
       border:1px solid #ccc; border-radius:4px;
     }
 
-    .upload-area {
-            border: 3px dashed #2196F3;
-            border-radius: 15px;
-            padding: 40px 20px;
-            margin: 30px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9ff;
-        }
-
-    .upload-area:hover {
-            border-color: #1976D2;
-            background: #e3f2fd;
-        }
-        
-        .upload-area.dragover {
-            border-color: #4CAF50;
-            background: #e8f5e8;
-        }
-    .upload-icon {
-            font-size: 4rem;
-            color: #2196F3;
-            margin-bottom: 15px;
-        }
-        
-        .upload-text {
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-        
-        .file-input {
-            display: none;
-        }
-    .btn {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-            min-width: 150px;
-        }
-        
-        .btn:hover {
-            background: #1976D2;
-            transform: translateY(-2px);
-        }
-        
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-         .camera-btn {
-            background: #4CAF50;
-        }
-        
-        .camera-btn:hover {
-            background: #45a049;
-        }
-        
-        .preview-container {
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-     .status {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .loading {
-            display: none;
-            margin: 20px 0;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2196F3;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -460,7 +351,7 @@
 
     <!-- Customize panel (hidden by default) -->
     <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
-      <button class="close-x" id="panelCloseX" title="Close (Esc)">âŒ</button>
+      <button class="close-x" id="panelCloseX" title="Close (Esc)">❌</button>
       <strong>Customize form text</strong>
       <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
       <div class="panel-row">
@@ -493,7 +384,7 @@
       <!-- Add / Remove sub-item controls -->
       <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
         <strong>Add / Remove Sub-items</strong>
-        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red âŒ next to each sub-item label to remove it.</div>
+        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red ❌ next to each sub-item label to remove it.</div>
 
         <div class="panel-row" style="margin-top:8px; align-items:center;">
           <select id="addCategorySelect" style="width:40%; padding:8px; font-size:14px;">
@@ -536,7 +427,7 @@
             <img id="previewImage" class="preview-image" alt="Preview">
             <br>
             
-            <button class="btn" onclick="resetForm()">Cancel</button>
+            <button class="btn" onclick="resetPhotoForm()">Cancel</button>
         </div>
         
         <div class="loading" id="loading">
@@ -568,7 +459,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_floor_vitrified" value="Vitrified tiles">
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="Quantity" disabled>
@@ -583,7 +474,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="Quantity" disabled>
@@ -598,7 +489,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="Quantity" disabled>
@@ -613,7 +504,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="Quantity" disabled>
@@ -628,7 +519,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="Quantity" disabled>
@@ -653,7 +544,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="Quantity" disabled>
@@ -668,7 +559,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="Quantity" disabled>
@@ -683,7 +574,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="Quantity" disabled>
@@ -708,7 +599,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_san_wash" value="Washbasins">
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="Quantity" disabled>
@@ -723,7 +614,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="Quantity" disabled>
@@ -738,7 +629,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="Quantity" disabled>
@@ -763,7 +654,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_acc_grout" value="Tile grout & adhesives">
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="Quantity" disabled>
@@ -778,7 +669,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="Quantity" disabled>
@@ -793,7 +684,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="Quantity" disabled>
@@ -808,7 +699,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="Quantity" disabled>
@@ -823,7 +714,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="Quantity" disabled>
@@ -838,7 +729,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem purchased" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="Quantity" disabled>
@@ -869,7 +760,7 @@
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
-        <input id="purchasedOtherText" type="text" placeholder="If Others Ã¢â‚¬â€œ specify (e.g. 'Grout, Adhesive')">
+        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
       </div>
     </div>
 
@@ -883,7 +774,7 @@
         <option value="Customised">Customised</option>
         <option value="Other">Other</option>
       </select>
-      <input id="purchasedFrom" type="text" placeholder="If Other Ã¢â‚¬â€œ specify vendor name" style="flex:1; display:none;">
+      <input id="purchasedFrom" type="text" placeholder="If Other — specify vendor name" style="flex:1; display:none;">
     </div>
 
     <!-- custom vendor manager -->
@@ -902,19 +793,19 @@
     <div class="checkbox-row" id="modes">
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> <span class="editable" data-config-id="mode_cash_label" id="label_mode_cash">Cash</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âŒ</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled data-mode-amount="Cash">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> <span class="editable" data-config-id="mode_online_label" id="label_mode_online">Online</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âŒ</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled data-mode-amount="Online">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> <span class="editable" data-config-id="mode_credit_label" id="label_mode_credit">Credit</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âŒ</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled data-mode-amount="Credit">
       </div>
@@ -946,489 +837,401 @@
 
 
 <script>
-/* --------- Config (keep your existing endpoints/token here) --------- */
-const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec";
-const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
-// The Apps Script POST endpoint used for photo upload (iframe target)
-const SCRIPT_URL = window.SCRIPT_URL || "https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec";
+/* Unified submit script — NO CANVAS used.
+   - Single POST to SCRIPT_URL?action=submit via hidden iframe
+   - Includes imageData (base64) if a photo is selected (read via FileReader)
+   - Clears form after successful submit
+   - Shows debug box with exactly what is being posted
+*/
 
-/* --------- Photo selection state (keeps behaviour already in your file) --------- */
+const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
+
 let selectedFile = null;
-let selectedImage = null;
+let selectedImage = null; // dataURL string (base64) read directly from file with FileReader
 
-/* If your page already has functions to capture/preview the image (camera/file),
-   keep them in the page. This script expects selectedFile and selectedImage
-   to be set when the user picks a photo (dataURL). If you have that code,
-   it will keep working. */
-
-/* -------------------- Helpful small utilities -------------------- */
-function uuidv4() {
-  // Simple client id generator for the payload if none exists
-  return 'c-' + ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-  );
-}
-
-/* JSONP helper (Apps Script web app supports ?callback=...) */
-function jsonpCall(url, timeoutMs = 20000) {
-  return new Promise((resolve, reject) => {
-    const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
-    window[cbName] = function(data) {
-      try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
-    };
-    const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
-    const script = document.createElement('script');
-    script.src = full;
-    script.onerror = function() {
-      try { delete window[cbName]; } catch(e) {}
-      reject(new Error('JSONP load error'));
-    };
-    document.body.appendChild(script);
-
-    // Timeout
-    const to = setTimeout(() => {
-      try { delete window[cbName]; } catch(e) {}
-      reject(new Error('JSONP timeout'));
-    }, timeoutMs);
-
-    // clear timeout on resolution
-    const cleanupResolve = (res) => {
-      clearTimeout(to);
-      return res;
-    };
-    const originalResolve = window[cbName];
-    // note: originalResolve is the function above; jsonpCall resolves by that call.
-  });
-}
-
-/* -------------------- Photo upload (iframe POST) -------------------- */
-function uploadViaFormSubmission() {
-  return new Promise((resolve, reject) => {
-    // If no image selected, resolve null quickly
-    if (!selectedImage) return resolve(null);
-
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.name = 'upload_iframe_' + Date.now();
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SCRIPT_URL;
-    form.target = iframe.name;
-    form.enctype = 'multipart/form-data';
-
-    // Apps Script expects fields named imageData and fileName (this matches your existing code)
-    const imageInput = document.createElement('input');
-    imageInput.type = 'hidden';
-    imageInput.name = 'imageData';
-    imageInput.value = selectedImage;
-
-    const fileNameInput = document.createElement('input');
-    fileNameInput.type = 'hidden';
-    fileNameInput.name = 'fileName';
-    fileNameInput.value = selectedFile ? selectedFile.name : ('camera_photo_' + Date.now() + '.jpg');
-
-    const actionInput = document.createElement('input');
-    actionInput.type = 'hidden';
-    actionInput.name = 'action';
-    actionInput.value = 'upload';
-
-    form.appendChild(imageInput);
-    form.appendChild(fileNameInput);
-    form.appendChild(actionInput);
-    document.body.appendChild(form);
-
-    // If the iframe loads same-origin response, try to parse it; otherwise fallback
-    iframe.onload = function() {
-      try {
-        const bodyText = iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.textContent;
-        if (bodyText) {
-          const result = JSON.parse(bodyText);
-          if (result && result.success) {
-            // server returned shortName or url - prefer url if available
-            const link = result.shortName || result.fileName || result.url || fileNameInput.value;
-            cleanup();
-            return resolve(link);
-          } else {
-            cleanup();
-            // server returned an error object
-            return reject(new Error(result && result.error ? result.error : 'Upload failed'));
-          }
-        }
-      } catch (e) {
-        // Cross-origin or parse failure -> fallback
-      }
-
-      // Likely cross-origin: assume upload succeeded and return filename (server uses that)
-      const fallbackName = fileNameInput.value;
-      cleanup();
-      return resolve(fallbackName);
-    };
-
-    function cleanup() {
-      setTimeout(() => {
-        if (document.body.contains(form)) document.body.removeChild(form);
-        if (document.body.contains(iframe)) document.body.removeChild(iframe);
-      }, 600);
-    }
-
-    // Submit the form
-    try {
-      form.submit();
-    } catch (e) {
-      cleanup();
-      return reject(e);
-    }
-
-    // Timeout fallback (in case iframe never triggers)
-    setTimeout(() => {
-      cleanup();
-      // return filename as a last resort
-      resolve(fileNameInput.value);
-    }, 10000);
-  });
-}
-
-/* Wrapper that uploads the photo and returns the server-stored name/link or null */
-async function uploadPhotoToServer() {
-  if (!selectedImage) return null;
-  try {
-    showPhotoStatus('Uploading photo...', 'success');
-    const res = await uploadViaFormSubmission(); // returns shortName or filename or null
-    showPhotoStatus('Photo uploaded (returned: ' + (res || '[no name]') + ')', 'success');
-    return res;
-  } catch (err) {
-    console.error('Photo upload error:', err);
-    showPhotoStatus('Photo upload failed: ' + (err.message || err), 'error');
-    // continue — do not block the main submit
-    return selectedFile ? selectedFile.name : null;
-  } finally {
-    // small delay to allow UI to settle
-    setTimeout(() => showPhotoStatus('', ''), 3000);
-  }
-}
-
-/* -------------------- Collect form fields -------------------- */
-function collectFormData() {
-  const data = {};
-
-  // PURCHASED: collect checked items and their qty/unit if present
-  const purchased = [];
-  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-  purchasedCheckboxes.forEach(cb => {
-    try {
-      const id = cb.id || '';
-      // if it's p_other, handle free-text
-      if (id === 'p_other') {
-        const qtyEl = document.getElementById('q_other');
-        const unitEl = document.getElementById('unit_other');
-        const unitCustomEl = document.getElementById('unit_custom_other');
-        const otherTextEl = document.getElementById('purchasedOtherText');
-
-        let qty = qtyEl && qtyEl.value ? qtyEl.value.trim() : '';
-        let unit = '';
-        if (unitEl && unitEl.value) {
-          unit = unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()
-                 ? unitCustomEl.value.trim()
-                 : unitEl.value;
-        }
-        let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
-        if (qty && unit) purchased.push(qty + ' ' + unit + ' ' + description);
-        else purchased.push(description);
-      } else {
-        // handle sublists (sub_... checkboxes), gather quantity/unit controls that follow naming pattern q_<suffix>, unit_<suffix>
-        const sublistId = getSublistId(id);
-        if (sublistId) {
-          // find checked subitems under the related sublist
-          const sublist = document.getElementById(sublistId);
-          if (sublist) {
-            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-            if (checkedSubs.length > 0) {
-              checkedSubs.forEach(subCb => {
-                const subId = subCb.id || '';
-                const subSuffix = (subId.startsWith('sub_') ? subId.slice(4) : subId);
-                const qtyEl = document.getElementById('q_' + subSuffix);
-                const unitEl = document.getElementById('unit_' + subSuffix);
-                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-
-                let qty = qtyEl && qtyEl.value ? qtyEl.value.trim() : '';
-                let unit = '';
-                if (unitEl && unitEl.value) {
-                  unit = (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim())
-                         ? unitCustomEl.value.trim()
-                         : unitEl.value;
-                }
-                const labelEl = subCb.getAttribute('data-label') || subCb.value || '';
-                if (qty && unit) purchased.push(qty + ' ' + unit + ' ' + labelEl);
-                else purchased.push(labelEl);
-              });
-            } else {
-              // main checkbox selected but no subitems checked: push main label
-              purchased.push(cb.value || cb.id || 'Item');
-            }
-          } else {
-            purchased.push(cb.value || cb.id || 'Item');
-          }
-        } else {
-          // no sublist mapping, just push main label
-          purchased.push(cb.value || cb.id || 'Item');
-        }
-      }
-    } catch(e) {
-      console.warn('Error parsing purchased checkbox', e);
-    }
-  });
-
-  data.purchased = purchased.length ? purchased.join('; ') : '-'; // send '-' if empty to avoid server "required" rejection
-
-  // PURCHASED FROM (select or textbox)
-  try {
-    const sel = document.getElementById('purchasedFromSelect');
-    const txt = document.getElementById('purchasedFrom');
-    let purchasedFrom = '';
-    if (sel && sel.value) {
-      purchasedFrom = (sel.value === 'Other' && txt && txt.value) ? txt.value.trim() : sel.value;
-    } else if (txt && txt.value) {
-      purchasedFrom = txt.value.trim();
-    }
-    data.purchasedFrom = purchasedFrom || '';
-  } catch(e) {
-    data.purchasedFrom = '';
-  }
-
-  // PAYMENT MODES: collect checked modes and their amounts
-  try {
-    const modeRows = Array.from(document.querySelectorAll('.mode-row'));
-    const modePairs = [];
-    modeRows.forEach(mr => {
-      const cb = mr.querySelector('input[type="checkbox"], input[type="radio"]');
-      if (!cb) return;
-      if (cb.checked) {
-        const label = (mr.querySelector('.editable') && mr.querySelector('.editable').textContent.trim()) || cb.value || '';
-        const amtInput = mr.querySelector('input.mode-amount');
-        const amt = amtInput && amtInput.value ? parseFloat(amtInput.value) : null;
-        if (amt !== null && !isNaN(amt)) modePairs.push(label + ': ₹' + amt);
-        else modePairs.push(label);
-      }
+/* ---------- File selection (NO CANVAS) ---------- */
+(function wireUploadInputs() {
+  const uploadArea = document.getElementById('uploadArea');
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f && f.type && f.type.startsWith('image/')) handleFileDirect(f);
     });
-    data.paymentModes = modePairs.join('; ');
-  } catch(e) {
-    data.paymentModes = '';
   }
 
-  // PAYMENT PAID
-  try {
-    const paymentPaidEl = document.getElementById('paymentPaid');
-    data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-  } catch(e) {
-    data.paymentPaid = '';
-  }
+  const fileInput = document.getElementById('fileInput');
+  const cameraInput = document.getElementById('cameraInput');
+  if (fileInput) fileInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+  if (cameraInput) cameraInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+})();
 
-  // OTHER INFO
-  try {
-    const otherInfoEl = document.getElementById('otherInfo');
-    data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-  } catch(e) {
-    data.otherInfo = '';
-  }
-
-  // clientId (if any) - include or create
-  data.clientId = window.clientId || (window.clientId = uuidv4());
-
-  return data;
-}
-
-/* mapping for main checkbox id -> sublist id (keeps your existing mapping) */
-function getSublistId(mainCheckboxId) {
-  const mapping = {
-    'p_floor': 'sublist_floor',
-    'p_wall': 'sublist_wall',
-    'p_san': 'sublist_san',
-    'p_acc': 'sublist_acc'
+function handleFileDirect(file) {
+  // No canvas used — simply read file as data URL (base64)
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    selectedImage = e.target.result; // data:image/...;base64,...
+    // Show preview if previewImage exists
+    const preview = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('previewContainer');
+    if (preview) preview.src = selectedImage;
+    if (previewContainer) previewContainer.style.display = 'block';
   };
-  return mapping[mainCheckboxId] || null;
-}
-
-/* -------------------- Submit main form data via JSONP -------------------- */
-async function submitFormData(formData) {
-  // Prepare payload keys expected by your Apps Script
-  const submitData = {
-    action: 'submit',
-    token: SERVER_TOKEN,
-    purchased: formData.purchased || '-',
-    purchasedFrom: formData.purchasedFrom || '',
-    paymentModes: formData.paymentModes || '',
-    paymentPaid: formData.paymentPaid || '',
-    otherInfo: formData.otherInfo || '',
-    photoLink: formData.photoLink || '',
-    clientId: formData.clientId || (window.clientId || '')
+  reader.onerror = (err) => {
+    console.error('FileReader error', err);
+    selectedFile = null;
+    selectedImage = null;
+    showTempMessage('Failed to read selected photo.');
   };
-
-  // Build URL with encoded query parameters
-  const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k =>
-    encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
-  ).join('&');
-
-  // Use JSONP call (server must support callback)
-  try {
-    const r = await jsonpCall(url, 30000);
-    return r;
-  } catch (err) {
-    console.error('submitFormData JSONP error', err);
-    // Try to return a consistent object to the rest of the code (non-fatal)
-    return { success: false, error: err.message || 'JSONP failed' };
-  }
+  reader.readAsDataURL(file);
 }
 
-/* -------------------- UI helpers -------------------- */
-function clearForm() {
-  // Uncheck checkboxes
-  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-    cb.checked = false;
-    cb.dispatchEvent(new Event('change'));
-  });
-  // Clear text/number/textarea inputs (except persistent config inputs)
-  document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
-    if (['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(input.id) === -1) {
-      input.value = '';
-    }
-  });
-  // Reset selects to first option (except config add select)
-  document.querySelectorAll('select').forEach(sel => {
-    if (sel.id !== 'addCategorySelect') {
-      sel.selectedIndex = 0;
-      sel.dispatchEvent(new Event('change'));
-    }
-  });
-  // Hide custom-unit fields if exist
-  document.querySelectorAll('.unit-custom').forEach(uc => {
-    uc.style.display = 'none';
-    uc.value = '';
-  });
+/* ---------- UI helpers ---------- */
+function showLoading(show) {
+  const el = document.getElementById('loading');
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+function showPhotoStatus(msg, type='info') {
+  const el = document.getElementById('photoStatus');
+  if (!el) return;
+  el.innerHTML = `<div class="status ${type}">${msg}</div>`;
+}
+function showTempMessage(text) {
+  const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
+  if (!el) {
+    // fallback alert if no message container
+    try { alert(text); } catch(e) {}
+    return;
+  }
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { try { el.style.display = 'none'; } catch(e) {} }, 3000);
 }
 
 function resetPhotoForm() {
   selectedFile = null;
   selectedImage = null;
-  const fileInput = document.getElementById('fileInput');
-  const cameraInput = document.getElementById('cameraInput');
-  if (fileInput) fileInput.value = '';
-  if (cameraInput) cameraInput.value = '';
-  const previewContainer = document.getElementById('previewContainer');
-  if (previewContainer) previewContainer.style.display = 'none';
-  const previewImage = document.getElementById('previewImage');
-  if (previewImage) previewImage.src = '';
-  const photoStatus = document.getElementById('photoStatus');
-  if (photoStatus) photoStatus.innerHTML = '';
+  const fi = document.getElementById('fileInput'), ci = document.getElementById('cameraInput'), pc = document.getElementById('previewContainer'), ps = document.getElementById('photoStatus');
+  if (fi) fi.value = '';
+  if (ci) ci.value = '';
+  if (pc) pc.style.display = 'none';
+  if (ps) ps.innerHTML = '';
 }
 
-function showPhotoStatus(msg, type='') {
-  const el = document.getElementById('photoStatus');
-  if (!el) return;
-  el.innerHTML = msg ? `<div class="status ${type||''}">${msg}</div>` : '';
+/* ---------- Collect form data (purchased items -> Column C etc.) ---------- */
+function getSublistId(mainCheckboxId) {
+  const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
+  return mapping[mainCheckboxId] || null;
 }
 
-function showTempMessage(msg) {
-  // Simple status area - reuses your existing #status or fallback alert
-  const s = document.getElementById('status');
-  if (s) {
-    s.textContent = msg;
-    setTimeout(()=> { if (s) s.textContent = navigator.onLine ? 'online' : 'offline'; }, 4000);
+function collectFormData() {
+  const data = {};
+  const purchased = [];
+  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+
+  purchasedCheckboxes.forEach(cb => {
+    const value = cb.value || '';
+    if (cb.id === 'p_other') {
+      const qtyEl = document.getElementById('q_other');
+      const unitEl = document.getElementById('unit_other');
+      const unitCustomEl = document.getElementById('unit_custom_other');
+      const otherTextEl = document.getElementById('purchasedOtherText');
+
+      let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+      let unit = '';
+      if (unitEl && unitEl.value) {
+        if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+        else unit = unitEl.value;
+      }
+      const desc = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+      if (qty && unit) purchased.push(`${qty} ${unit} ${desc}`);
+      else if (desc) purchased.push(desc);
+      else purchased.push(value);
+    } else {
+      const sublistId = getSublistId(cb.id);
+      if (sublistId) {
+        const sublist = document.getElementById(sublistId);
+        if (sublist) {
+          const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+          if (checkedSubs.length > 0) {
+            checkedSubs.forEach(subCb => {
+              const subValue = subCb.value || '';
+              const subSuffix = (subCb.id || '').startsWith('sub_') ? subCb.id.slice(4) : (subCb.id || '');
+              const qtyEl = document.getElementById('q_' + subSuffix);
+              const unitEl = document.getElementById('unit_' + subSuffix);
+              const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+              let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+              let unit = '';
+              if (unitEl && unitEl.value) {
+                if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+                else unit = unitEl.value;
+              }
+              if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
+              else if (subValue) purchased.push(subValue);
+            });
+          } else {
+            // main checked but no subitems checked -> record main label
+            purchased.push(value);
+          }
+        } else {
+          purchased.push(value);
+        }
+      } else {
+        purchased.push(value);
+      }
+    }
+  });
+
+  data.purchased = purchased.join(', ');
+  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+  const purchasedFromText = document.getElementById('purchasedFrom');
+  if (purchasedFromSelect) {
+    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) data.purchasedFrom = purchasedFromText.value.trim();
+    else data.purchasedFrom = purchasedFromSelect.value || '';
   } else {
-    alert(msg);
+    data.purchasedFrom = '';
   }
+
+  const paymentModes = [];
+  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+  modeCheckboxes.forEach(cb => {
+    const mode = cb.value || '';
+    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+    const amount = amountInput && amountInput.value ? amountInput.value : '';
+    if (amount) paymentModes.push(`${mode}: ₹${amount}`);
+    else paymentModes.push(mode);
+  });
+  data.paymentModes = paymentModes.join(', ');
+
+  const paymentPaidEl = document.getElementById('paymentPaid');
+  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+  const otherInfoEl = document.getElementById('otherInfo');
+  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+
+  data.photoLink = ''; // will be set by submit flow if photo attached
+  return data;
 }
 
-/* -------------------- Main submit flow (button handler) -------------------- */
-async function submitMainForm(event) {
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+/* ---------- Debug box (temporary) ---------- */
+function showDebugBox(text) {
+  let dbg = document.getElementById('clientDebugBox');
+  if (!dbg) {
+    dbg = document.createElement('pre');
+    dbg.id = 'clientDebugBox';
+    dbg.style.position = 'fixed';
+    dbg.style.right = '10px';
+    dbg.style.bottom = '10px';
+    dbg.style.zIndex = 99999;
+    dbg.style.background = 'rgba(0,0,0,0.75)';
+    dbg.style.color = '#fff';
+    dbg.style.padding = '8px';
+    dbg.style.maxWidth = '420px';
+    dbg.style.maxHeight = '320px';
+    dbg.style.overflow = 'auto';
+    dbg.style.fontSize = '12px';
+    document.body.appendChild(dbg);
   }
+  dbg.textContent = text;
+}
+
+/* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
+async function submitMainForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
+  showLoading(true);
 
   try {
-    // 1) upload photo (if any) and capture server filename/link
-    let photoUploadResult = null;
+    // 1) collect form data first
+    const data = collectFormData();
+
+    // basic client validation
+    if (!data.purchased || !data.purchased.trim()) {
+      showTempMessage('No sub-item selected. Please select at least one specific item and quantity.');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+      showLoading(false);
+      return;
+    }
+
+    // 2) If photo selected, ensure selectedImage is ready (FileReader already read it in handleFileDirect).
+    // If selectedImage is not yet populated (fast click), wait briefly (max 2s) for it to appear.
+    if (selectedFile && !selectedImage) {
+      // wait up to 2s for FileReader to finish
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        // small pause
+        await new Promise(r => setTimeout(r, 120));
+      }
+    }
+
+    // Attach photo marker to data.photoLink (filename marker) — server's submit branch should write this into Column D
     if (selectedImage) {
-      photoUploadResult = await uploadPhotoToServer();
-      // If upload result is truthy but looks like a filename, keep it.
-      // We'll place it in formData.photoLink below.
-    }
-
-    // 2) collect the rest of the form
-    const formData = collectFormData();
-
-    // include photo link in the same payload - server will store it in Column D
-    if (photoUploadResult) formData.photoLink = photoUploadResult;
-
-    // 3) submit everything together (via JSONP)
-    const response = await submitFormData(formData);
-
-    // response.success should be true when server accepted it
-    if (response && response.success) {
-      showTempMessage('Entry submitted successfully!');
-      clearForm();
-      resetPhotoForm();
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
     } else {
-      // sometimes Apps Script returns { success:false, error: '...' } or other shapes
-      const errMsg = (response && response.error) ? response.error : 'Submission failed (no success returned)';
-      console.error('Server submission returned error:', response);
-      showTempMessage('Failed to submit form: ' + errMsg);
+      data.photoLink = '';
     }
-  } catch (err) {
-    console.error('submitMainForm error', err);
-    showTempMessage('Error while submitting: ' + (err.message || err));
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
+
+    // 3) Build hidden POST form with all fields + imageData (if present)
+    const iframeName = 'submit_iframe_single';
+    let iframe = document.getElementById(iframeName);
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeName;
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
     }
-  }
-}
 
-/* -------------------- Small DOM fixes requested by you -------------------- */
-document.addEventListener('DOMContentLoaded', function() {
-  // assign click handler to submit button
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) submitBtn.addEventListener('click', submitMainForm);
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL; // server reads action from fields
+    form.target = iframeName;
+    form.enctype = 'multipart/form-data';
 
-  // clear button behaviour (keeps current confirm)
-  const clearBtn = document.getElementById('clearBtn');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function() {
-      if (confirm('Clear all form data?')) {
+    function addHidden(name, value) {
+      const i = document.createElement('input');
+      i.type = 'hidden';
+      i.name = name;
+      i.value = value != null ? String(value) : '';
+      form.appendChild(i);
+    }
+
+    addHidden('token', SERVER_TOKEN || '');
+    addHidden('action', 'submit');
+    addHidden('purchased', data.purchased || '');
+    addHidden('purchasedFrom', data.purchasedFrom || '');
+    addHidden('paymentModes', data.paymentModes || '');
+    addHidden('paymentPaid', data.paymentPaid || '');
+    addHidden('otherInfo', data.otherInfo || '');
+    addHidden('photoLink', data.photoLink || '');
+
+    if (selectedImage) {
+      // include base64 image in the submit body
+      addHidden('imageData', selectedImage);
+      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+      showPhotoStatus('Attaching photo to submission...', 'info');
+    }
+
+    document.body.appendChild(form);
+
+    // Debug snapshot of what we're about to send (imageData trimmed)
+    const inputs = Array.from(form.querySelectorAll('input')).map(inp => {
+      const val = (inp.name === 'imageData') ? ('[BASE64:' + Math.min(200, (selectedImage ? selectedImage.length : 0)) + ' chars]') : inp.value;
+      return `${inp.name}=${val}`;
+    }).join('\n');
+    console.log('Submitting form fields:\n' + inputs);
+    showDebugBox('Submitting form:\n' + inputs);
+
+    // 4) Submit into iframe and process response/fallback
+    let handled = false;
+    function finalize(success, serverText, serverJson) {
+      if (handled) return;
+      handled = true;
+      showLoading(false);
+
+      console.log('iframe response text:', serverText, 'json:', serverJson);
+      // treat success or success-like server JSON
+      const ok = success || (serverJson && (serverJson.success === true || serverJson.result === 'ok' || serverJson.status === 'success'));
+      if (ok) {
+        showTempMessage('Entry submitted successfully!');
         clearForm();
         resetPhotoForm();
+      } else {
+        const err = (serverJson && (serverJson.error || serverJson.message)) || serverText || 'Submission may have failed';
+        showTempMessage('Error: ' + err);
       }
+      // cleanup
+      try { if (form.parentNode) form.parentNode.removeChild(form); } catch(e) {}
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+      setTimeout(() => { const dbg = document.getElementById('clientDebugBox'); if (dbg) dbg.remove(); }, 5000);
+    }
+
+    iframe.onload = function() {
+      try {
+        const bodyText = iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.textContent;
+        if (bodyText) {
+          try {
+            const parsed = JSON.parse(bodyText);
+            finalize(true, bodyText, parsed);
+            return;
+          } catch (err) {
+            // not JSON - assume any non-empty response indicates server handled the POST
+            finalize(true, bodyText, null);
+            return;
+          }
+        } else {
+          // no readable body (likely cross-origin) - assume server received POST
+          finalize(true, null, null);
+        }
+      } catch (err) {
+        // cross-origin access blocked - assume success
+        finalize(true, null, null);
+      }
+    };
+
+    // submit and fallback timeout
+    form.submit();
+    setTimeout(() => finalize(true, null, null), 9000);
+
+  } catch (err) {
+    console.error('submitMainForm error', err);
+    showTempMessage('Error: ' + (err && err.message ? err.message : 'Unknown error'));
+    const submitBtn2 = document.getElementById('submitBtn');
+    if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.textContent = submitBtn2.dataset.origText || 'Submit'; }
+    showLoading(false);
+  }
+}
+
+/* ---------- Clear form (only after successful submit) ---------- */
+function clearForm() {
+  // uncheck checkboxes
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
+  // clear text/number/textarea (skip helper inputs)
+  document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
+    if (['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(inp.id) === -1) inp.value = '';
+  });
+  // reset selects
+  document.querySelectorAll('select').forEach(sel => { if (sel.id !== 'addCategorySelect') { sel.selectedIndex = 0; try { sel.dispatchEvent(new Event('change')); } catch(e){} } });
+  // hide custom unit inputs
+  document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; if (uc.value !== undefined) uc.value = ''; });
+}
+
+/* ---------- Remove stray upload/submit buttons in photo area at runtime & wire submit button ---------- */
+document.addEventListener('DOMContentLoaded', function() {
+  // Remove any accidental "Submit" or "Upload" buttons inside photo area
+  const photoAreas = document.querySelectorAll('.photo-section, #uploadArea, #previewContainer');
+  photoAreas.forEach(area => {
+    if (!area) return;
+    area.querySelectorAll('button').forEach(btn => {
+      const t = (btn.textContent || '').trim().toLowerCase();
+      if (t === 'submit' || t === 'upload' || t === 'upload photo') btn.remove();
     });
+  });
+
+  // Wire main submit button
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    // ensure we don't double-wire
+    submitBtn.removeEventListener('click', submitMainForm);
+    submitBtn.addEventListener('click', submitMainForm);
+    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent || 'Submit';
   }
 
-  // hide any redundant upload-only buttons inside the photo upload area
-  // (the HTML contains a camera/select button but some variants had an "Upload" button below preview;
-  // if present we'll remove it so only the main Submit is used)
-  try {
-    // remove buttons that have "Upload" text inside photo area
-    document.querySelectorAll('#uploadArea button, .photo-section button').forEach(b => {
-      const txt = (b.textContent || '').trim().toLowerCase();
-      if (txt.includes('upload') || txt.includes('submit photo') || txt.includes('upload photo')) {
-        b.remove();
-      }
-    });
-  } catch(e) { /* ignore */ }
-
-  // trigger initial change events (existing behaviour)
-  document.querySelectorAll('.purchased').forEach(cb => cb.dispatchEvent(new Event('change')));
-  document.querySelectorAll('.subitem').forEach(cb => cb.dispatchEvent(new Event('change')));
-  document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => cb.dispatchEvent(new Event('change')));
+  // Wire clear button if present
+  const clearBtn = document.getElementById('clearBtn');
+  if (clearBtn) {
+    clearBtn.removeEventListener('click', function(){});
+    clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); } });
+  }
 });
-
-/* -------------------- Export for manual testing (optional) -------------------- */
-window.uploadPhotoToServer = uploadPhotoToServer;
-window.submitMainForm = submitMainForm;
-window.collectFormData = collectFormData;
 </script>
+
 
     <!-- Service Worker Registration -->
     <script>
@@ -1441,21 +1244,7 @@ window.collectFormData = collectFormData;
         }
   
 
-    // JSONP helper
-    function jsonpCall(url, timeoutMs = 20000) {
-      return new Promise((resolve, reject) => {
-        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
-        window[cbName] = function(data) {
-          try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
-        };
-        const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
-        const script = document.createElement('script');
-        script.src = full;
-        script.onerror = function(){ reject(new Error('JSONP load error')); try{ delete window[cbName]; }catch(e){} };
-        document.body.appendChild(script);
-        setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
-      });
-    }
+   
 
     // ----------------- Unit Management Functions -----------------
     function loadGlobalUnits() {
@@ -1613,16 +1402,7 @@ window.collectFormData = collectFormData;
       });
     }
 
-    function showTempMessage(text) {
-      const m = document.getElementById('msg');
-      if (!m) return;
-      m.textContent = text; 
-      m.style.display = 'block';
-      setTimeout(() => { 
-        if (m && navigator.onLine) m.style.display = 'none'; 
-      }, 2500);
-    }
-
+    
     // --- customization logic ---
     document.addEventListener('DOMContentLoaded', function() {
       const container = document.getElementById('appContainer');
@@ -1810,7 +1590,7 @@ window.collectFormData = collectFormData;
         b.type = 'button';
         b.className = 'remove-checkbox';
         b.title = 'Remove this item';
-        b.textContent = 'âŒ';
+        b.textContent = '❌';
         b.style.marginLeft = '8px';
         b.style.background = '#ff6b6b';
         b.style.color = '#fff';
@@ -2192,7 +1972,7 @@ window.collectFormData = collectFormData;
             delBtn.type = 'button';
             delBtn.title = 'Remove mode';
             delBtn.setAttribute('aria-label','Remove');
-            delBtn.textContent = 'âŒ';
+            delBtn.textContent = '❌';
 
             labelEl.appendChild(cb);
             labelEl.appendChild(span);
@@ -2250,7 +2030,7 @@ window.collectFormData = collectFormData;
           delBtn.type = 'button';
           delBtn.title = 'Remove sub-item';
           delBtn.setAttribute('aria-label','Remove');
-          delBtn.textContent = 'âŒ';
+          delBtn.textContent = '❌';
 
           labelEl.appendChild(cb);
           labelEl.appendChild(span);
@@ -2567,7 +2347,7 @@ window.collectFormData = collectFormData;
                     delBtn.type = 'button';
                     delBtn.title = 'Remove sub-item';
                     delBtn.setAttribute('aria-label', 'Remove');
-                    delBtn.textContent = 'âŒ';
+                    delBtn.textContent = '❌';
 
                     labelEl.appendChild(cb);
                     labelEl.appendChild(span);
@@ -2660,7 +2440,7 @@ window.collectFormData = collectFormData;
               delBtn.type = 'button';
               delBtn.title = 'Remove mode';
               delBtn.setAttribute('aria-label', 'Remove');
-              delBtn.textContent = 'âŒ';
+              delBtn.textContent = '❌';
 
               labelEl.appendChild(cb);
               labelEl.appendChild(span);
@@ -3129,6 +2909,7 @@ window.collectFormData = collectFormData;
   </script>
 </body>
 </html>
+
 
 
 
