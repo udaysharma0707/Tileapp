@@ -1410,7 +1410,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (clearBtn) {
     clearBtn.removeEventListener('click', function(){});
     clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); } });
-  }
+  }}
 });
 </script>
 
@@ -3132,6 +3132,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
