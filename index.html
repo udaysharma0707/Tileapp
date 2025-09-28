@@ -1815,6 +1815,157 @@
           oh();
         }
       }
+      /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
+async function submitMainForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
+  if (typeof showLoading === 'function') showLoading(true);
+
+  try {
+    // 1) collect form data first
+    const data = collectFormData ? collectFormData() : {};
+
+    // ---- NOTE: removed strict "purchased" validation here so submission is allowed even if empty ----
+    // if you still want to require something, add a conditional here that is less strict
+
+    // 2) If photo selected, ensure selectedImage is ready (FileReader already read it in handleFileSelect).
+    // If selectedImage is not yet populated (fast click), wait briefly (max 2s) for it to appear.
+    if (selectedFile && !selectedImage) {
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        await new Promise(r => setTimeout(r, 120));
+      }
+    }
+
+    // Attach photo marker to data.photoLink (filename marker) — server's submit branch should write this into Column D
+    if (selectedImage) {
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
+    } else {
+      data.photoLink = data.photoLink || '';
+    }
+
+    // ensure there's a clientId
+    const cid = window.clientId || (window.clientId = (typeof uuidv4 === 'function' ? uuidv4() : ('c-' + Date.now())));
+    data.clientId = cid;
+
+    // 3) Build hidden POST form with all fields + imageData (if present)
+    const iframeName = 'submit_iframe_single';
+    let iframe = document.getElementById(iframeName);
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeName;
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL; // server reads action from fields
+    form.target = iframeName;
+    form.enctype = 'multipart/form-data';
+
+    function addHidden(name, value) {
+      const i = document.createElement('input');
+      i.type = 'hidden';
+      i.name = name;
+      i.value = value != null ? String(value) : '';
+      form.appendChild(i);
+    }
+
+    addHidden('token', SERVER_TOKEN || '');
+    addHidden('action', 'submit');
+    addHidden('purchased', data.purchased || '');
+    addHidden('purchasedFrom', data.purchasedFrom || '');
+    addHidden('paymentModes', data.paymentModes || '');
+    addHidden('paymentPaid', data.paymentPaid || '');
+    addHidden('otherInfo', data.otherInfo || '');
+    addHidden('photoLink', data.photoLink || '');
+    addHidden('clientId', data.clientId || '');
+
+    if (selectedImage) {
+      // include base64 image in the submit body
+      addHidden('imageData', selectedImage);
+      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+      if (typeof showPhotoStatus === 'function') showPhotoStatus('Attaching photo to submission...', 'info');
+    }
+
+    document.body.appendChild(form);
+
+    // Debug snapshot of what we're about to send (imageData trimmed)
+    const inputs = Array.from(form.querySelectorAll('input')).map(inp => {
+      const val = (inp.name === 'imageData') ? ('[BASE64:' + Math.min(200, (selectedImage ? selectedImage.length : 0)) + ' chars]') : inp.value;
+      return `${inp.name}=${val}`;
+    }).join('\n');
+    console.log('Submitting form fields:\n' + inputs);
+    if (typeof showDebugBox === 'function') showDebugBox('Submitting form:\n' + inputs);
+
+    // 4) Submit into iframe and process response/fallback
+    let handled = false;
+    function finalize(success, serverText, serverJson) {
+      if (handled) return;
+      handled = true;
+      if (typeof showLoading === 'function') showLoading(false);
+
+      console.log('iframe response text:', serverText, 'json:', serverJson);
+      // treat success or success-like server JSON
+      const ok = success || (serverJson && (serverJson.success === true || serverJson.result === 'ok' || serverJson.status === 'success'));
+      if (ok) {
+        if (typeof showTempMessage === 'function') showTempMessage('Entry submitted successfully!');
+        if (typeof clearForm === 'function') clearForm();
+        if (typeof resetPhotoForm === 'function') resetPhotoForm();
+      } else {
+        const err = (serverJson && (serverJson.error || serverJson.message)) || serverText || 'Submission may have failed';
+        if (typeof showTempMessage === 'function') showTempMessage('Error: ' + err);
+      }
+      // cleanup
+      try { if (form.parentNode) form.parentNode.removeChild(form); } catch(e) {}
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+      setTimeout(() => { const dbg = document.getElementById('clientDebugBox'); if (dbg) dbg.remove(); }, 5000);
+    }
+
+    iframe.onload = function() {
+      try {
+        const bodyText = iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.textContent;
+        if (bodyText) {
+          try {
+            const parsed = JSON.parse(bodyText);
+            finalize(true, bodyText, parsed);
+            return;
+          } catch (err) {
+            // not JSON - assume any non-empty response indicates server handled the POST
+            finalize(true, bodyText, null);
+            return;
+          }
+        } else {
+          // no readable body (likely cross-origin) - assume server received POST
+          finalize(true, null, null);
+        }
+      } catch (err) {
+        // cross-origin access blocked - assume success
+        finalize(true, null, null);
+      }
+    };
+
+    // submit and fallback timeout
+    try {
+      form.submit();
+    } catch (err) {
+      console.warn('form.submit() error, still proceeding to finalize fallback', err);
+    }
+    setTimeout(() => finalize(true, null, null), 9000);
+
+  } catch (err) {
+    console.error('submitMainForm error', err);
+    if (typeof showTempMessage === 'function') showTempMessage('Error: ' + (err && err.message ? err.message : 'Unknown error'));
+    const submitBtn2 = document.getElementById('submitBtn');
+    if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.textContent = submitBtn2.dataset.origText || 'Submit'; }
+    if (typeof showLoading === 'function') showLoading(false);
+  }
+}
+
       
       function setupMainToSubBindings() {
         const mainToSub = {
@@ -2607,157 +2758,34 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-   /* ---------- Main submit flow (single POST to action=submit via iframe) ---------- */
-async function submitMainForm(e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
-  if (typeof showLoading === 'function') showLoading(true);
-
-  try {
-    // 1) collect form data first
-    const data = collectFormData ? collectFormData() : {};
-
-    // ---- NOTE: removed strict "purchased" validation here so submission is allowed even if empty ----
-    // if you still want to require something, add a conditional here that is less strict
-
-    // 2) If photo selected, ensure selectedImage is ready (FileReader already read it in handleFileSelect).
-    // If selectedImage is not yet populated (fast click), wait briefly (max 2s) for it to appear.
-    if (selectedFile && !selectedImage) {
-      const start = Date.now();
-      while (!selectedImage && (Date.now() - start) < 2000) {
-        await new Promise(r => setTimeout(r, 120));
-      }
-    }
-
-    // Attach photo marker to data.photoLink (filename marker) — server's submit branch should write this into Column D
-    if (selectedImage) {
-      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
-    } else {
-      data.photoLink = data.photoLink || '';
-    }
-
-    // ensure there's a clientId
-    const cid = window.clientId || (window.clientId = (typeof uuidv4 === 'function' ? uuidv4() : ('c-' + Date.now())));
-    data.clientId = cid;
-
-    // 3) Build hidden POST form with all fields + imageData (if present)
-    const iframeName = 'submit_iframe_single';
-    let iframe = document.getElementById(iframeName);
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = iframeName;
-      iframe.name = iframeName;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SCRIPT_URL; // server reads action from fields
-    form.target = iframeName;
-    form.enctype = 'multipart/form-data';
-
-    function addHidden(name, value) {
-      const i = document.createElement('input');
-      i.type = 'hidden';
-      i.name = name;
-      i.value = value != null ? String(value) : '';
-      form.appendChild(i);
-    }
-
-    addHidden('token', SERVER_TOKEN || '');
-    addHidden('action', 'submit');
-    addHidden('purchased', data.purchased || '');
-    addHidden('purchasedFrom', data.purchasedFrom || '');
-    addHidden('paymentModes', data.paymentModes || '');
-    addHidden('paymentPaid', data.paymentPaid || '');
-    addHidden('otherInfo', data.otherInfo || '');
-    addHidden('photoLink', data.photoLink || '');
-    addHidden('clientId', data.clientId || '');
-
-    if (selectedImage) {
-      // include base64 image in the submit body
-      addHidden('imageData', selectedImage);
-      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
-      if (typeof showPhotoStatus === 'function') showPhotoStatus('Attaching photo to submission...', 'info');
-    }
-
-    document.body.appendChild(form);
-
-    // Debug snapshot of what we're about to send (imageData trimmed)
-    const inputs = Array.from(form.querySelectorAll('input')).map(inp => {
-      const val = (inp.name === 'imageData') ? ('[BASE64:' + Math.min(200, (selectedImage ? selectedImage.length : 0)) + ' chars]') : inp.value;
-      return `${inp.name}=${val}`;
-    }).join('\n');
-    console.log('Submitting form fields:\n' + inputs);
-    if (typeof showDebugBox === 'function') showDebugBox('Submitting form:\n' + inputs);
-
-    // 4) Submit into iframe and process response/fallback
-    let handled = false;
-    function finalize(success, serverText, serverJson) {
-      if (handled) return;
-      handled = true;
-      if (typeof showLoading === 'function') showLoading(false);
-
-      console.log('iframe response text:', serverText, 'json:', serverJson);
-      // treat success or success-like server JSON
-      const ok = success || (serverJson && (serverJson.success === true || serverJson.result === 'ok' || serverJson.status === 'success'));
-      if (ok) {
-        if (typeof showTempMessage === 'function') showTempMessage('Entry submitted successfully!');
-        if (typeof clearForm === 'function') clearForm();
-        if (typeof resetPhotoForm === 'function') resetPhotoForm();
-      } else {
-        const err = (serverJson && (serverJson.error || serverJson.message)) || serverText || 'Submission may have failed';
-        if (typeof showTempMessage === 'function') showTempMessage('Error: ' + err);
-      }
-      // cleanup
-      try { if (form.parentNode) form.parentNode.removeChild(form); } catch(e) {}
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
-      setTimeout(() => { const dbg = document.getElementById('clientDebugBox'); if (dbg) dbg.remove(); }, 5000);
-    }
-
-    iframe.onload = function() {
+    // --- Main Submission Logic ---
+    async function submitMainForm() {
+      const submitBtn = document.getElementById('submitBtn');
+      if (!submitBtn) return;
+      
+      // Disable button during submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
       try {
-        const bodyText = iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.textContent;
-        if (bodyText) {
+        let photoUploadResult = null;
+        
+        // First, handle photo upload if there's a selected image
+        if (selectedImage) {
+          showPhotoStatus('Uploading photo...', 'success');
           try {
-            const parsed = JSON.parse(bodyText);
-            finalize(true, bodyText, parsed);
-            return;
-          } catch (err) {
-            // not JSON - assume any non-empty response indicates server handled the POST
-            finalize(true, bodyText, null);
-            return;
+            photoUploadResult = await uploadPhotoToServer();
+            if (photoUploadResult) {
+              showPhotoStatus('Photo uploaded successfully!', 'success');
+            } else {
+              showPhotoStatus('Photo upload failed, but form will continue', 'error');
+            }
+          } catch (error) {
+            console.error('Photo upload error:', error);
+            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
           }
-        } else {
-          // no readable body (likely cross-origin) - assume server received POST
-          finalize(true, null, null);
         }
-      } catch (err) {
-        // cross-origin access blocked - assume success
-        finalize(true, null, null);
-      }
-    };
-
-    // submit and fallback timeout
-    try {
-      form.submit();
-    } catch (err) {
-      console.warn('form.submit() error, still proceeding to finalize fallback', err);
-    }
-    setTimeout(() => finalize(true, null, null), 9000);
-
-  } catch (err) {
-    console.error('submitMainForm error', err);
-    if (typeof showTempMessage === 'function') showTempMessage('Error: ' + (err && err.message ? err.message : 'Unknown error'));
-    const submitBtn2 = document.getElementById('submitBtn');
-    if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.textContent = submitBtn2.dataset.origText || 'Submit'; }
-    if (typeof showLoading === 'function') showLoading(false);
-  }
-}
-
+        
         // Collect form data
         const formData = collectFormData();
         
@@ -3006,4 +3034,3 @@ async function submitMainForm(e) {
   </script>
 </body>
 </html>
-
