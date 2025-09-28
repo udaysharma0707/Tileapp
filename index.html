@@ -846,6 +846,8 @@
 
 const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
 const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
+   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
+
 
    
 
@@ -1019,25 +1021,71 @@ function collectFormData() {
   data.photoLink = ''; // will be set by submit flow if photo attached
   return data;
 }
-  // Compatibility wrapper so existing HTML (onchange="handleFileSelect(event)") keeps working.
-// It will call whichever file handler exists in your script: handleFileDirect(event) or handleFile(file)
-// or handleFile(fileObject)
-function handleFileSelect(event) {
+  // --------- handleFileSelect compatibility wrapper ---------
+// Place this ONCE (after jsonpCall) so the HTML onchange handlers work.
+function handleFileSelect(eventOrFile) {
   try {
-    // Prefer event-based handler if present
+    // if the user passed an event from <input onchange="...">, extract the file
+    let file = null;
+    if (!eventOrFile) return;
+    if (eventOrFile instanceof Event) {
+      const ev = eventOrFile;
+      if (ev.target && ev.target.files && ev.target.files.length > 0) {
+        file = ev.target.files[0];
+      } else if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
+        file = ev.dataTransfer.files[0];
+      }
+    } else if (eventOrFile && typeof eventOrFile === 'object' && eventOrFile.size !== undefined && eventOrFile.type !== undefined) {
+      // looks like a File/Blob object
+      file = eventOrFile;
+    }
+
+    if (!file) {
+      console.warn('handleFileSelect: no file found in event/argument');
+      return;
+    }
+
+    // Preferred existing handler name(s) in your code:
     if (typeof handleFileDirect === 'function') {
-      return handleFileDirect(event);
+      return handleFileDirect({ target: { files: [file] } }); // emulate the original event shape if handleFileDirect expects event
     }
-    // If your code has a function `handleFile` that expects a File object
+    // If your existing handler expects a File object (handleFile(file))
     if (typeof handleFile === 'function') {
-      // event may be the File or an input change event
-      const file = event && event.target && event.target.files ? event.target.files[0] : event;
-      if (file) return handleFile(file);
+      return handleFile(file);
     }
-  } catch (e) {
-    console.error('handleFileSelect wrapper error', e);
+    // If you have a handler that expects base64 string (handleFileBase64)
+    if (typeof handleFileBase64 === 'function') {
+      // read file as data URL and call handler
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try { handleFileBase64(e.target.result); } catch(e){ console.error(e); }
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Fallback: If you still have a function that reads File directly into selectedImage etc.
+    // We'll attempt to read as DataURL and set global variables similar to original code.
+    const fallbackReader = new FileReader();
+    fallbackReader.onload = function(ev) {
+      try {
+        // store in the globals your code expects
+        selectedImage = ev.target.result;
+        selectedFile = file;
+        // update preview elements if present
+        const previewImage = document.getElementById('previewImage');
+        const previewContainer = document.getElementById('previewContainer');
+        if (previewImage) previewImage.src = selectedImage;
+        if (previewContainer) previewContainer.style.display = 'block';
+      } catch (e) {
+        console.error('fallbackReader error', e);
+      }
+    };
+    fallbackReader.readAsDataURL(file);
+
+  } catch (err) {
+    console.error('handleFileSelect wrapper error', err);
   }
-  // if nothing matched, do nothing (prevents "not defined" error)
 }
 
 
@@ -2125,6 +2173,42 @@ document.addEventListener('DOMContentLoaded', function() {
           showTempMessage('Added: ' + rawLabel);
         });
       }
+      // --------- JSONP helper (single global implementation) ---------
+// Place this ONCE near the top of your main script (after constants).
+function jsonpCall(url, timeoutMs = 20000) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*100000);
+    // create callback
+    window[cbName] = function(data) {
+      try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} }
+    };
+
+    // append callback param
+    const sep = url.indexOf('?') === -1 ? '?' : '&';
+    const fullUrl = url + sep + 'callback=' + encodeURIComponent(cbName);
+
+    // create script tag
+    const script = document.createElement('script');
+    script.src = fullUrl;
+    script.async = true;
+    script.onerror = function() {
+      try { delete window[cbName]; } catch(e) {}
+      reject(new Error('JSONP load error'));
+    };
+    document.head.appendChild(script);
+
+    // timeout
+    const to = setTimeout(() => {
+      try { delete window[cbName]; } catch(e) {}
+      reject(new Error('JSONP timeout'));
+    }, timeoutMs);
+
+    // clear timeout when resolved
+    const originalResolve = resolve;
+    resolve = function(value) { clearTimeout(to); originalResolve(value); };
+  });
+}
+
 
       // Config save/load functions
       function buildConfigObject() {
@@ -2940,6 +3024,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
 
