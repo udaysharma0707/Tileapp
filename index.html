@@ -1017,17 +1017,57 @@ function getSublistId(mainCheckboxId) {
   return mapping[mainCheckboxId] || null;
 }
 
+// ---------- Robust collectFormData replacement ----------
 function collectFormData() {
   const data = {};
+
+  // Try several selectors to find checked purchase checkboxes (covers many markup variants)
+  const purchasedSelectors = [
+    'input.purchased:checked',
+    'input[name="purchased"]:checked',
+    'input[name="purchased[]"]:checked',
+    'input[type="checkbox"][data-purchased]:checked',
+    'input[type="checkbox"][id^="p_"]:checked' // fallback: ids starting with p_
+  ];
+  // Use a Set to avoid duplicates
+  const purchasedBoxesSet = new Set();
+  purchasedSelectors.forEach(sel => {
+    try {
+      document.querySelectorAll(sel).forEach(n => purchasedBoxesSet.add(n));
+    } catch(e){ /* ignore invalid selectors */ }
+  });
+  // Convert set to array
+  const purchasedCheckboxes = Array.from(purchasedBoxesSet);
+
   const purchased = [];
-  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+
+  // Helper to safely get element by id (returns null if not found)
+  const $id = (id) => document.getElementById(id) || null;
+
+  // Function to attempt to read qty & unit for a suffix
+  const readQtyUnit = (suffix) => {
+    const qtyEl = $id('q_' + suffix);
+    const unitEl = $id('unit_' + suffix);
+    const unitCustomEl = $id('unit_custom_' + suffix);
+    const qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+    let unit = '';
+    if (unitEl && unitEl.value) {
+      if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+      else unit = unitEl.value;
+    }
+    return { qty, unit };
+  };
+
   purchasedCheckboxes.forEach(cb => {
-    const value = cb.value || '';
-    if (cb.id === 'p_other') {
-      const qtyEl = document.getElementById('q_other');
-      const unitEl = document.getElementById('unit_other');
-      const unitCustomEl = document.getElementById('unit_custom_other');
-      const otherTextEl = document.getElementById('purchasedOtherText');
+    const value = cb.value || (cb.getAttribute('data-label') || cb.getAttribute('aria-label') || '');
+    // If it's the "Other" checkbox (either by id or name or data attribute)
+    const id = cb.id || '';
+    const isOther = id === 'p_other' || cb.name === 'p_other' || cb.getAttribute('data-other') === 'true' || (value && value.toLowerCase().includes('other'));
+    if (isOther) {
+      const qtyEl = $id('q_other');
+      const unitEl = $id('unit_other');
+      const unitCustomEl = $id('unit_custom_other');
+      const otherTextEl = $id('purchasedOtherText');
       let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
       let unit = '';
       if (unitEl && unitEl.value) {
@@ -1037,38 +1077,56 @@ function collectFormData() {
       const desc = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
       if (qty && unit) purchased.push(`${qty} ${unit} ${desc}`);
       else if (desc) purchased.push(desc);
-      else purchased.push(value);
-    } else {
-      const sublistId = getSublistId(cb.id);
-      if (sublistId) {
-        const sublist = document.getElementById(sublistId);
-        if (sublist) {
-          const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-          if (checkedSubs.length > 0) {
-            checkedSubs.forEach(subCb => {
-              const subValue = subCb.value || '';
-              const subSuffix = (subCb.id || '').startsWith('sub_') ? subCb.id.slice(4) : (subCb.id || '');
-              const qtyEl = document.getElementById('q_' + subSuffix);
-              const unitEl = document.getElementById('unit_' + subSuffix);
-              const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-              let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-              let unit = '';
-              if (unitEl && unitEl.value) {
-                if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
-                else unit = unitEl.value;
-              }
-              if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
-              else if (subValue) purchased.push(subValue);
-            });
-          } else {
-            purchased.push(value);
-          }
-        } else purchased.push(value);
-      } else purchased.push(value);
+      else if (value) purchased.push(value);
+      return;
     }
+
+    // If checkbox id suggests a main category with subitems: attempt to find sublist by mapping or id convention
+    // Known mapping (keep your original mapping)
+    const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
+    const sublistId = mapping[id] || mapping[cb.name] || null;
+
+    // If mapping found, try to read checked subitems inside that sublist
+    if (sublistId) {
+      const sublist = $id(sublistId);
+      if (sublist) {
+        const checkedSubs = sublist.querySelectorAll('input.subitem:checked, input[type="checkbox"]:checked');
+        if (checkedSubs && checkedSubs.length > 0) {
+          checkedSubs.forEach(subCb => {
+            const subValue = subCb.value || subCb.getAttribute('data-label') || subCb.getAttribute('aria-label') || '';
+            // derive suffix from id if possible
+            const subSuffix = (subCb.id && subCb.id.startsWith('sub_')) ? subCb.id.slice(4) : (subCb.id || subValue.replace(/\s+/g, '_').toLowerCase());
+            const { qty, unit } = readQtyUnit(subSuffix);
+            if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
+            else if (subValue) purchased.push(subValue);
+          });
+          return;
+        } else {
+          // no sub selected - include the main cb label
+          if (value) purchased.push(value);
+          return;
+        }
+      }
+    }
+
+    // Generic fallback: if this cb looks like a subitem (id starts with sub_) handle qty/unit similarly
+    if (id && id.startsWith('sub_')) {
+      const subSuffix = id.slice(4);
+      const subValue = cb.value || '';
+      const { qty, unit } = readQtyUnit(subSuffix);
+      if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
+      else if (subValue) purchased.push(subValue);
+      return;
+    }
+
+    // final fallback: push the checkbox label/value
+    if (value) purchased.push(value);
+    else if (cb.nextSibling && cb.nextSibling.textContent) purchased.push(cb.nextSibling.textContent.trim());
   });
 
   data.purchased = purchased.join(', ');
+
+  // other fields same as before
   const purchasedFromSelect = document.getElementById('purchasedFromSelect');
   const purchasedFromText = document.getElementById('purchasedFrom');
   if (purchasedFromSelect) {
@@ -1077,23 +1135,31 @@ function collectFormData() {
   } else data.purchasedFrom = '';
 
   const paymentModes = [];
-  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked, input[data-mode-checked="true"]:checked');
   modeCheckboxes.forEach(cb => {
-    const mode = cb.value || '';
+    const mode = cb.value || cb.getAttribute('data-mode') || '';
     const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
     const amount = amountInput && amountInput.value ? amountInput.value : '';
     if (amount) paymentModes.push(`${mode}: ₹${amount}`);
     else paymentModes.push(mode);
   });
   data.paymentModes = paymentModes.join(', ');
+
   const paymentPaidEl = document.getElementById('paymentPaid');
   data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
   const otherInfoEl = document.getElementById('otherInfo');
   data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
 
-  data.photoLink = ''; // set by submit flow (filename)
+  // photoLink is set at submit time as filename marker
+  data.photoLink = '';
+
+  // Debug log so you can see what we found
+  console.log('collectFormData -> purchased:', data.purchased);
+  try { showDebugBox && showDebugBox('Collected purchased: ' + (data.purchased || '[empty]')); } catch(e){}
+
   return data;
 }
+
 
 /* ---------------- clientId generator ---------------- */
 function generateClientId() {
@@ -2956,6 +3022,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
 
