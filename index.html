@@ -1182,33 +1182,7 @@ function collectFormData() {
   return data;
 }
 
- // --- Main Submission Logic ---
-    async function submitMainForm() {
-      const submitBtn = document.getElementById('submitBtn');
-      if (!submitBtn) return;
-      
-      // Disable button during submission
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-      
-      try {
-        let photoUploadResult = null;
-        
-        // First, handle photo upload if there's a selected image
-        if (selectedImage) {
-          showPhotoStatus('Uploading photo...', 'success');
-          try {
-            photoUploadResult = await uploadPhotoToServer();
-            if (photoUploadResult) {
-              showPhotoStatus('Photo uploaded successfully!', 'success');
-            } else {
-              showPhotoStatus('Photo upload failed, but form will continue', 'error');
-            }
-          } catch (error) {
-            console.error('Photo upload error:', error);
-            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
-          }
-        }
+
         
         // Collect form data
         const formData = collectFormData();
@@ -1390,7 +1364,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
-<script>
+
+  <script>
   
 
     <!-- Service Worker Registration -->
@@ -2864,7 +2839,100 @@ function jsonpCall(url, timeoutMs = 20000) {
           }
         });
       }
+// Load saved configuration on startup
+      async function loadServerConfig() {
+        try {
+          const url = SERVER_ENDPOINT + '?action=loadConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const response = await jsonpCall(url, 15000);
+          
+          if (response && response.success && response.config) {
+            const cfg = JSON.parse(response.config);
+            applyConfigObject(cfg);
+            console.log('Configuration loaded from server');
+          }
+        } catch (error) {
+          console.log('Could not load server config (using defaults):', error.message);
+        }
+      }
 
+      // Load config when page loads
+      loadServerConfig();
+    });
+
+    // --- Network Status Management ---
+    function updateOnlineStatus() {
+      const statusEls = [document.getElementById('status'), document.getElementById('status-duplicate')];
+      const offlineNotice = document.getElementById('offlineNotice');
+      
+      statusEls.forEach(el => {
+        if (el) el.textContent = navigator.onLine ? 'online' : 'offline';
+      });
+      
+      if (offlineNotice) {
+        offlineNotice.style.display = navigator.onLine ? 'none' : 'block';
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // --- Main Submission Logic ---
+    async function submitMainForm() {
+      const submitBtn = document.getElementById('submitBtn');
+      if (!submitBtn) return;
+      
+      // Disable button during submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        let photoUploadResult = null;
+        
+        // First, handle photo upload if there's a selected image
+        if (selectedImage) {
+          showPhotoStatus('Uploading photo...', 'success');
+          try {
+            photoUploadResult = await uploadPhotoToServer();
+            if (photoUploadResult) {
+              showPhotoStatus('Photo uploaded successfully!', 'success');
+            } else {
+              showPhotoStatus('Photo upload failed, but form will continue', 'error');
+            }
+          } catch (error) {
+            console.error('Photo upload error:', error);
+            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
+          }
+        }
+        
+        // Collect form data
+        const formData = collectFormData();
+        
+        // Add photo link to Column D if available
+        if (photoUploadResult) {
+          formData.photoLink = photoUploadResult;
+        }
+        
+        // Submit main form data
+        const mainSubmitResult = await submitFormData(formData);
+        
+        if (mainSubmitResult.success) {
+          showTempMessage('Entry submitted successfully!');
+          clearForm();
+          resetPhotoForm();
+        } else {
+          throw new Error(mainSubmitResult.error || 'Submission failed');
+        }
+        
+      } catch (error) {
+        console.error('Submission error:', error);
+        showTempMessage('Error: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    }
+  
       // Submit and clear functionality
       const submitBtn = document.getElementById('submitBtn');
       const clearBtn = document.getElementById('clearBtn');
@@ -3110,6 +3178,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
