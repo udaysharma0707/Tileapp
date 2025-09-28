@@ -855,83 +855,44 @@ const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
 let selectedFile = null;
 let selectedImage = null; // dataURL string (base64) read directly from file with FileReader
 
-// Drag and drop functionality
-        const uploadArea = document.getElementById('uploadArea');
+/* ---------- File pick / drag-drop (NO canvas) ---------- */
+(function wireFileInputs() {
+  const uploadArea = document.getElementById('uploadArea');
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f && f.type && f.type.startsWith('image/')) handleFileDirect(f);
+    });
+  }
 
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+  const fileInput = document.getElementById('fileInput');
+  const cameraInput = document.getElementById('cameraInput');
+  if (fileInput) fileInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+  if (cameraInput) cameraInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFileDirect(f); });
+})();
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type.startsWith('image/')) {
-                handleFile(files[0]);
-            }
-        });
-
-        function openCamera() {
-            document.getElementById('cameraInput').click();
-        }
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                handleFile(file);
-            }
-        }
-
-        function handleFile(file) {
-            selectedFile = file;
-            
-            // Compress and create preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Set max dimensions to avoid large uploads
-                    const maxWidth = 1920;
-                    const maxHeight = 1080;
-                    let { width, height } = img;
-                    
-                    // Calculate new dimensions
-                    if (width > height) {
-                        if (width > maxWidth) {
-                            height *= maxWidth / width;
-                            width = maxWidth;
-                        }
-                    } else {
-                        if (height > maxHeight) {
-                            width *= maxHeight / height;
-                            height = maxHeight;
-                        }
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    
-                    // Draw and compress
-                    ctx.drawImage(img, 0, 0, width, height);
-                    selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-                    
-                    // Show preview
-                    document.getElementById('previewImage').src = selectedImage;
-                    document.getElementById('previewContainer').style.display = 'block';
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+function handleFileDirect(file) {
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    selectedImage = e.target.result; // data:image/...;base64,...
+    const preview = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('previewContainer');
+    if (preview) preview.src = selectedImage;
+    if (previewContainer) previewContainer.style.display = 'block';
+  };
+  reader.onerror = (err) => {
+    console.error('FileReader error', err);
+    selectedFile = null;
+    selectedImage = null;
+    showTempMessage('Failed to read selected photo.');
+  };
+  reader.readAsDataURL(file);
+}
 /* ---------- UI helpers ---------- */
 function showLoading(show) {
   const el = document.getElementById('loading');
@@ -2995,6 +2956,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
