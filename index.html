@@ -942,283 +942,220 @@
 
 
 <script>
-/* Updated unified submit script — JSONP submit only (no separate upload)
-   - Ensures all fields (purchased, photoLink, purchasedFrom, paymentModes, paymentPaid, otherInfo, clientId)
-     are sent together using the server's JSONP/GET submit path so a single row is created.
-   - Does NOT attempt to upload imageData to the upload endpoint (which created photo-only rows).
-   - If a photo is selected, only its filename is saved into photoLink (Column D).
+/*
+  Replacement script — forces a single, robust submit handler and disables old upload-only flows.
+  - Submits via JSONP to server's action=submit path (same method your server expects)
+  - Ensures purchased items are collected reliably; logs what was found
+  - Writes photo filename into photoLink (Column D) as part of same submit
+  - Clears the form only after success
 */
 
-const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
-const SERVER_ENDPOINT = window.SERVER_ENDPOINT || SCRIPT_URL; // avoid undefined global errors
+const SCRIPT_URL = window.SCRIPT_URL || window.ENDPOINT || 'https://script.google.com/macros/s/AKfycbzYD-HRXxhjjapwZ2O-UfJLhwIffn9UXqXWT8-PV8dnJA6y-xf3OLSBgZfwA2uYFhrgwQ/exec';
+const SERVER_ENDPOINT = window.SERVER_ENDPOINT || SCRIPT_URL;
 const SERVER_TOKEN = window.SHARED_TOKEN || 'shopSecret2025';
 
 let selectedFile = null;
-let selectedImage = null; // we may still allow previewing the image, but we will not upload it
+let selectedImage = null;
 
-/* ---------------- File selection (preview only) ---------------- */
-(function wireFileInputs() {
-  const uploadArea = document.getElementById('uploadArea');
-  if (uploadArea) {
-    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', e => {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      if (f && f.type && f.type.startsWith('image/')) handleFilePreview(f);
-    });
-  }
-  const fileInput = document.getElementById('fileInput');
-  const cameraInput = document.getElementById('cameraInput');
-  if (fileInput) fileInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFilePreview(f); });
-  if (cameraInput) cameraInput.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) handleFilePreview(f); });
-})();
+// Disable old upload functions if present (prevents photo-only separate flows)
+try { window.uploadViaFormSubmission && (window.uploadViaFormSubmission = null); } catch(e){}
+try { window.uploadPhotoToServer && (window.uploadPhotoToServer = null); } catch(e){}
+try { window.uploadPhoto && (window.uploadPhoto = null); } catch(e){}
 
+// JSONP helper
+function jsonpCall(url, timeoutMs = 20000) {
+  return new Promise((resolve, reject) => {
+    const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+    window[cbName] = function(data) { try { resolve(data); } finally { try { delete window[cbName]; } catch(e){} } };
+    const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+    const script = document.createElement('script');
+    script.src = full;
+    script.onerror = function(){ try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP load error')); };
+    document.body.appendChild(script);
+    setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
+  });
+}
+
+// Preview-only file handling (keeps existing preview UI working)
 function handleFilePreview(file) {
-  // only keep for preview & filename; do NOT upload
   selectedFile = file;
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = function(e) {
     selectedImage = e.target.result;
     const preview = document.getElementById('previewImage');
     const previewContainer = document.getElementById('previewContainer');
     if (preview) preview.src = selectedImage;
     if (previewContainer) previewContainer.style.display = 'block';
   };
-  reader.onerror = () => {
-    selectedFile = null;
-    selectedImage = null;
+  reader.onerror = function() {
+    selectedFile = null; selectedImage = null;
     showTempMessage('Failed to read selected photo.');
   };
   reader.readAsDataURL(file);
 }
+document.addEventListener('DOMContentLoaded', function() {
+  // wire file inputs (preview only)
+  const fileInput = document.getElementById('fileInput');
+  const cameraInput = document.getElementById('cameraInput');
+  if (fileInput) fileInput.addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) handleFilePreview(f); });
+  if (cameraInput) cameraInput.addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) handleFilePreview(f); });
 
-/* ---------------- Small UI helpers ---------------- */
-function showLoading(show) {
-  const el = document.getElementById('loading'); if (el) el.style.display = show ? 'block' : 'none';
-}
-function showTempMessage(text) {
-  const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate');
-  if (!el) { try { alert(text); } catch(e) {} return; }
-  el.textContent = text; el.style.display = 'block';
-  setTimeout(() => { try { el.style.display = 'none'; } catch(e){} }, 3000);
-}
-function resetPhotoForm() {
-  selectedFile = null;
-  selectedImage = null;
-  const fi = document.getElementById('fileInput'), ci = document.getElementById('cameraInput'), pc = document.getElementById('previewContainer'), ps = document.getElementById('photoStatus');
-  if (fi) fi.value = ''; if (ci) ci.value = ''; if (pc) pc.style.display = 'none'; if (ps) ps.innerHTML = '';
-}
+  // replace submit button with a clone to remove any previous anonymous handlers
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn && submitBtn.parentNode) {
+    const clone = submitBtn.cloneNode(true);
+    clone.id = 'submitBtn';
+    submitBtn.parentNode.replaceChild(clone, submitBtn);
+    clone.addEventListener('click', submitMainForm);
+  }
 
-/* ---------------- Collect form data (columns C-H) ---------------- */
-function getSublistId(mainCheckboxId) {
-  const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
-  return mapping[mainCheckboxId] || null;
-}
+  // also ensure clearBtn works
+  const clearBtn = document.getElementById('clearBtn');
+  if (clearBtn) {
+    clearBtn.removeEventListener && clearBtn.removeEventListener('click', function(){});
+    clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); }});
+  }
+});
 
-// ---------- Robust collectFormData replacement ----------
+// small UI helpers
+function showLoading(show) { const el = document.getElementById('loading'); if (el) el.style.display = show ? 'block' : 'none'; }
+function showTempMessage(text) { const el = document.getElementById('msg') || document.getElementById('status') || document.getElementById('status-duplicate'); if (!el) { try { alert(text); } catch(e){}; return; } el.textContent = text; el.style.display = 'block'; setTimeout(()=>{el.style.display='none';},3000); }
+function resetPhotoForm(){ selectedFile=null; selectedImage=null; const fi=document.getElementById('fileInput'), ci=document.getElementById('cameraInput'), pc=document.getElementById('previewContainer'); if (fi) fi.value=''; if (ci) ci.value=''; if (pc) pc.style.display='none'; }
+function showDebugBox(text){ let dbg=document.getElementById('clientDebugBox'); if(!dbg){ dbg=document.createElement('pre'); dbg.id='clientDebugBox'; dbg.style.position='fixed'; dbg.style.right='10px'; dbg.style.bottom='10px'; dbg.style.zIndex=99999; dbg.style.background='rgba(0,0,0,0.8)'; dbg.style.color='#fff'; dbg.style.padding='8px'; dbg.style.maxWidth='420px'; dbg.style.maxHeight='320px'; dbg.style.overflow='auto'; dbg.style.fontSize='12px'; document.body.appendChild(dbg);} dbg.textContent=text; }
+
+// Collect form data (robust & logs what it found)
 function collectFormData() {
   const data = {};
-
-  // Try several selectors to find checked purchase checkboxes (covers many markup variants)
-  const purchasedSelectors = [
-    'input.purchased:checked',
-    'input[name="purchased"]:checked',
-    'input[name="purchased[]"]:checked',
-    'input[type="checkbox"][data-purchased]:checked',
-    'input[type="checkbox"][id^="p_"]:checked' // fallback: ids starting with p_
-  ];
-  // Use a Set to avoid duplicates
-  const purchasedBoxesSet = new Set();
-  purchasedSelectors.forEach(sel => {
-    try {
-      document.querySelectorAll(sel).forEach(n => purchasedBoxesSet.add(n));
-    } catch(e){ /* ignore invalid selectors */ }
-  });
-  // Convert set to array
-  const purchasedCheckboxes = Array.from(purchasedBoxesSet);
-
   const purchased = [];
 
-  // Helper to safely get element by id (returns null if not found)
-  const $id = (id) => document.getElementById(id) || null;
+  // Prefer class="purchased" checkboxes (your file uses this)
+  const mainChecked = Array.from(document.querySelectorAll('input.purchased:checked'));
+  // Also accept name-based or id-based fallbacks
+  const fallbackChecked = Array.from(document.querySelectorAll('input[name="purchased"]:checked, input[name="purchased[]"]:checked, input[type="checkbox"][id^="p_"]:checked'));
+  const boxes = Array.from(new Set([...mainChecked, ...fallbackChecked]));
 
-  // Function to attempt to read qty & unit for a suffix
-  const readQtyUnit = (suffix) => {
-    const qtyEl = $id('q_' + suffix);
-    const unitEl = $id('unit_' + suffix);
-    const unitCustomEl = $id('unit_custom_' + suffix);
-    const qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-    let unit = '';
-    if (unitEl && unitEl.value) {
-      if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
-      else unit = unitEl.value;
-    }
-    return { qty, unit };
-  };
-
-  purchasedCheckboxes.forEach(cb => {
-    const value = cb.value || (cb.getAttribute('data-label') || cb.getAttribute('aria-label') || '');
-    // If it's the "Other" checkbox (either by id or name or data attribute)
-    const id = cb.id || '';
-    const isOther = id === 'p_other' || cb.name === 'p_other' || cb.getAttribute('data-other') === 'true' || (value && value.toLowerCase().includes('other'));
-    if (isOther) {
-      const qtyEl = $id('q_other');
-      const unitEl = $id('unit_other');
-      const unitCustomEl = $id('unit_custom_other');
-      const otherTextEl = $id('purchasedOtherText');
-      let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+  boxes.forEach(cb => {
+    const val = cb.value || cb.getAttribute('data-label') || cb.nextSibling && cb.nextSibling.textContent && cb.nextSibling.textContent.trim() || '';
+    if (!val) return;
+    // "Other" handling
+    if (cb.id === 'p_other' || cb.name === 'p_other' || val.toLowerCase().includes('other')) {
+      const qty = document.getElementById('q_other') && document.getElementById('q_other').value ? document.getElementById('q_other').value : '';
+      const unitSel = document.getElementById('unit_other');
       let unit = '';
-      if (unitEl && unitEl.value) {
-        if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
-        else unit = unitEl.value;
+      if (unitSel && unitSel.value) {
+        if (unitSel.value === 'Custom' && document.getElementById('unit_custom_other') && document.getElementById('unit_custom_other').value.trim()) unit = document.getElementById('unit_custom_other').value.trim();
+        else unit = unitSel.value;
       }
-      const desc = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+      const desc = document.getElementById('purchasedOtherText') && document.getElementById('purchasedOtherText').value ? document.getElementById('purchasedOtherText').value.trim() : 'Others';
       if (qty && unit) purchased.push(`${qty} ${unit} ${desc}`);
-      else if (desc) purchased.push(desc);
-      else if (value) purchased.push(value);
+      else purchased.push(desc || val);
       return;
     }
 
-    // If checkbox id suggests a main category with subitems: attempt to find sublist by mapping or id convention
-    // Known mapping (keep your original mapping)
+    // If main category has sublist (mapping from your file)
     const mapping = { 'p_floor': 'sublist_floor', 'p_wall': 'sublist_wall', 'p_san': 'sublist_san', 'p_acc': 'sublist_acc' };
-    const sublistId = mapping[id] || mapping[cb.name] || null;
-
-    // If mapping found, try to read checked subitems inside that sublist
+    const sublistId = mapping[cb.id] || mapping[cb.name] || null;
     if (sublistId) {
-      const sublist = $id(sublistId);
+      const sublist = document.getElementById(sublistId);
       if (sublist) {
-        const checkedSubs = sublist.querySelectorAll('input.subitem:checked, input[type="checkbox"]:checked');
-        if (checkedSubs && checkedSubs.length > 0) {
+        const checkedSubs = Array.from(sublist.querySelectorAll('input.subitem:checked'));
+        if (checkedSubs.length) {
           checkedSubs.forEach(subCb => {
-            const subValue = subCb.value || subCb.getAttribute('data-label') || subCb.getAttribute('aria-label') || '';
-            // derive suffix from id if possible
-            const subSuffix = (subCb.id && subCb.id.startsWith('sub_')) ? subCb.id.slice(4) : (subCb.id || subValue.replace(/\s+/g, '_').toLowerCase());
-            const { qty, unit } = readQtyUnit(subSuffix);
-            if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
-            else if (subValue) purchased.push(subValue);
+            const subVal = subCb.value || '';
+            const suffix = subCb.id && subCb.id.startsWith('sub_') ? subCb.id.slice(4) : (subCb.id || subVal.replace(/\s+/g,'_').toLowerCase());
+            const qtyEl = document.getElementById('q_'+suffix);
+            const unitEl = document.getElementById('unit_'+suffix);
+            const unitCustomEl = document.getElementById('unit_custom_'+suffix);
+            const qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+            let unit = '';
+            if (unitEl && unitEl.value) {
+              if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+              else unit = unitEl.value;
+            }
+            if (qty && unit) purchased.push(`${qty} ${unit} ${subVal}`);
+            else purchased.push(subVal);
           });
           return;
         } else {
-          // no sub selected - include the main cb label
-          if (value) purchased.push(value);
+          purchased.push(val);
           return;
         }
       }
     }
 
-    // Generic fallback: if this cb looks like a subitem (id starts with sub_) handle qty/unit similarly
-    if (id && id.startsWith('sub_')) {
-      const subSuffix = id.slice(4);
-      const subValue = cb.value || '';
-      const { qty, unit } = readQtyUnit(subSuffix);
-      if (qty && unit) purchased.push(`${qty} ${unit} ${subValue}`);
-      else if (subValue) purchased.push(subValue);
+    // fallback: if checkbox looks like subitem id
+    if (cb.id && cb.id.startsWith('sub_')) {
+      const suffix = cb.id.slice(4);
+      const subVal = cb.value || '';
+      const qtyEl = document.getElementById('q_'+suffix);
+      const unitEl = document.getElementById('unit_'+suffix);
+      const unitCustomEl = document.getElementById('unit_custom_'+suffix);
+      const qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+      let unit = '';
+      if (unitEl && unitEl.value) {
+        if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) unit = unitCustomEl.value.trim();
+        else unit = unitEl.value;
+      }
+      if (qty && unit) purchased.push(`${qty} ${unit} ${subVal}`);
+      else purchased.push(subVal);
       return;
     }
 
-    // final fallback: push the checkbox label/value
-    if (value) purchased.push(value);
-    else if (cb.nextSibling && cb.nextSibling.textContent) purchased.push(cb.nextSibling.textContent.trim());
+    // final fallback
+    purchased.push(val);
   });
 
   data.purchased = purchased.join(', ');
-
-  // other fields same as before
-  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-  const purchasedFromText = document.getElementById('purchasedFrom');
-  if (purchasedFromSelect) {
-    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) data.purchasedFrom = purchasedFromText.value.trim();
-    else data.purchasedFrom = purchasedFromSelect.value || '';
+  // purchasedFrom
+  const pfs = document.getElementById('purchasedFromSelect');
+  const pft = document.getElementById('purchasedFrom');
+  if (pfs) {
+    if (pfs.value === 'Other' && pft && pft.value.trim()) data.purchasedFrom = pft.value.trim();
+    else data.purchasedFrom = pfs.value || '';
   } else data.purchasedFrom = '';
-
+  // payment modes
   const paymentModes = [];
-  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked, input[data-mode-checked="true"]:checked');
-  modeCheckboxes.forEach(cb => {
-    const mode = cb.value || cb.getAttribute('data-mode') || '';
-    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
-    const amount = amountInput && amountInput.value ? amountInput.value : '';
-    if (amount) paymentModes.push(`${mode}: ₹${amount}`);
-    else paymentModes.push(mode);
+  Array.from(document.querySelectorAll('input[name="modeOfPayment"]:checked')).forEach(cb => {
+    const mode = cb.value || '';
+    const amount = document.querySelector(`input[data-mode-amount="${mode}"]`) && document.querySelector(`input[data-mode-amount="${mode}"]`).value ? document.querySelector(`input[data-mode-amount="${mode}"]`).value : '';
+    if (amount) paymentModes.push(`${mode}: ₹${amount}`); else paymentModes.push(mode);
   });
   data.paymentModes = paymentModes.join(', ');
-
-  const paymentPaidEl = document.getElementById('paymentPaid');
-  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-  const otherInfoEl = document.getElementById('otherInfo');
-  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-
-  // photoLink is set at submit time as filename marker
+  const pp = document.getElementById('paymentPaid');
+  data.paymentPaid = pp && pp.value ? pp.value : '';
+  const oi = document.getElementById('otherInfo');
+  data.otherInfo = oi && oi.value ? oi.value.trim() : '';
+  // photoLink will be set in submit function (filename marker)
   data.photoLink = '';
-
-  // Debug log so you can see what we found
-  console.log('collectFormData -> purchased:', data.purchased);
-  try { showDebugBox && showDebugBox('Collected purchased: ' + (data.purchased || '[empty]')); } catch(e){}
-
+  console.log('collectFormData => purchased string:', data.purchased);
+  showDebugBox && showDebugBox('Collected purchased: ' + (data.purchased || '[empty]'));
   return data;
 }
 
-
-/* ---------------- clientId generator ---------------- */
 function generateClientId() {
-  // small client-side uuid
-  return 'c-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+  return 'c-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){ const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16; const v = c==='x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
 }
 
-/* ---------------- JSONP helper ---------------- */
-function jsonpCall(url, timeoutMs = 20000) {
-  return new Promise((resolve, reject) => {
-    const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-    window[cbName] = function(data) {
-      try { resolve(data); } finally { try { delete window[cbName]; } catch(e) {} }
-    };
-    const full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
-    const script = document.createElement('script');
-    script.src = full;
-    script.onerror = function() { try { delete window[cbName]; } catch(e) {} reject(new Error('JSONP load error')); };
-    document.body.appendChild(script);
-    setTimeout(() => { try { delete window[cbName]; } catch(e) {} reject(new Error('JSONP timeout')); }, timeoutMs);
-  });
-}
-
-/* ---------------- submit via JSONP GET — main flow ---------------- */
-async function submitMainForm(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; submitBtn.textContent = 'Submitting...'; }
+// Main submit (JSONP GET, sends purchased + photo filename)
+async function submitMainForm(evt) {
+  if (evt && evt.preventDefault) evt.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.disabled = true; btn.dataset.orig = btn.dataset.orig || btn.textContent; btn.textContent = 'Submitting...'; }
   showLoading(true);
 
   try {
-    // collect first
     const fd = collectFormData();
-
-    // validate purchased
     if (!fd.purchased || !fd.purchased.trim()) {
-      showTempMessage('No sub-item selected. Please select at least one specific item and quantity.');
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
-      showLoading(false);
-      return;
+      throw new Error('Purchased item is required');
     }
-
-    // generate clientId
     fd.clientId = generateClientId();
+    fd.photoLink = (selectedFile && selectedFile.name) ? selectedFile.name : '';
 
-    // set photoLink to filename marker if photo present
-    if (selectedFile && selectedFile.name) fd.photoLink = selectedFile.name;
-    else fd.photoLink = '';
-
-    // Build submit query (server expects query params for submit)
     const submitData = {
       action: 'submit',
       token: SERVER_TOKEN,
-      purchased: fd.purchased || '',
-      photoLink: fd.photoLink || '',
+      purchased: fd.purchased,
+      photoLink: fd.photoLink,
       purchasedFrom: fd.purchasedFrom || '',
       paymentModes: fd.paymentModes || '',
       paymentPaid: fd.paymentPaid || '',
@@ -1226,101 +1163,43 @@ async function submitMainForm(e) {
       clientId: fd.clientId || ''
     };
 
-    // Debug snapshot to display what is being sent
-    const debugText = Object.keys(submitData).map(k => {
-      if (k === 'purchased' && submitData[k].length > 300) return k + '=' + submitData[k].slice(0, 300) + '...';
-      return k + '=' + submitData[k];
-    }).join('\n');
-    console.log('Submitting via JSONP:\n' + debugText);
-    try { showDebugBox && showDebugBox('Submitting via JSONP:\n' + debugText); } catch(e) {}
+    // debug
+    const debugText = Object.keys(submitData).map(k => `${k}=${String(submitData[k])}`).join('\n');
+    console.log('Submitting JSONP:\n' + debugText);
+    showDebugBox && showDebugBox('Submitting:\n' + debugText);
 
-    // Build URL
-    const url = SCRIPT_URL + '?' + Object.keys(submitData).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])).join('&');
+    // build url
+    const url = SCRIPT_URL + '?' + Object.keys(submitData).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(submitData[k])).join('&');
+    const res = await jsonpCall(url, 25000);
+    console.log('Server response:', res);
 
-    // Call JSONP (server must support JSONP for submit; your previous code did)
-    const result = await jsonpCall(url, 25000);
-
-    // Process response (tolerant)
-    const success = result && (result.success === true || result.result === 'ok' || result.status === 'success') || (typeof result === 'string' && (result.toLowerCase() === 'ok' || result.toLowerCase()==='success'));
-    console.log('Server JSONP submit result:', result);
-
-    if (success) {
+    const ok = res && (res.success===true || res.result==='ok' || res.status==='success' || (typeof res === 'string' && (res.toLowerCase()==='ok' || res.toLowerCase()==='success')));
+    if (ok) {
       showTempMessage('Entry submitted successfully!');
-      clearForm();
-      resetPhotoForm();
+      clearForm(); resetPhotoForm();
     } else {
-      // show server message if any
-      const err = result && (result.error || result.message) ? (result.error || result.message) : 'Submission failed (server did not return success).';
-      showTempMessage('Error: ' + err);
+      const msg = (res && (res.error || res.message)) ? (res.error || res.message) : 'Submission failed (server did not return success)';
+      showTempMessage('Error: ' + msg);
     }
+
   } catch (err) {
-    console.error('submitMainForm JSONP error:', err);
+    console.error('Failed to submit form:', err);
     showTempMessage('Failed to submit form: ' + (err && err.message ? err.message : err));
   } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+    const btn2 = document.getElementById('submitBtn'); if (btn2) { btn2.disabled = false; btn2.textContent = btn2.dataset.orig || 'Submit'; }
     showLoading(false);
-    // remove debug box after a few seconds
-    setTimeout(() => { const d = document.getElementById('clientDebugBox'); if (d) d.remove(); }, 6000);
+    setTimeout(()=>{ const d=document.getElementById('clientDebugBox'); if (d) d.remove(); },6000);
   }
 }
 
-/* ---------------- helper: debug box ---------------- */
-function showDebugBox(text) {
-  let dbg = document.getElementById('clientDebugBox');
-  if (!dbg) {
-    dbg = document.createElement('pre');
-    dbg.id = 'clientDebugBox';
-    dbg.style.position = 'fixed';
-    dbg.style.right = '10px';
-    dbg.style.bottom = '10px';
-    dbg.style.zIndex = 99999;
-    dbg.style.background = 'rgba(0,0,0,0.8)';
-    dbg.style.color = '#fff';
-    dbg.style.padding = '8px';
-    dbg.style.maxWidth = '420px';
-    dbg.style.maxHeight = '320px';
-    dbg.style.overflow = 'auto';
-    dbg.style.fontSize = '12px';
-    document.body.appendChild(dbg);
-  }
-  dbg.textContent = text;
+function clearForm(){
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=false; try{cb.dispatchEvent(new Event('change'))}catch(e){}});
+  document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp=>{ if(['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(inp.id)===-1) inp.value='';});
+  document.querySelectorAll('select').forEach(sel=>{ if(sel.id!=='addCategorySelect'){ sel.selectedIndex=0; try{sel.dispatchEvent(new Event('change'))}catch(e){} }});
+  document.querySelectorAll('.unit-custom').forEach(uc=>{ uc.style.display='none'; uc.value=''; });
 }
-
-/* ---------------- Clear form (only after success) ---------------- */
-function clearForm() {
-  document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; try { cb.dispatchEvent(new Event('change')); } catch(e){} });
-  document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(inp => {
-    if (['newUnitInput','newVendorInput','addSubLabelInput'].indexOf(inp.id) === -1) inp.value = '';
-  });
-  document.querySelectorAll('select').forEach(sel => { if (sel.id !== 'addCategorySelect') { sel.selectedIndex = 0; try { sel.dispatchEvent(new Event('change')); } catch(e){} } });
-  document.querySelectorAll('.unit-custom').forEach(uc => { uc.style.display = 'none'; if (uc.value !== undefined) uc.value = ''; });
-}
-
-/* ---------------- Remove stray upload/submit buttons in photo area (safety) & wire submit ---------------- */
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.photo-section, #uploadArea, #previewContainer').forEach(area => {
-    if (!area) return;
-    area.querySelectorAll('button').forEach(btn => {
-      const txt = (btn.textContent || '').trim().toLowerCase();
-      if (txt === 'submit' || txt === 'upload' || txt === 'upload photo') btn.remove();
-    });
-  });
-
-  // wire submit
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) {
-    submitBtn.removeEventListener('click', submitMainForm);
-    submitBtn.addEventListener('click', submitMainForm);
-  }
-
-  // wire clear if present
-  const clearBtn = document.getElementById('clearBtn');
-  if (clearBtn) {
-    clearBtn.removeEventListener('click', function(){});
-    clearBtn.addEventListener('click', function() { if (confirm('Clear all form data?')) { clearForm(); resetPhotoForm(); } });
-  }
-});
 </script>
+
 
 
     <!-- Service Worker Registration -->
@@ -3022,6 +2901,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
+
 
 
 
