@@ -2428,7 +2428,7 @@ function jsonpCall(url, timeoutMs = 20000) {
 
       (async function tryLoadConfig(){
         try {
-          
+          const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
           const SERVER_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
           const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
           const resp = await jsonpCall(url, 15000);
@@ -3133,6 +3133,7 @@ function jsonpCall(url, timeoutMs = 20000) {
   </script>
 </body>
 </html>
+
 
 
 
