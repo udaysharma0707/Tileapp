@@ -535,7 +535,7 @@
         <div class="preview-container" id="previewContainer">
             <img id="previewImage" class="preview-image" alt="Preview">
             <br>
-            <button class="btn" onclick="uploadPhoto()">Submit Photo</button>
+            
             <button class="btn" onclick="resetForm()">Cancel</button>
         </div>
         
@@ -551,7 +551,11 @@
 
     <!-- Purchased items with inline qty and nested subitems -->
     <label class="q-label">1. <span id="qPurchasedLabel">Purchased what (check items and enter quantity for specific sub-items)</span></label>
-    <div class="checkbox-row" id="purchasedList">
+    <div class="checkbox-row" id="purchasedList"> 
+
+      <!-- ADD THIS as the first child of #purchasedList -->
+<input type="checkbox" id="p_dummy" class="purchased" value="No selection" style="display:none" checked>
+
 
       <!-- FLOOR TILES -->
       <div class="item-row">
@@ -562,7 +566,7 @@
       </div>
       <div class="sublist" id="sublist_floor">
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_floor_vitrified" value="Vitrified tiles">
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -577,7 +581,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -592,7 +596,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -607,7 +611,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -622,7 +626,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -647,7 +651,7 @@
       </div>
       <div class="sublist" id="sublist_wall">
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
+          <label><input type="checkbox" class="subitem purchased" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -662,7 +666,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
+          <label><input type="checkbox" class="subitem purchased" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -677,7 +681,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -702,7 +706,7 @@
       </div>
       <div class="sublist" id="sublist_san">
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
+          <label><input type="checkbox" class="subitem purchased" id="sub_san_wash" value="Washbasins">
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -717,7 +721,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
+          <label><input type="checkbox" class="subitem purchased" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -732,7 +736,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
+          <label><input type="checkbox" class="subitem purchased" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -757,7 +761,7 @@
       </div>
       <div class="sublist" id="sublist_acc">
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
+          <label><input type="checkbox" class="subitem purchased" id="sub_acc_grout" value="Tile grout & adhesives">
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -772,7 +776,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
+          <label><input type="checkbox" class="subitem purchased" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -787,7 +791,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
+          <label><input type="checkbox" class="subitem purchased" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -802,7 +806,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
+          <label><input type="checkbox" class="subitem purchased" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -817,7 +821,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
+          <label><input type="checkbox" class="subitem purchased" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -832,7 +836,7 @@
           </div>
         </div>
         <div class="sub-item" data-original="true">
-          <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
+          <label><input type="checkbox" class="subitem purchased" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
             <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
           </label>
@@ -3125,6 +3129,7 @@ window.collectFormData = collectFormData;
   </script>
 </body>
 </html>
+
 
 
 
