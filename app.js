@@ -3,53 +3,6 @@ const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2lXBz5I4ltVTDxke6mollUnKurXODhM-f286wDfOUyHOrnNLdHymPuXXKGr4ccFKm/exec';
-let selectedFile = null;
-let selectedImage = null;
-
-// Drag and drop functionality
-const uploadArea = document.getElementById('uploadArea');
-
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-});
-
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
-        handleFile(files[0]);
-    }
-});
-
-function openCamera() {
-    document.getElementById('cameraInput').click();
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        handleFile(file);
-    }
-}
-
-function handleFile(file) {
-    selectedFile = file;
-    
-    // Compress and create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d'); }}};
 
 
 // ---------- helpers ----------
@@ -956,6 +909,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
+
 
 
 
