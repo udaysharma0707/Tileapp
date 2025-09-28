@@ -12,7 +12,7 @@ const STATIC_ASSETS = [
   '/sw.js'
 ];
 
-/ Install event - cache resources
+// Install event - cache resources
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -155,4 +155,5 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+
 
