@@ -3,7 +3,7 @@ const SHARED_TOKEN = "shopSecret2025";
 const JSONP_TIMEOUT_MS = 20000;
 const activeSubmissions = new Set();
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2lXBz5I4ltVTDxke6mollUnKurXODhM-f286wDfOUyHOrnNLdHymPuXXKGr4ccFKm/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypMLBlGaOhK_Pskkt7-27q1O7NHBFmoYM-bSzmzCxKYHBA4v4dRBOvgM0JC-fxTieovg/exec';
 
 let selectedFile = null;
 let selectedImage = null;
@@ -957,6 +957,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
+
 
 
 
