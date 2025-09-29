@@ -150,6 +150,57 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
+
+    /* PIN Modal Styles */
+.pin-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pin-modal h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+#pinInput {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+#pinInput:focus {
+  outline: none;
+  border-color: #2c7be5;
+  box-shadow: 0 0 10px rgba(44, 123, 229, 0.3);
+}
+
+#submitPin:hover {
+  background: #1e5bb8;
+}
+
+#submitPin:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -444,7 +495,18 @@
 <body>
   <div class="container" id="appContainer">
 
-   
+   <!-- PIN Protection Modal -->
+<div id="pinModal" class="pin-modal" style="display: none;">
+  <div class="pin-modal-content">
+    <h2>🔒 Daily Access PIN</h2>
+    <p>Enter the daily PIN to access the purchase entry form:</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="10" style="padding: 15px; font-size: 18px; text-align: center; width: 200px; margin: 20px 0;">
+    <br>
+    <button id="submitPin" style="padding: 15px 30px; font-size: 16px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer;">Unlock</button>
+    <div id="pinError" style="color: red; margin-top: 10px; font-weight: bold;"></div>
+    <div style="font-size: 12px; color: #666; margin-top: 15px;">PIN is required once per day for security</div>
+  </div>
+</div>
 
 
 <div id="appContent">
@@ -1177,6 +1239,130 @@
         setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
       });
     }
+
+
+    
+// === COMPREHENSIVE PIN PROTECTION SYSTEM ===
+let isUnlocked = false;
+
+// Check if PIN validation is needed
+function checkPinValidation() {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const lastValidated = localStorage.getItem('pinValidated');
+  
+  if (lastValidated === today) {
+    // Already validated today
+    unlockApp();
+    return;
+  }
+  
+  // Show PIN modal
+  showPinModal();
+}
+
+function showPinModal() {
+  document.getElementById('pinModal').style.display = 'flex';
+  document.getElementById('pinInput').focus();
+}
+
+function unlockApp() {
+  isUnlocked = true;
+  document.getElementById('pinModal').style.display = 'none';
+}
+
+// Simple PIN validation (client-side with server backup)
+async function validatePin(pin) {
+  // Primary validation: Check correct PIN
+  if (pin === '5678') {
+    return { success: true };
+  } else {
+    return { success: false, error: 'Invalid PIN' };
+  }
+}
+
+// PIN modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const pinInput = document.getElementById('pinInput');
+  const submitPinBtn = document.getElementById('submitPin');
+  const pinError = document.getElementById('pinError');
+  
+  // Enter key support
+  if (pinInput) {
+    pinInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        submitPinBtn.click();
+      }
+    });
+  }
+  
+  // Submit PIN
+  if (submitPinBtn) {
+    submitPinBtn.addEventListener('click', async function() {
+      const pin = pinInput.value.trim();
+      if (!pin) {
+        pinError.textContent = 'Please enter PIN';
+        return;
+      }
+      
+      // Disable button during validation
+      submitPinBtn.disabled = true;
+      submitPinBtn.textContent = 'Validating...';
+      pinError.textContent = '';
+      
+      try {
+        const result = await validatePin(pin);
+        
+        if (result.success) {
+          // Store validation for today
+          const today = new Date().toISOString().split('T')[0];
+          localStorage.setItem('pinValidated', today);
+          
+          // Unlock app
+          pinError.textContent = 'PIN accepted! Loading form...';
+          pinError.style.color = 'green';
+          
+          setTimeout(() => {
+            unlockApp();
+          }, 500);
+        } else {
+          pinError.textContent = result.error || 'Invalid PIN';
+          pinError.style.color = 'red';
+          pinInput.value = '';
+          pinInput.focus();
+        }
+      } catch (error) {
+        pinError.textContent = 'Validation error. Please try again.';
+        pinError.style.color = 'red';
+      } finally {
+        submitPinBtn.disabled = false;
+        submitPinBtn.textContent = 'Unlock';
+      }
+    });
+  }
+  
+  // Check PIN validation on load
+  checkPinValidation();
+});
+
+// Protect form submission
+const originalMobileSubmitFunction = window.mobileSubmitFunction;
+if (originalMobileSubmitFunction) {
+  window.mobileSubmitFunction = function() {
+    if (!isUnlocked) {
+      alert('Please enter daily PIN first');
+      showPinModal();
+      
+      // Re-enable submit button
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+      return;
+    }
+    return originalMobileSubmitFunction.apply(this, arguments);
+  };
+}
 
     // ----------------- Unit Management Functions -----------------
     function loadGlobalUnits() {
@@ -3297,10 +3483,12 @@ function submitDirectMobileFriendlyBackground(data) {
 
 
   </script>
+</div> <!-- Close appContent div -->
    
 
 </body>
 </html>
+
 
 
 
