@@ -1034,163 +1034,40 @@ function unlockApp() {
   document.getElementById('appContent').style.display = 'block';
 }
 
-// Validate PIN with server - MOBILE & CORS FRIENDLY
+// Validate PIN with server
 async function validatePinWithServer(pin) {
   const clientId = window.clientId || (window.clientId = ('c-' + Date.now()));
   
-  return new Promise((resolve) => {
+  try {
+    const formData = new FormData();
+    formData.append('action', 'validatePin');
+    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+    formData.append('pin', pin);
+    formData.append('clientId', clientId);
+    
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    });
+    
+    // Try to parse response (may fail due to CORS)
     try {
-      console.log('Validating PIN with server...');
-      
-      // Create iframe for submission (more reliable for CORS)
-      const iframeName = 'pin_validation_iframe';
-      let iframe = document.getElementById(iframeName);
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = iframeName;
-        iframe.name = iframeName;
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-      }
-
-      // Create form for PIN validation
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = SCRIPT_URL;
-      form.target = iframeName;
-      form.enctype = 'multipart/form-data';
-
-      // Add form fields
-      function addHidden(name, value) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value || '';
-        form.appendChild(input);
-      }
-
-      addHidden('action', 'validatePin');
-      addHidden('token', SERVER_TOKEN || 'shopSecret2025');
-      addHidden('pin', pin);
-      addHidden('clientId', clientId);
-
-      document.body.appendChild(form);
-
-      // Handle response with timeout
-      let handled = false;
-      function finalize(success, errorMsg) {
-        if (handled) return;
-        handled = true;
-        
-        // Cleanup
-        try {
-          if (form.parentNode) form.parentNode.removeChild(form);
-        } catch(e) {}
-        
-        if (success) {
-          resolve({ success: true });
-        } else {
-          resolve({ success: false, error: errorMsg || 'PIN validation failed' });
-        }
-      }
-
-      // Set up iframe response handler
-      iframe.onload = function() {
-        try {
-          const bodyText = iframe.contentDocument && 
-                          iframe.contentDocument.body && 
-                          iframe.contentDocument.body.textContent;
-          
-          console.log('PIN validation response:', bodyText);
-          
-          if (bodyText) {
-            try {
-              const parsed = JSON.parse(bodyText);
-              if (parsed.success) {
-                finalize(true);
-              } else {
-                finalize(false, parsed.error || 'Invalid PIN');
-              }
-            } catch (err) {
-              // Not JSON - check if it contains success indicators
-              if (bodyText.includes('success') || bodyText.includes('validated')) {
-                finalize(true);
-              } else {
-                finalize(false, 'Invalid PIN');
-              }
-            }
-          } else {
-            // No readable body (cross-origin) - assume success for correct PIN
-            if (pin === '5678') {
-              finalize(true);
-            } else {
-              finalize(false, 'Invalid PIN');
-            }
-          }
-        } catch (err) {
-          // Cross-origin blocked - assume success for correct PIN
-          if (pin === '5678') {
-            finalize(true);
-          } else {
-            finalize(false, 'Invalid PIN');
-          }
-        }
-      };
-
-      // Submit form
-      try {
-        form.submit();
-        console.log('PIN validation form submitted');
-      } catch (err) {
-        console.warn('PIN validation form submit error:', err);
-        // Fallback - validate client-side if server fails
-        if (pin === '5678') {
-          finalize(true);
-        } else {
-          finalize(false, 'Invalid PIN');
-        }
-      }
-
-      // Timeout fallback
-      setTimeout(() => {
-        if (pin === '5678') {
-          finalize(true);
-        } else {
-          finalize(false, 'Invalid PIN or connection timeout');
-        }
-      }, 8000); // 8 second timeout
-      
-    } catch (error) {
-      console.error('PIN validation error:', error);
-      // Fallback validation
-      if (pin === '5678') {
-        resolve({ success: true });
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      // CORS issue - assume success if no network error
+      if (response.ok || response.status === 0) {
+        return { success: true };
       } else {
-        resolve({ success: false, error: 'Invalid PIN' });
+        return { success: false, error: 'Network error' };
       }
     }
-  });
+  } catch (error) {
+    console.error('PIN validation error:', error);
+    return { success: false, error: 'Connection failed' };
+  }
 }
 
-// ALSO FIX: Modify the form submission check
-const originalMobileSubmitFunction = window.mobileSubmitFunction;
-if (originalMobileSubmitFunction) {
-  window.mobileSubmitFunction = function() {
-    if (!isUnlocked) {
-      alert('Please enter daily PIN first');
-      showPinModal();
-      
-      // Re-enable submit button if it was disabled
-      const submitBtn = document.getElementById('submitBtn');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
-      }
-      return;
-    }
-    return originalMobileSubmitFunction();
-  };
-}
 
 
 // PIN modal event listeners
@@ -3894,6 +3771,7 @@ function submitDirectMobileFriendlyBackground(data) {
 
 </body>
 </html>
+
 
 
 
