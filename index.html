@@ -1245,20 +1245,34 @@
 // === COMPREHENSIVE PIN PROTECTION SYSTEM ===
 let isUnlocked = false;
 
-// Check if PIN validation is needed
+// MOBILE-FRIENDLY PIN CHECK
 function checkPinValidation() {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
   const lastValidated = localStorage.getItem('pinValidated');
   
-  if (lastValidated === today) {
-    // Already validated today
-    unlockApp();
-    return;
-  }
+  console.log('Checking PIN validation:', { today, lastValidated });
   
-  // Show PIN modal
-  showPinModal();
+  // Always check PIN if not validated today OR if no validation exists
+  if (!lastValidated || lastValidated !== today) {
+    console.log('Need PIN validation');
+    setTimeout(() => {
+      const pinModal = document.getElementById('pinModal');
+      if (pinModal) {
+        pinModal.style.display = 'flex';
+        const pinInput = document.getElementById('pinInput');
+        if (pinInput) {
+          pinInput.focus();
+        }
+      } else {
+        console.error('PIN modal not found!');
+      }
+    }, 500); // Small delay for mobile compatibility
+  } else {
+    console.log('Already validated today');
+    unlockApp();
+  }
 }
+
 
 function showPinModal() {
   document.getElementById('pinModal').style.display = 'flex';
@@ -3488,6 +3502,7 @@ function submitDirectMobileFriendlyBackground(data) {
 
 </body>
 </html>
+
 
 
 
