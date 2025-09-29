@@ -3096,12 +3096,12 @@ async function mobileSubmitFunction() {
   }
 }
 
-// Mobile-friendly data collection (no strict validation)
+// Mobile-friendly data collection with PROPER subitem handling
 function collectFormDataMobile() {
   const data = {};
   const purchased = [];
   
-  // Collect checked items
+  // Collect checked main items
   const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
   
   if (purchasedCheckboxes.length === 0) {
@@ -3115,21 +3115,97 @@ function collectFormDataMobile() {
       purchased.push('Entry from mobile device');
     }
   } else {
-    // Process selected items
+    // Process each main category for subitems
     purchasedCheckboxes.forEach(cb => {
       const value = cb.value || 'Item';
-      // Add quantities if available
-      const suffix = cb.id.replace('p_', '');
-      const qtyEl = document.getElementById('q_' + suffix);
-      if (qtyEl && qtyEl.value) {
-        purchased.push(qtyEl.value + ' ' + value);
+      
+      // Handle "Others" category specially
+      if (cb.id === 'p_other') {
+        const qtyEl = document.getElementById('q_other');
+        const unitEl = document.getElementById('unit_other');
+        const unitCustomEl = document.getElementById('unit_custom_other');
+        const otherTextEl = document.getElementById('purchasedOtherText');
+        
+        let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+        let unit = '';
+        
+        if (unitEl && unitEl.value) {
+          if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+            unit = unitCustomEl.value.trim();
+          } else {
+            unit = unitEl.value;
+          }
+        }
+        
+        let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+        
+        if (qty && unit) {
+          purchased.push(`${qty} ${unit} ${description}`);
+        } else if (description) {
+          purchased.push(description);
+        } else {
+          purchased.push(value);
+        }
       } else {
-        purchased.push(value);
+        // Handle main categories with subitems (Floor Tiles, Wall Tiles, etc.)
+        const sublistId = getSublistIdMobile(cb.id);
+        if (sublistId) {
+          const sublist = document.getElementById(sublistId);
+          if (sublist) {
+            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+            if (checkedSubs.length > 0) {
+              // Process each checked subitem with quantities
+              checkedSubs.forEach(subCb => {
+                const subValue = subCb.value || '';
+                const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
+                const qtyEl = document.getElementById('q_' + subSuffix);
+                const unitEl = document.getElementById('unit_' + subSuffix);
+                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+                
+                let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+                let unit = '';
+                
+                if (unitEl && unitEl.value) {
+                  if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+                    unit = unitCustomEl.value.trim();
+                  } else {
+                    unit = unitEl.value;
+                  }
+                }
+                
+                if (qty && unit) {
+                  purchased.push(`${qty} ${unit} ${subValue}`);
+                } else {
+                  purchased.push(subValue);
+                }
+              });
+            } else {
+              // Main category checked but no subitems - just add main category
+              purchased.push(value);
+            }
+          } else {
+            purchased.push(value);
+          }
+        } else {
+          purchased.push(value);
+        }
       }
     });
   }
   
   data.purchased = purchased.join(', ');
+
+// Add this helper function right after the collectFormDataMobile function:
+function getSublistIdMobile(mainCheckboxId) {
+  const mapping = {
+    'p_floor': 'sublist_floor',
+    'p_wall': 'sublist_wall',
+    'p_san': 'sublist_san',
+    'p_acc': 'sublist_acc'
+  };
+  return mapping[mainCheckboxId] || null;
+}
+
   
   // Collect other fields
   const purchasedFromSelect = document.getElementById('purchasedFromSelect');
@@ -3212,6 +3288,7 @@ async function submitDirectMobileFriendly(data) {
   </script>
 </body>
 </html>
+
 
 
 
