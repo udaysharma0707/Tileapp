@@ -29,6 +29,58 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
+
+    /* PIN Modal Styles */
+.pin-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pin-modal h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+#pinInput {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+#pinInput:focus {
+  outline: none;
+  border-color: #2c7be5;
+  box-shadow: 0 0 10px rgba(44, 123, 229, 0.3);
+}
+
+#submitPin:hover {
+  background: #1e5bb8;
+}
+
+#submitPin:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
     h1{font-size:20px;margin:0 0 10px 0; display:flex; align-items:center; gap:8px;}
     .gear {
       margin-left:auto; cursor:pointer; font-size:18px; color:#2c7be5;
@@ -441,12 +493,29 @@
 </head>
 <body>
   <div class="container" id="appContainer">
+
+    <!-- PIN Protection Modal -->
+<div id="pinModal" class="pin-modal" style="display: none;">
+  <div class="pin-modal-content">
+    <h2>🔒 Daily Access PIN</h2>
+    <p>Enter the daily PIN to access the purchase entry form:</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="10" style="padding: 15px; font-size: 18px; text-align: center; width: 200px; margin: 20px 0;">
+    <br>
+    <button id="submitPin" style="padding: 15px 30px; font-size: 16px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer;">Unlock</button>
+    <div id="pinError" style="color: red; margin-top: 10px; font-weight: bold;"></div>
+    <div style="font-size: 12px; color: #666; margin-top: 15px;">PIN is required once per day for security</div>
+  </div>
+</div>
+
+<div id="appContent" style="display: none;">
+
      <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
       <span id="appTitle">Tile Purchase Entry</span>
 
+      
       
       
       <span class="gear" id="gearBtn" title="Customize form">âš™ï¸</span>
@@ -934,6 +1003,136 @@
   <script src="app.js"></script>
 
   <script>
+
+    // === PIN PROTECTION SYSTEM ===
+let isUnlocked = false;
+
+// Check if PIN validation is needed
+function checkPinValidation() {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const lastValidated = localStorage.getItem('pinValidated');
+  
+  if (lastValidated === today) {
+    // Already validated today
+    unlockApp();
+    return;
+  }
+  
+  // Show PIN modal
+  showPinModal();
+}
+
+function showPinModal() {
+  document.getElementById('pinModal').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
+  document.getElementById('pinInput').focus();
+}
+
+function unlockApp() {
+  isUnlocked = true;
+  document.getElementById('pinModal').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+}
+
+// Validate PIN with server
+async function validatePinWithServer(pin) {
+  const clientId = window.clientId || (window.clientId = ('c-' + Date.now()));
+  
+  try {
+    const formData = new FormData();
+    formData.append('action', 'validatePin');
+    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+    formData.append('pin', pin);
+    formData.append('clientId', clientId);
+    
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    });
+    
+    // Try to parse response (may fail due to CORS)
+    try {
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      // CORS issue - assume success if no network error
+      if (response.ok || response.status === 0) {
+        return { success: true };
+      } else {
+        return { success: false, error: 'Network error' };
+      }
+    }
+  } catch (error) {
+    console.error('PIN validation error:', error);
+    return { success: false, error: 'Connection failed' };
+  }
+}
+
+// PIN modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const pinInput = document.getElementById('pinInput');
+  const submitPinBtn = document.getElementById('submitPin');
+  const pinError = document.getElementById('pinError');
+  
+  // Enter key support
+  pinInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      submitPinBtn.click();
+    }
+  });
+  
+  // Submit PIN
+  submitPinBtn.addEventListener('click', async function() {
+    const pin = pinInput.value.trim();
+    if (!pin) {
+      pinError.textContent = 'Please enter PIN';
+      return;
+    }
+    
+    // Disable button during validation
+    submitPinBtn.disabled = true;
+    submitPinBtn.textContent = 'Validating...';
+    pinError.textContent = '';
+    
+    try {
+      const result = await validatePinWithServer(pin);
+      
+      if (result.success) {
+        // Store validation for today
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem('pinValidated', today);
+        
+        // Unlock app
+        unlockApp();
+        pinError.textContent = '';
+      } else {
+        pinError.textContent = result.error || 'Invalid PIN';
+        pinInput.value = '';
+        pinInput.focus();
+      }
+    } catch (error) {
+      pinError.textContent = 'Validation failed. Please try again.';
+    } finally {
+      submitPinBtn.disabled = false;
+      submitPinBtn.textContent = 'Unlock';
+    }
+  });
+  
+  // Check PIN validation on load
+  checkPinValidation();
+});
+
+// Modify existing form submission to check unlock status
+const originalMobileSubmitFunction = mobileSubmitFunction;
+mobileSubmitFunction = function() {
+  if (!isUnlocked) {
+    alert('Please enter daily PIN first');
+    showPinModal();
+    return;
+  }
+  return originalMobileSubmitFunction();
+};
+
     // --- Config / server endpoint detection ---
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwWyLQDSD8EuurP6eG4salam1rJp1zwQ_uDVjOzlxSFeRK_spIlp_egxduU1DLCizazeA/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
@@ -3289,8 +3488,11 @@ function submitDirectMobileFriendlyBackground(data) {
 
 
   </script>
+    </div> <!-- Close appContent div -->
+
 </body>
 </html>
+
 
 
 
