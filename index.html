@@ -3042,7 +3042,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Mobile-friendly submission function that bypasses validation popups
+// Mobile-friendly submission function with FAST button restoration
 async function mobileSubmitFunction() {
   const submitBtn = document.getElementById('submitBtn');
   
@@ -3073,28 +3073,33 @@ async function mobileSubmitFunction() {
     const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
     data.clientId = cid;
 
-    // Submit using mobile-friendly method
-    const result = await submitDirectMobileFriendly(data);
+    // FIRE AND FORGET: Submit in background and restore button immediately
+    submitDirectMobileFriendlyBackground(data);
     
-    if (result.success) {
+    // Restore button state immediately (after 1-2 seconds)
+    setTimeout(() => {
+      if (submitBtn) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit'; 
+      }
       alert('Entry submitted successfully!');
       if (typeof clearForm === 'function') clearForm();
       if (typeof resetPhotoForm === 'function') resetPhotoForm();
-    } else {
-      throw new Error(result.error || 'Submission failed');
-    }
+    }, 1500); // Button restores in 1.5 seconds
 
   } catch (error) {
     console.error('Mobile submission error:', error);
-    alert('Error: ' + (error.message || 'Unknown error'));
-  } finally {
-    // Always restore button state
-    if (submitBtn) { 
-      submitBtn.disabled = false; 
-      submitBtn.textContent = 'Submit'; 
-    }
+    // Restore button even on error
+    setTimeout(() => {
+      if (submitBtn) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit'; 
+      }
+      alert('Error: ' + (error.message || 'Unknown error'));
+    }, 1000);
   }
 }
+
 
 // Mobile-friendly data collection with PROPER subitem handling
 function collectFormDataMobile() {
@@ -3242,52 +3247,51 @@ function getSublistIdMobile(mainCheckboxId) {
   return data;
 }
 
-// Mobile-friendly direct submission
-async function submitDirectMobileFriendly(data) {
-  return new Promise((resolve, reject) => {
-    // Create FormData for mobile compatibility
-    const formData = new FormData();
-    
-    // Add all form fields
-    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
-    formData.append('action', 'submit');
-    formData.append('purchased', data.purchased || '');
-    formData.append('purchasedFrom', data.purchasedFrom || '');
-    formData.append('paymentModes', data.paymentModes || '');
-    formData.append('paymentPaid', data.paymentPaid || '');
-    formData.append('otherInfo', data.otherInfo || '');
-    formData.append('photoLink', data.photoLink || '');
-    formData.append('clientId', data.clientId || '');
+// Background submission - FIRE AND FORGET (doesn't wait for response)
+function submitDirectMobileFriendlyBackground(data) {
+  // Create FormData for mobile compatibility
+  const formData = new FormData();
+  
+  // Add all form fields
+  formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+  formData.append('action', 'submit');
+  formData.append('purchased', data.purchased || '');
+  formData.append('purchasedFrom', data.purchasedFrom || '');
+  formData.append('paymentModes', data.paymentModes || '');
+  formData.append('paymentPaid', data.paymentPaid || '');
+  formData.append('otherInfo', data.otherInfo || '');
+  formData.append('photoLink', data.photoLink || '');
+  formData.append('clientId', data.clientId || '');
 
-    // Add photo data if present
-    if (selectedImage) {
-      formData.append('imageData', selectedImage);
-      formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('mobile_photo_' + Date.now() + '.jpg'));
-    }
+  // Add photo data if present
+  if (selectedImage) {
+    formData.append('imageData', selectedImage);
+    formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('mobile_photo_' + Date.now() + '.jpg'));
+  }
 
-    console.log('Submitting form data for mobile...');
+  console.log('Submitting form data in background...');
 
-    // Use fetch with mobile-friendly settings
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors',
-    })
-    .then(() => {
-      console.log('Mobile submission completed');
-      resolve({ success: true });
-    })
-    .catch(error => {
-      console.error('Mobile submission error:', error);
-      // Still resolve as success for mobile compatibility
-      resolve({ success: true });
-    });
+  // FIRE AND FORGET: Send request but don't wait for response
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: formData,
+    mode: 'no-cors',
+  })
+  .then(() => {
+    console.log('Background submission sent successfully');
+  })
+  .catch(error => {
+    console.log('Background submission sent (error ignored for mobile):', error);
   });
+  
+  // Don't return a promise - this is fire-and-forget
 }
+
 
   </script>
 </body>
 </html>
+
 
 
 
