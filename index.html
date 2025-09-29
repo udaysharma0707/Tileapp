@@ -1004,138 +1004,6 @@
 
   <script>
 
-    // === PIN PROTECTION SYSTEM ===
-let isUnlocked = false;
-
-// Check if PIN validation is needed
-function checkPinValidation() {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const lastValidated = localStorage.getItem('pinValidated');
-  
-  if (lastValidated === today) {
-    // Already validated today
-    unlockApp();
-    return;
-  }
-  
-  // Show PIN modal
-  showPinModal();
-}
-
-function showPinModal() {
-  document.getElementById('pinModal').style.display = 'flex';
-  document.getElementById('appContent').style.display = 'none';
-  document.getElementById('pinInput').focus();
-}
-
-function unlockApp() {
-  isUnlocked = true;
-  document.getElementById('pinModal').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
-}
-
-// Validate PIN with server
-async function validatePinWithServer(pin) {
-  const clientId = window.clientId || (window.clientId = ('c-' + Date.now()));
-  
-  try {
-    const formData = new FormData();
-    formData.append('action', 'validatePin');
-    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
-    formData.append('pin', pin);
-    formData.append('clientId', clientId);
-    
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: formData
-    });
-    
-    // Try to parse response (may fail due to CORS)
-    try {
-      const result = await response.json();
-      return result;
-    } catch (e) {
-      // CORS issue - assume success if no network error
-      if (response.ok || response.status === 0) {
-        return { success: true };
-      } else {
-        return { success: false, error: 'Network error' };
-      }
-    }
-  } catch (error) {
-    console.error('PIN validation error:', error);
-    return { success: false, error: 'Connection failed' };
-  }
-}
-
-
-
-// PIN modal event listeners
-document.addEventListener('DOMContentLoaded', function() {
-  const pinInput = document.getElementById('pinInput');
-  const submitPinBtn = document.getElementById('submitPin');
-  const pinError = document.getElementById('pinError');
-  
-  // Enter key support
-  pinInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      submitPinBtn.click();
-    }
-  });
-  
- // Submit PIN
-  submitPinBtn.addEventListener('click', async function() {
-    const pin = pinInput.value.trim();
-    if (!pin) {
-      pinError.textContent = 'Please enter PIN';
-      return;
-    }
-    
-    // Disable button during validation
-    submitPinBtn.disabled = true;
-    submitPinBtn.textContent = 'Validating...';
-    pinError.textContent = '';
-    
-    try {
-      const result = await validatePinWithServer(pin);
-      
-      if (result.success) {
-        // Store validation for today
-        const today = new Date().toISOString().split('T')[0];
-        localStorage.setItem('pinValidated', today);
-        
-        // Unlock app
-        unlockApp();
-        pinError.textContent = '';
-      } else {
-        pinError.textContent = result.error || 'Invalid PIN';
-        pinInput.value = '';
-        pinInput.focus();
-      }
-    } catch (error) {
-      pinError.textContent = 'Validation failed. Please try again.';
-    } finally {
-      submitPinBtn.disabled = false;
-      submitPinBtn.textContent = 'Unlock';
-    }
-  });
-  
-  // Check PIN validation on load
-  checkPinValidation();
-});
- 
-
-// Modify existing form submission to check unlock status
-const originalMobileSubmitFunction = mobileSubmitFunction;
-mobileSubmitFunction = function() {
-  if (!isUnlocked) {
-    alert('Please enter daily PIN first');
-    showPinModal();
-    return;
-  }
-  return originalMobileSubmitFunction();
-};
-
     // --- Config / server endpoint detection ---
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwWyLQDSD8EuurP6eG4salam1rJp1zwQ_uDVjOzlxSFeRK_spIlp_egxduU1DLCizazeA/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
@@ -3761,6 +3629,7 @@ function submitDirectMobileFriendlyBackground(data) {
 
 </body>
 </html>
+
 
 
 
