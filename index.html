@@ -439,57 +439,6 @@
     .unit-item { display:flex; align-items:center; gap:8px; padding:6px; background:white; margin-bottom:6px; border:1px solid #eee; border-radius:4px; }
     .remove-unit { background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
 
-
-    /* PIN Modal Styles */
-.pin-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pin-modal-content {
-  background: white;
-  padding: 40px;
-  border-radius: 15px;
-  text-align: center;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.pin-modal h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-#pinInput {
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-family: monospace;
-  letter-spacing: 2px;
-}
-
-#pinInput:focus {
-  outline: none;
-  border-color: #2c7be5;
-  box-shadow: 0 0 10px rgba(44, 123, 229, 0.3);
-}
-
-#submitPin:hover {
-  background: #1e5bb8;
-}
-
-#submitPin:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
   </style>
 </head>
 <body>
@@ -504,22 +453,7 @@
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
-      <span id="appTitle">Tile Purchase Entry</span>
-
-      <!-- Simple PIN Check -->
-<div id="simplePin" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; color: white;">
-  <div style="background: white; padding: 30px; border-radius: 10px; color: black; text-align: center;">
-    <h3>🔒 Enter Daily PIN</h3>
-    <input type="password" id="quickPin" placeholder="Enter PIN" style="padding: 10px; font-size: 16px; text-align: center; margin: 10px 0;">
-    <br>
-    <button onclick="checkQuickPin()" style="padding: 10px 20px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer;">Unlock</button>
-    <div id="quickPinError" style="color: red; margin-top: 10px;"></div>
-  </div>
-</div>
-
-      
-      
-      
+      <span id="appTitle">Tile Purchase Entry</span>   
       <span class="gear" id="gearBtn" title="Customize form">âš™ï¸</span>
     </h1>
 
@@ -1009,67 +943,6 @@
     // --- Config / server endpoint detection ---
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwWyLQDSD8EuurP6eG4salam1rJp1zwQ_uDVjOzlxSFeRK_spIlp_egxduU1DLCizazeA/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
-
-    function checkQuickPin() {
-  const pin = document.getElementById('quickPin').value;
-  const errorDiv = document.getElementById('quickPinError');
-  
-  if (pin === '5678') {
-    // Store validation for today
-    const today = new Date().toISOString().split('T')[0];
-    localStorage.setItem('pinValidated', today);
-    
-    // Hide PIN screen
-    document.getElementById('simplePin').style.display = 'none';
-    
-    // SHOW THE MAIN FORM CONTAINER
-    const container = document.querySelector('.container');
-    if (container) {
-      container.style.display = 'block';
-      container.style.visibility = 'visible';
-    }
-    
-    // Also make sure body/html are visible
-    document.body.style.display = 'block';
-    document.documentElement.style.display = 'block';
-    
-    errorDiv.textContent = '';
-  } else {
-    errorDiv.textContent = 'Invalid PIN. Try again.';
-    document.getElementById('quickPin').value = '';
-  }
-}
-
-
-// Check if already validated today
-document.addEventListener('DOMContentLoaded', function() {
-  const today = new Date().toISOString().split('T')[0];
-  const lastValidated = localStorage.getItem('pinValidated');
-  
-  if (lastValidated === today) {
-    // Already validated, hide PIN screen and show form
-    document.getElementById('simplePin').style.display = 'none';
-    const container = document.querySelector('.container');
-    if (container) {
-      container.style.display = 'block';
-      container.style.visibility = 'visible';
-    }
-  } else {
-    // Hide form until PIN is entered
-    const container = document.querySelector('.container');
-    if (container) {
-      container.style.display = 'none';
-    }
-  }
-  
-  // Enter key support
-  document.getElementById('quickPin').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      checkQuickPin();
-    }
-  });
-});
-
 
 
     // Replace with your Google Apps Script Web App URL
@@ -3427,6 +3300,7 @@ function submitDirectMobileFriendlyBackground(data) {
 
 </body>
 </html>
+
 
 
 
