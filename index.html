@@ -1007,8 +1007,7 @@
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwWyLQDSD8EuurP6eG4salam1rJp1zwQ_uDVjOzlxSFeRK_spIlp_egxduU1DLCizazeA/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
-    // Simple PIN System
-function checkQuickPin() {
+    function checkQuickPin() {
   const pin = document.getElementById('quickPin').value;
   const errorDiv = document.getElementById('quickPinError');
   
@@ -1019,6 +1018,18 @@ function checkQuickPin() {
     
     // Hide PIN screen
     document.getElementById('simplePin').style.display = 'none';
+    
+    // SHOW THE MAIN FORM CONTAINER
+    const container = document.querySelector('.container');
+    if (container) {
+      container.style.display = 'block';
+      container.style.visibility = 'visible';
+    }
+    
+    // Also make sure body/html are visible
+    document.body.style.display = 'block';
+    document.documentElement.style.display = 'block';
+    
     errorDiv.textContent = '';
   } else {
     errorDiv.textContent = 'Invalid PIN. Try again.';
@@ -1026,14 +1037,26 @@ function checkQuickPin() {
   }
 }
 
+
 // Check if already validated today
 document.addEventListener('DOMContentLoaded', function() {
   const today = new Date().toISOString().split('T')[0];
   const lastValidated = localStorage.getItem('pinValidated');
   
   if (lastValidated === today) {
-    // Already validated, hide PIN screen
+    // Already validated, hide PIN screen and show form
     document.getElementById('simplePin').style.display = 'none';
+    const container = document.querySelector('.container');
+    if (container) {
+      container.style.display = 'block';
+      container.style.visibility = 'visible';
+    }
+  } else {
+    // Hide form until PIN is entered
+    const container = document.querySelector('.container');
+    if (container) {
+      container.style.display = 'none';
+    }
   }
   
   // Enter key support
@@ -1043,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
 
 
     // Replace with your Google Apps Script Web App URL
@@ -3400,6 +3424,7 @@ function submitDirectMobileFriendlyBackground(data) {
 
 </body>
 </html>
+
 
 
 
