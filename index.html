@@ -1417,6 +1417,131 @@
         setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 2500);
       }
 
+
+            // ----------------- Config object and save/load -----------------
+
+      // Build config object including structure (main items + subitems + payment modes)
+      function buildConfigObject() {
+        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] },  globalUnits: loadGlobalUnits() };
+
+        // title + label map
+        cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
+        Array.from(document.querySelectorAll('.editable')).forEach(el => {
+          const key = el.getAttribute('data-config-id') || el.id || null;
+          if (key) cfg.labels[key] = el.textContent.trim();
+        });
+
+        // main items + subitems structure
+        const purchasedList = document.getElementById('purchasedList');
+        if (purchasedList) {
+          const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
+          itemRows.forEach(row => {
+            const cb = row.querySelector('input[type="checkbox"]');
+            if (!cb || !cb.id) return;
+            const mainId = cb.id;
+            const labelEl = row.querySelector('[data-config-id="' + mainId + '_label"]') || row.querySelector('#label_' + mainId) || row.querySelector('.editable');
+            const labelText = labelEl ? (labelEl.textContent || "").trim() : (cb.value || "");
+            // detect sublist id (convention or sibling)
+            let sublistId = null;
+            const suffixParts = mainId.split('_');
+            const suffix = suffixParts.length > 1 ? suffixParts.slice(1).join('_') : mainId;
+            const candidateId = 'sublist_' + suffix;
+            if (document.getElementById(candidateId)) sublistId = candidateId;
+            else {
+              const next = row.nextElementSibling;
+              if (next && next.classList && next.classList.contains('sublist')) sublistId = next.id || null;
+            }
+
+            const mainObj = { id: mainId, label: labelText, sublistId: sublistId, subitems: [] };
+            if (mainObj.sublistId) {
+              const sl = document.getElementById(mainObj.sublistId);
+              if (sl) {
+                const subs = Array.from(sl.querySelectorAll('.sub-item'));
+                subs.forEach(si => {
+                  const subCb = si.querySelector('input[type="checkbox"].subitem') || si.querySelector('input[type="checkbox"]');
+                  if (!subCb || !subCb.id) return;
+                  const subId = subCb.id;
+                  const lab = si.querySelector('[data-config-id="' + subId + '_label"]') || si.querySelector('#label_' + subId) || si.querySelector('.editable');
+                  const subLabel = lab ? (lab.textContent || "").trim() : (subCb.value || "");
+                  mainObj.subitems.push({ id: subId, label: subLabel });
+                });
+              }
+            }
+            cfg.structure.mainItems.push(mainObj);
+          });
+        }
+
+        // payment modes structure
+        const modesContainer = document.getElementById('modes');
+        if (modesContainer) {
+          const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
+          modeRows.forEach(mr => {
+            const cb = mr.querySelector('input[type="checkbox"], input[type="radio"]');
+            if (!cb) return;
+            const id = cb.id || ('mode_' + Math.random().toString(36).slice(2,8));
+            const lab = mr.querySelector('[data-config-id="' + id + '_label"]') || mr.querySelector('#label_' + id) || mr.querySelector('.editable');
+            const labelText = lab ? (lab.textContent || "").trim() : (cb.value || "");
+            const amt = mr.querySelector('input[type="number"].mode-amount');
+            const amountInputId = amt ? (amt.id || null) : null;
+            const amountAttrName = amt ? (amt.getAttribute('data-mode-amount') || "") : "";
+            cfg.structure.modes.push({ id: id, label: labelText, amountInputId: amountInputId, amountAttrName: amountAttrName });
+          });
+        }
+
+        // --- NEW: Purchased-from custom vendors capture ---
+        try {
+          const sel = document.getElementById('purchasedFromSelect');
+          const txt = document.getElementById('purchasedFrom');
+          const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
+          const items = [];
+          if (sel && sel.options) {
+            for (let i=0;i<sel.options.length;i++){
+              const o = sel.options[i];
+              if (fixed.indexOf(o.value) === -1) items.push(o.value);
+            }
+          }
+          const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
+          cfg.purchasedFromCustom = { items: items, selected: selectedValue };
+        } catch(e){ /* ignore */ }
+
+        return cfg;
+      }
+
+       // Save server
+      saveServerBtn.addEventListener('click', async function() {
+        const cfg = buildConfigObject();
+        
+        try {
+          saveServerBtn.disabled = true;
+          saveServerBtn.textContent = 'Saving...';
+          
+          const submitData = {
+            action: 'saveConfig',
+            token: SERVER_TOKEN,
+            config: JSON.stringify(cfg)
+          };
+          
+          const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
+            encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
+          ).join('&');
+          
+          const response = await jsonpCall(url, 30000);
+          
+          if (response && response.success) {
+            alert('Configuration saved successfully!');
+            setCustomizeMode(false);
+          } else {
+            throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
+          }
+          
+        } catch (error) {
+          console.error('Save error:', error);
+          alert('Failed to save configuration: ' + error.message);
+        } finally {
+          saveServerBtn.disabled = false;
+          saveServerBtn.textContent = 'Save (server)';
+        }
+      });
       
 
       // On load: try to fetch saved config and apply
@@ -1967,3 +2092,4 @@
   </script>
 </body>
 </html>
+
