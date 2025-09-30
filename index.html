@@ -3005,6 +3005,11 @@ if (originalMobileSubmitFunction) {
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
       }
 
+      function applyConfig(cfg) {
+  return applyConfigObject(cfg);
+}
+
+
       // Save server
       saveServerBtn.addEventListener('click', async function() {
         const cfg = buildConfigObject();
@@ -4746,6 +4751,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
