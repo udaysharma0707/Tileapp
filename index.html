@@ -1610,41 +1610,40 @@
             });
           }
 
-          // create main item row
           function createMainItem(main) {
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            const label = document.createElement('label');
-            label.className = 'cb';
+          const row = document.createElement('div');
+          row.className = 'item-row';
+          row.setAttribute('data-generated', 'true');
 
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.className = 'purchased';
-            cb.id = main.id;
-            cb.value = main.label || main.id;
+          const label = document.createElement('label');
+          label.className = 'cb';
 
-            const span = document.createElement('span');
-            span.className = 'editable';
-            span.setAttribute('data-config-id', main.id + '_label');
-            span.id = 'label_' + main.id;
-            span.textContent = main.label || main.id;
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'purchased';
+          cb.id = main.id;
+          cb.value = main.label || main.id;
 
-            label.appendChild(cb);
-            label.appendChild(span);
-            row.appendChild(label);
+          const span = document.createElement('span');
+          span.className = 'editable';
+          span.setAttribute('data-config-id', main.id + '_label');
+          span.id = 'label_' + main.id;
+          span.textContent = main.label || main.id;
 
-            // place before Others' row if present, otherwise append
-            const otherRow = Array.from(purchasedList.querySelectorAll('.item-row')).find(r => {
-              const ch = r.querySelector('input[type="checkbox"]');
-              return ch && ch.id === 'p_other';
-            });
-            if (otherRow) purchasedList.insertBefore(row, otherRow);
-            else purchasedList.appendChild(row);
+          label.appendChild(cb);
+          label.appendChild(span);
+          row.appendChild(label);
 
-            registerEditable(span);
-            return row;
-          }
+          const otherRow = Array.from(purchasedList.querySelectorAll('.item-row')).find(r => {
+            const ch = r.querySelector('input[type="checkbox"]');
+            return ch && ch.id === 'p_other';
+          });
+          if (otherRow) purchasedList.insertBefore(row, otherRow);
+          else purchasedList.appendChild(row);
 
+          registerEditable(span);
+          return row;
+        }
           // ensure sublist for main
           function ensureSublist(main) {
             let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
@@ -2099,6 +2098,7 @@
   </script>
 </body>
 </html>
+
 
 
 
