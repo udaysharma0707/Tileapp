@@ -341,6 +341,279 @@
       100% { transform: rotate(360deg); }
     }
 
+    /* ===== SEARCH SYSTEM STYLES ===== */
+.search-container {
+  margin: 15px 0;
+  border: 2px solid #e3f2fd;
+  border-radius: 10px;
+  padding: 15px;
+  background: #f8f9ff;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 40px 12px 15px;
+  font-size: 16px;
+  border: 2px solid #2196F3;
+  border-radius: 8px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-clear-btn:hover {
+  color: #666;
+  background: #f0f0f0;
+  border-radius: 50%;
+}
+
+.search-count {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.search-results {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-group {
+  border-bottom: 1px solid #eee;
+}
+
+.search-group:last-child {
+  border-bottom: none;
+}
+
+.search-group-header {
+  background: #f5f5f5;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+.search-group-items {
+  padding: 8px 0;
+}
+
+.search-result-item {
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  min-height: 44px; /* Mobile-friendly touch target */
+  display: flex;
+  align-items: center;
+}
+
+.search-result-item:hover {
+  background: #f0f8ff;
+}
+
+.search-result-item.focused {
+  background: #e3f2fd;
+  box-shadow: inset 3px 0 0 #2196F3;
+}
+
+.search-result-item.selected {
+  background: #e8f5e8;
+}
+
+.search-result-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.search-result-checkbox {
+  transform: scale(1.3);
+  margin: 0;
+}
+
+.search-result-text {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.search-highlight {
+  background: #ffeb3b;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.search-no-results {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.no-results-message {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.add-subitem-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.add-subitem-btn:hover {
+  background: #45a049;
+}
+
+.add-subitem-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.add-subitem-modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.add-subitem-modal h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.add-subitem-form label {
+  display: block;
+  margin: 15px 0 5px 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.add-subitem-category,
+.add-subitem-label {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.add-subitem-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.add-subitem-confirm {
+  background: #4CAF50 !important;
+  flex: 1;
+}
+
+.add-subitem-cancel {
+  background: #999 !important;
+  flex: 1;
+}
+
+/* Screen reader announcements */
+#sr-announce {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 620px) {
+  .search-container {
+    margin: 10px 0;
+    padding: 12px;
+  }
+  
+  .search-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px 40px 14px 12px;
+  }
+  
+  .search-result-item {
+    min-height: 48px; /* Larger for mobile */
+  }
+  
+  .search-result-label {
+    padding: 14px 12px;
+    min-height: 48px;
+  }
+  
+  .add-subitem-modal-content {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .search-highlight {
+    background: #000;
+    color: #fff;
+  }
+}
+
+
     /* quantity + unit inline controls */
     .qty-unit {
       display:flex;
@@ -3495,6 +3768,542 @@ function submitDirectMobileFriendlyBackground(data) {
   // Don't return a promise - this is fire-and-forget
 }
 
+    // ===== SUB-ITEM SEARCH SYSTEM =====
+class SubItemSearch {
+  constructor() {
+    this.searchInput = null;
+    this.searchResults = null;
+    this.originalPurchasedList = null;
+    this.cachedSubItems = [];
+    this.searchTimeout = null;
+    this.focusedIndex = -1;
+    this.isSearchActive = false;
+    
+    this.init();
+  }
+  
+  init() {
+    this.createSearchUI();
+    this.cacheSubItems();
+    this.bindEvents();
+  }
+  
+  createSearchUI() {
+    const purchasedList = document.getElementById('purchasedList');
+    if (!purchasedList) return;
+    
+    // Create search container
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'search-container';
+    searchContainer.innerHTML = `
+      <div class="search-input-wrapper">
+        <input type="text" 
+               id="subItemSearch" 
+               class="search-input" 
+               placeholder='Search sub-items (e.g. "porcelain", "grout")'
+               autocomplete="off">
+        <button class="search-clear-btn" id="searchClearBtn" type="button">×</button>
+        <div class="search-count" id="searchCount"></div>
+      </div>
+      <div class="search-results" id="searchResults" style="display: none;"></div>
+    `;
+    
+    // Insert before purchased list
+    purchasedList.parentNode.insertBefore(searchContainer, purchasedList);
+    
+    this.searchInput = document.getElementById('subItemSearch');
+    this.searchResults = document.getElementById('searchResults');
+    this.searchCount = document.getElementById('searchCount');
+    this.originalPurchasedList = purchasedList;
+  }
+  
+  cacheSubItems() {
+    this.cachedSubItems = [];
+    const subItems = document.querySelectorAll('.sub-item');
+    
+    subItems.forEach(subItem => {
+      const checkbox = subItem.querySelector('.subitem');
+      const labelEl = subItem.querySelector('.editable');
+      const parentRow = subItem.closest('.sublist').previousElementSibling;
+      const parentLabel = parentRow ? parentRow.querySelector('.editable') : null;
+      
+      if (checkbox && labelEl && parentLabel) {
+        this.cachedSubItems.push({
+          node: subItem,
+          checkbox: checkbox,
+          labelEl: labelEl,
+          textLower: labelEl.textContent.toLowerCase(),
+          parentId: parentRow.querySelector('.purchased').id,
+          parentLabel: parentLabel.textContent,
+          qtyInput: this.getQtyInput(checkbox.id),
+          unitSelect: this.getUnitSelect(checkbox.id)
+        });
+      }
+    });
+  }
+  
+  getQtyInput(checkboxId) {
+    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
+    return document.getElementById('q' + suffix);
+  }
+  
+  getUnitSelect(checkboxId) {
+    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
+    return document.getElementById('unit' + suffix);
+  }
+  
+  bindEvents() {
+    if (!this.searchInput) return;
+    
+    // Search input with debounce
+    this.searchInput.addEventListener('input', (e) => {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.performSearch(e.target.value);
+      }, 250);
+    });
+    
+    // Clear button
+    document.getElementById('searchClearBtn').addEventListener('click', () => {
+      this.clearSearch();
+    });
+    
+    // Keyboard navigation
+    this.searchInput.addEventListener('keydown', (e) => {
+      this.handleKeydown(e);
+    });
+    
+    // Click outside to maintain focus
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container')) {
+        this.focusedIndex = -1;
+        this.updateFocusStyles();
+      }
+    });
+  }
+  
+  performSearch(query) {
+    const trimmedQuery = query.trim();
+    
+    if (!trimmedQuery) {
+      this.clearSearch();
+      return;
+    }
+    
+    const queryLower = trimmedQuery.toLowerCase();
+    const matches = this.cachedSubItems.filter(item => 
+      item.textLower.includes(queryLower)
+    );
+    
+    this.displayResults(matches, trimmedQuery);
+    this.announceResults(matches.length);
+  }
+  
+  displayResults(matches, originalQuery) {
+    if (matches.length === 0) {
+      this.showNoResults(originalQuery);
+      return;
+    }
+    
+    // Group by parent
+    const grouped = this.groupByParent(matches);
+    const resultsHTML = this.buildResultsHTML(grouped, originalQuery);
+    
+    this.searchResults.innerHTML = resultsHTML;
+    this.searchResults.style.display = 'block';
+    this.originalPurchasedList.style.display = 'none';
+    this.isSearchActive = true;
+    this.focusedIndex = -1;
+    
+    this.updateSearchCount(matches.length);
+    this.bindResultEvents();
+  }
+  
+  groupByParent(matches) {
+    const grouped = {};
+    matches.forEach(match => {
+      if (!grouped[match.parentId]) {
+        grouped[match.parentId] = {
+          parentLabel: match.parentLabel,
+          items: []
+        };
+      }
+      grouped[match.parentId].items.push(match);
+    });
+    return grouped;
+  }
+  
+  buildResultsHTML(grouped, query) {
+    let html = '<div class="search-results-content">';
+    
+    Object.keys(grouped).forEach(parentId => {
+      const group = grouped[parentId];
+      html += `
+        <div class="search-group">
+          <div class="search-group-header">${this.escapeHtml(group.parentLabel)}</div>
+          <div class="search-group-items">
+      `;
+      
+      group.items.forEach((item, index) => {
+        const highlighted = this.highlightMatch(item.labelEl.textContent, query);
+        const isChecked = item.checkbox.checked ? 'checked' : '';
+        
+        html += `
+          <div class="search-result-item" data-checkbox-id="${item.checkbox.id}">
+            <label class="search-result-label">
+              <input type="checkbox" class="search-result-checkbox" ${isChecked}>
+              <span class="search-result-text">${highlighted}</span>
+            </label>
+          </div>
+        `;
+      });
+      
+      html += '</div></div>';
+    });
+    
+    html += '</div>';
+    return html;
+  }
+  
+  showNoResults(query) {
+    this.searchResults.innerHTML = `
+      <div class="search-no-results">
+        <div class="no-results-message">No sub-items found for "${this.escapeHtml(query)}"</div>
+        <button class="add-subitem-btn" data-query="${this.escapeHtml(query)}">
+          Add sub-item: "${this.escapeHtml(query)}"
+        </button>
+      </div>
+    `;
+    this.searchResults.style.display = 'block';
+    this.originalPurchasedList.style.display = 'none';
+    this.isSearchActive = true;
+    this.updateSearchCount(0);
+    this.bindAddSubitemEvent();
+  }
+  
+  bindResultEvents() {
+    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
+    
+    resultItems.forEach((item, index) => {
+      // Click/touch events
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleResult(item);
+      });
+      
+      // Touch-friendly tap
+      item.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        this.toggleResult(item);
+      });
+      
+      // Store index for keyboard navigation
+      item.dataset.resultIndex = index;
+    });
+  }
+  
+  bindAddSubitemEvent() {
+    const addBtn = this.searchResults.querySelector('.add-subitem-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', (e) => {
+        this.showAddSubitemModal(e.target.dataset.query);
+      });
+    }
+  }
+  
+  toggleResult(resultItem) {
+    const checkboxId = resultItem.dataset.checkboxId;
+    const originalCheckbox = document.getElementById(checkboxId);
+    const resultCheckbox = resultItem.querySelector('.search-result-checkbox');
+    
+    if (originalCheckbox && resultCheckbox) {
+      // Toggle original checkbox
+      originalCheckbox.checked = !originalCheckbox.checked;
+      resultCheckbox.checked = originalCheckbox.checked;
+      
+      // Trigger change event on original checkbox
+      originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      
+      // Update visual feedback
+      resultItem.classList.toggle('selected', originalCheckbox.checked);
+      
+      // If checked, ensure parent main category is visible/expanded
+      if (originalCheckbox.checked) {
+        this.ensureParentExpanded(checkboxId);
+      }
+    }
+  }
+  
+  ensureParentExpanded(checkboxId) {
+    const originalSubitem = document.getElementById(checkboxId);
+    if (!originalSubitem) return;
+    
+    const sublist = originalSubitem.closest('.sublist');
+    const parentRow = sublist ? sublist.previousElementSibling : null;
+    const parentCheckbox = parentRow ? parentRow.querySelector('.purchased') : null;
+    
+    if (parentCheckbox && sublist) {
+      if (!parentCheckbox.checked) {
+        parentCheckbox.checked = true;
+        parentCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      sublist.style.display = 'block';
+    }
+  }
+  
+  handleKeydown(e) {
+    if (!this.isSearchActive) return;
+    
+    const resultItems = Array.from(this.searchResults.querySelectorAll('.search-result-item'));
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        this.focusedIndex = Math.min(this.focusedIndex + 1, resultItems.length - 1);
+        this.updateFocusStyles();
+        this.scrollToFocused();
+        break;
+        
+      case 'ArrowUp':
+        e.preventDefault();
+        this.focusedIndex = Math.max(this.focusedIndex - 1, -1);
+        this.updateFocusStyles();
+        this.scrollToFocused();
+        break;
+        
+      case 'Enter':
+        e.preventDefault();
+        if (this.focusedIndex >= 0 && resultItems[this.focusedIndex]) {
+          this.toggleResult(resultItems[this.focusedIndex]);
+        }
+        break;
+        
+      case 'Escape':
+        e.preventDefault();
+        this.clearSearch();
+        this.searchInput.focus();
+        break;
+    }
+  }
+  
+  updateFocusStyles() {
+    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
+    resultItems.forEach((item, index) => {
+      item.classList.toggle('focused', index === this.focusedIndex);
+    });
+  }
+  
+  scrollToFocused() {
+    const focusedItem = this.searchResults.querySelector('.search-result-item.focused');
+    if (focusedItem) {
+      focusedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  
+  showAddSubitemModal(query) {
+    const modal = document.createElement('div');
+    modal.className = 'add-subitem-modal';
+    modal.innerHTML = `
+      <div class="add-subitem-modal-content">
+        <h3>Add New Sub-item</h3>
+        <div class="add-subitem-form">
+          <label>Category:</label>
+          <select class="add-subitem-category">
+            <option value="floor">Floor Tiles</option>
+            <option value="wall">Wall Tiles</option>
+            <option value="san">Sanitaryware</option>
+            <option value="acc">Accessories</option>
+          </select>
+          
+          <label>Sub-item name:</label>
+          <input type="text" class="add-subitem-label" value="${this.escapeHtml(query)}">
+          
+          <div class="add-subitem-actions">
+            <button class="btn add-subitem-confirm">Add Sub-item</button>
+            <button class="btn add-subitem-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Focus input
+    const labelInput = modal.querySelector('.add-subitem-label');
+    labelInput.focus();
+    labelInput.select();
+    
+    // Bind events
+    modal.querySelector('.add-subitem-confirm').addEventListener('click', () => {
+      this.createNewSubitem(
+        modal.querySelector('.add-subitem-category').value,
+        modal.querySelector('.add-subitem-label').value
+      );
+      document.body.removeChild(modal);
+    });
+    
+    modal.querySelector('.add-subitem-cancel').addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
+  }
+  
+  createNewSubitem(category, label) {
+    if (!label.trim()) return;
+    
+    const trimmedLabel = label.trim();
+    const slug = trimmedLabel.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const baseId = `sub${category}${slug}`;
+    
+    // Find unique ID
+    let elementId = baseId;
+    let i = 1;
+    while (document.getElementById(elementId)) {
+      elementId = `${baseId}${i}`;
+      i++;
+    }
+    
+    // Get target sublist
+    const sublistId = `sublist${category}`;
+    const sublist = document.getElementById(sublistId);
+    if (!sublist) {
+      alert('Could not find category container');
+      return;
+    }
+    
+    // Create sub-item element
+    const suffix = elementId.slice(3); // Remove 'sub' prefix
+    const qtyId = `q${suffix}`;
+    
+    const subDiv = document.createElement('div');
+    subDiv.className = 'sub-item';
+    subDiv.setAttribute('data-generated', 'true');
+    
+    subDiv.innerHTML = `
+      <label>
+        <input type="checkbox" class="subitem" id="${elementId}" value="${trimmedLabel}">
+        <span class="editable" data-config-id="${elementId}label" id="label${elementId}">${trimmedLabel}</span>
+        <button class="del-btn" type="button" title="Remove sub-item" aria-label="Remove">×</button>
+      </label>
+      <div class="qty-unit">
+        <input type="number" min="0" step="1" id="${qtyId}" class="subqty qty" placeholder="Quantity" disabled>
+        <select id="unit${suffix}" class="unit-select" disabled>
+          <option value="Boxes">Boxes</option>
+          <option value="Pieces">Pieces</option>
+          <option value="Kg">Kg</option>
+        </select>
+        <input type="text" id="unitcustom${suffix}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
+      </div>
+    `;
+    
+    // Add to sublist
+    sublist.appendChild(subDiv);
+    
+    // Re-register handlers and cache
+    if (typeof bindSubitemHandlers === 'function') {
+      bindSubitemHandlers();
+    }
+    if (typeof registerEditable === 'function') {
+      registerEditable(subDiv.querySelector('.editable'));
+    }
+    
+    // Auto-check the new item
+    const newCheckbox = document.getElementById(elementId);
+    if (newCheckbox) {
+      newCheckbox.checked = true;
+      newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    // Refresh cache and search
+    this.cacheSubItems();
+    this.performSearch(this.searchInput.value);
+    
+    // Show success message
+    if (typeof showTempMessage === 'function') {
+      showTempMessage(`Added "${trimmedLabel}" to ${category} category`);
+    }
+  }
+  
+  clearSearch() {
+    this.searchInput.value = '';
+    this.searchResults.style.display = 'none';
+    this.originalPurchasedList.style.display = 'block';
+    this.isSearchActive = false;
+    this.focusedIndex = -1;
+    this.updateSearchCount(0);
+  }
+  
+  updateSearchCount(count) {
+    if (count === 0) {
+      this.searchCount.textContent = '';
+    } else {
+      this.searchCount.textContent = `${count} result${count === 1 ? '' : 's'}`;
+    }
+  }
+  
+  announceResults(count) {
+    // Screen reader announcement
+    const announcement = `${count} result${count === 1 ? '' : 's'} found`;
+    const srAnnounce = document.getElementById('sr-announce') || document.createElement('div');
+    srAnnounce.id = 'sr-announce';
+    srAnnounce.setAttribute('aria-live', 'polite');
+    srAnnounce.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
+    srAnnounce.textContent = announcement;
+    document.body.appendChild(srAnnounce);
+  }
+  
+  highlightMatch(text, query) {
+    const index = text.toLowerCase().indexOf(query.toLowerCase());
+    if (index === -1) return this.escapeHtml(text);
+    
+    const before = text.substring(0, index);
+    const match = text.substring(index, index + query.length);
+    const after = text.substring(index + query.length);
+    
+    return `${this.escapeHtml(before)}<mark class="search-highlight">${this.escapeHtml(match)}</mark>${this.escapeHtml(after)}`;
+  }
+  
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // Public method to refresh cache when items are added/removed
+  refresh() {
+    this.cacheSubItems();
+    if (this.isSearchActive && this.searchInput.value.trim()) {
+      this.performSearch(this.searchInput.value);
+    }
+  }
+}
+
+// Initialize search system after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait a bit for existing initialization to complete
+  setTimeout(() => {
+    window.subItemSearch = new SubItemSearch();
+  }, 500);
+});
+
+// Hook into existing add subitem functionality to refresh search cache
+if (typeof addSubBtn !== 'undefined' && addSubBtn) {
+  const originalAddSubClick = addSubBtn.onclick;
+  addSubBtn.onclick = function() {
+    if (originalAddSubClick) originalAddSubClick();
+    setTimeout(() => {
+      if (window.subItemSearch) window.subItemSearch.refresh();
+    }, 100);
+  };
+}
+
+
 
   </script>
 </div> <!-- Close appContent div -->
@@ -3502,6 +4311,7 @@ function submitDirectMobileFriendlyBackground(data) {
 
 </body>
 </html>
+
 
 
 
