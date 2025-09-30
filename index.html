@@ -1611,13 +1611,13 @@ if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
       
           const purchasedList = document.getElementById('purchasedList');
 
+         // helper: find row for main id
           function findItemRowByMainId(mainId) {
-          const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
-          return allRows.find(row => {
-            const cb = row.querySelector('input[type="checkbox"]');
-            return cb && cb.id === mainId;
-          });
-        }
+            return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
+              const cb = row.querySelector('input[type="checkbox"]');
+              return cb && cb.id === mainId;
+            });
+          }
 
           // create main item row
           function createMainItem(main) {
@@ -2108,6 +2108,7 @@ if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
   </script>
 </body>
 </html>
+
 
 
 
