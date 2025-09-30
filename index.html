@@ -2810,6 +2810,64 @@ function buildConfigObject() {
   return cfg;
 }
 
+
+
+      // Save server: send config including structure via JSONP action=saveConfig
+      saveServerBtn.addEventListener('click', async function(){
+        // finish any inline editing first
+        endEditingSession();
+        const cfg = buildConfigObject();
+        const cfgStr = JSON.stringify(cfg);
+        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
+        try {
+          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
+          const resp = await jsonpCall(url, 20000);
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+          if (resp && resp.success) {
+            alert('Customization saved on server.');
+            setCustomizeMode(false);
+            // also persist locally (so dropdown updates instantly survive reloads before server sync)
+            try { localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom || {})); } catch(e){}
+          } else {
+            console.error('save resp', resp);
+            alert('Save failed. Server returned error. Check console.');
+          }
+        } catch (err) {
+          console.error('save err', err);
+          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+        }
+      });
+
+      // On load: try to fetch saved config and apply
+      (async function tryLoadConfig(){
+        try {
+          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const resp = await jsonpCall(url, 15000);
+          if (resp && resp.success && resp.config) {
+            applyConfig(resp.config);
+          } else {
+            // no config found or error; fallback to localStorage for purchasedFromCustom
+            try {
+              const local = localStorage.getItem('purchasedFromCustom');
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+              }
+            } catch(e){}
+          }
+        } catch (e) {
+          console.warn('Could not load config:', e);
+          // fallback to localStorage as above
+          try {
+            const local = localStorage.getItem('purchasedFromCustom');
+            if (local) {
+              const parsed = JSON.parse(local);
+              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+            }
+          } catch(e){}
+        }
+      })();
      
 
       function applyConfigObject(cfg) {
@@ -4818,6 +4876,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
