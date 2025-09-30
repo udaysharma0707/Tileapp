@@ -2839,6 +2839,35 @@ if (originalMobileSubmitFunction) {
           rebuildVendorSelect();
           renderVendorList();
         }
+          // apply config object (labels map + structure)
+      function applyConfig(cfg) {
+        if (!cfg) return;
+
+        // 1) labels/title
+        if (cfg.title) {
+          const t = document.getElementById('appTitle');
+          if (t) t.textContent = cfg.title;
+        }
+        if (cfg.labels) {
+          Object.keys(cfg.labels).forEach(key => {
+            const sel = '[data-config-id="' + key + '"]';
+            const el = document.querySelector(sel) || document.getElementById(key);
+            if (el) el.textContent = cfg.labels[key];
+          });
+        }
+
+        // 2) structure (if present) - add/remove mains/subitems and modes
+        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
+          const purchasedList = document.getElementById('purchasedList');
+
+          // helper: find row for main id
+          function findItemRowByMainId(mainId) {
+            return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
+              const cb = row.querySelector('input[type="checkbox"]');
+              return cb && cb.id === mainId;
+            });
+          }
+
 
         if (!cfg.structure) return;
 
@@ -4771,6 +4800,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
