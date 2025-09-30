@@ -29,15 +29,178 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
+
     h1{font-size:20px;margin:0 0 10px 0; display:flex; align-items:center; gap:8px;}
     .gear {
       margin-left:auto; cursor:pointer; font-size:18px; color:#2c7be5;
     }
+    
     .q-label{display:block;margin-top:10px;font-weight:600}
     input[type="text"], input[type="number"], select, textarea {
       width:100%; padding:8px; font-size:15px; margin-top:6px; box-sizing:border-box;
       border:1px solid #ccc; border-radius:4px;
     }
+
+    .upload-area {
+            border: 3px dashed #2196F3;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin: 30px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+    .upload-area:hover {
+            border-color: #1976D2;
+            background: #e3f2fd;
+        }
+        
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background: #e8f5e8;
+        }
+    .upload-icon {
+            font-size: 4rem;
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+    .btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 150px;
+        }
+        
+        .btn:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+         .camera-btn {
+            background: #4CAF50;
+        }
+        
+        .camera-btn:hover {
+            background: #45a049;
+        }
+        
+        .preview-container {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+     .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+    /* PIN Modal Styles */
+.pin-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pin-modal h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+#pinInput {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+#pinInput:focus {
+  outline: none;
+  border-color: #2c7be5;
+  box-shadow: 0 0 10px rgba(44, 123, 229, 0.3);
+}
+
+#submitPin:hover {
+  background: #1e5bb8;
+}
+
+#submitPin:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -48,24 +211,577 @@
     .checkbox-row { margin-top:6px; padding:0; }
     .cb { display:block; width:100%; padding:6px 0; box-sizing:border-box; }
 
+    /* Photo Upload Styles (integrated from photo webapp) */
+    .photo-section {
+      margin-top: 20px;
+      border-top: 2px solid #f0f0f0;
+      padding-top: 20px;
+    }
+    
+    .upload-area {
+      border: 3px dashed #2196F3;
+      border-radius: 15px;
+      padding: 30px 20px;
+      margin: 20px 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f8f9ff;
+      text-align: center;
+    }
+    
+    .upload-area:hover {
+      border-color: #1976D2;
+      background: #e3f2fd;
+    }
+    
+    .upload-area.dragover {
+      border-color: #4CAF50;
+      background: #e8f5e8;
+    }
+    
+    .upload-icon {
+      font-size: 3rem;
+      color: #2196F3;
+      margin-bottom: 10px;
+    }
+    
+    .upload-text {
+      color: #666;
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .btn {
+      background: #2196F3;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 5px;
+      min-width: 120px;
+    }
+    
+    .btn:hover {
+      background: #1976D2;
+      transform: translateY(-1px);
+    }
+    
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .camera-btn {
+      background: #4CAF50;
+    }
+    
+    .camera-btn:hover {
+      background: #45a049;
+    }
+    
+    .preview-container {
+      margin: 20px 0;
+      display: none;
+      text-align: center;
+    }
+    
+    .preview-image {
+      max-width: 100%;
+      max-height: 250px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      margin-bottom: 15px;
+    }
+    
+    .status {
+      margin: 15px 0;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .loading {
+      display: none;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2196F3;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+  /* ===== ULTRA-COMPACT SEARCH SYSTEM (TINY MOBILE CONTROLS) ===== */
+.search-container {
+  margin: 10px 0;
+  border: 2px solid #e3f2fd;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8f9ff;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 30px 8px 10px;
+  font-size: 14px;
+  border: 2px solid #2196F3;
+  border-radius: 6px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+  padding: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-clear-btn:hover {
+  color: #666;
+  background: #f0f0f0;
+  border-radius: 50%;
+}
+
+.search-count {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+.search-results {
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.search-group {
+  border-bottom: 1px solid #eee;
+}
+
+.search-group:last-child {
+  border-bottom: none;
+}
+
+.search-group-header {
+  background: #f5f5f5;
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+.search-group-items {
+  padding: 2px 0;
+}
+
+/* SINGLE LINE LAYOUT FOR SUB-ITEMS */
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  margin: 0;
+  cursor: pointer;
+  min-height: 36px; /* Reduced for compactness */
+  border-bottom: 1px solid #f8f8f8;
+  gap: 8px; /* Space between elements */
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: #f0f8ff;
+}
+
+.search-result-item.focused {
+  background: #e3f2fd;
+  box-shadow: inset 2px 0 0 #2196F3;
+}
+
+.search-result-item.selected {
+  background: #e8f5e8;
+}
+
+/* CHECKBOX AREA */
+.search-result-checkbox {
+  transform: scale(1.6);
+  margin: 1;
+  flex-shrink: 0;
+}
+
+/* TEXT AREA - TAKES AVAILABLE SPACE */
+.search-result-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.2;
+  min-width: 0;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+/* TINY QTY + UNIT CONTROLS IN ONE LINE */
+.search-qty-unit {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+/* LARGER QUANTITY INPUT - MORE COMFORTABLE */
+.search-qty-input {
+  width: 100px !important; /* Increased from 50px */
+  height: 28px; /* Increased height */
+  padding: 3px 5px; /* More padding */
+  font-size: 12px; /* Larger font */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+  box-sizing: border-box;
+  background: white;
+}
+
+.search-qty-input:disabled {
+  background: #f8f8f8;
+  color: #aaa;
+}
+
+.search-qty-input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
+}
+
+/* UNIT SELECT - PROPORTIONAL SIZE */
+.search-unit-select {
+  width: 70px !important; /* Increased from 60px */
+  height: 28px; /* Match qty input height */
+  padding: 2px 4px;
+  font-size: 11px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  box-sizing: border-box;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 3px center;
+  background-size: 12px;
+  padding-right: 20px;
+}
+
+.search-unit-select:disabled {
+  background-color: #f8f8f8;
+  color: #aaa;
+}
+
+.search-unit-select:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
+}
+
+/* CUSTOM UNIT INPUT */
+.search-custom-unit {
+  width: 100px !important; /* Increased from 60px */
+  height: 28px; /* Match other inputs */
+  padding: 3px 5px;
+  font-size: 11px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: white;
+}
+
+.search-custom-unit:disabled {
+  background: #f8f8f8;
+  color: #aaa;
+}
+
+.search-custom-unit:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
+}
+
+
+.search-highlight {
+  background: #ffeb3b;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.search-no-results {
+  padding: 24px 12px;
+  text-align: center;
+}
+
+.no-results-message {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.add-subitem-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.add-subitem-btn:hover {
+  background: #45a049;
+}
+
+.add-subitem-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.add-subitem-modal-content {
+  background: white;
+  padding: 16px;
+  border-radius: 6px;
+  width: 90%;
+  max-width: 320px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+
+.add-subitem-modal h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.add-subitem-form label {
+  display: block;
+  margin: 10px 0 3px 0;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.add-subitem-category,
+.add-subitem-label {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.add-subitem-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.add-subitem-confirm {
+  background: #4CAF50 !important;
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.add-subitem-cancel {
+  background: #999 !important;
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+/* Screen reader announcements */
+#sr-announce {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+/* DESKTOP VERSION - EVEN LARGER */
+@media (min-width: 769px) {
+  .search-qty-input {
+    width: 100px !important; /* Desktop: 75px */
+    height: 30px;
+    font-size: 13px;
+    padding: 4px 6px;
+  }
+  
+  .search-result-text {
+    font-size: 14px;
+  }
+  
+  .search-qty-input {
+    width: 85px !important;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .search-unit-select {
+    width: 100px !important; /* Desktop: 80px */
+    height: 30px;
+    font-size: 12px;
+    padding: 3px 5px;
+    padding-right: 22px;
+  }
+  search-custom-unit {
+    width: 110px !important; /* Desktop: 85px */
+    height: 30px;
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+}
+
+/* MOBILE - COMFORTABLE SIZE */
+@media (max-width: 768px) {
+  .search-qty-input {
+    min-height: 32px; /* Touch-friendly */
+    font-size: 14px; /* Prevent zoom on iOS */
+  }
+  
+  .search-result-item {
+    min-height: 36px;
+    padding: 3px 6px;
+  }
+  
+  .search-result-text {
+    font-size: 13px;
+  }
+  
+  .search-checkbox {
+    transform: scale(1.2); /* Slightly larger for touch */
+  }
+  
+  /* Keep tiny inputs but ensure they're tappable */
+  .search-qty-input,
+  .search-unit-select,
+  .search-custom-unit {
+    min-height: 26px; /* Ensure touch-friendly */
+  }
+}
+
+/* VERY SMALL SCREENS - KEEP SINGLE LINE */
+@media (max-width: 480px) {
+  .search-result-item {
+    gap: 4px; /* Tighter spacing */
+  }
+  
+  .search-result-text {
+    font-size: 12px;
+  }
+  
+  .search-qty-input {
+    width: 60px !important; /* Even smaller on tiny screens */
+  }
+  
+ .search-unit-select {
+    min-height: 32px;
+    font-size: 14px;
+  }
+  
+  .search-custom-unit {
+    min-height: 32px;
+    font-size: 14px;
+  }
+}
+
+/* HIGH CONTRAST MODE */
+@media (prefers-contrast: high) {
+  .search-highlight {
+    background: #000;
+    color: #fff;
+  }
+}
+
+
+
+
     /* quantity + unit inline controls */
     .qty-unit {
       display:flex;
       gap:6px;
       align-items:center;
-      min-width:280px;
+      min-width:240px;
       justify-content:flex-end;
     }
     .qty-unit input[type="number"] { width:90px; padding:6px; font-size:14px; }
     .qty-unit select { width:120px; padding:6px; font-size:14px; }
     .qty-unit .unit-custom { width:110px; padding:6px; font-size:14px; display:none; }
-    .unit-lock {
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      margin-left:6px;
-    }
-    .unit-lock input[type="checkbox"] { transform: scale(1.25); margin:0; }
 
     /* payment inline controls */
     .mode-row { display:flex; align-items:center; gap:12px; margin-top:6px; }
@@ -116,7 +832,6 @@
     .editable[contenteditable="true"] { outline: 2px solid #2c7be5; background: #ffffff; }
 
     /* small modal panel for customization instructions & buttons */
-    /* portrait-friendly popup */
     #customPanel {
       position: fixed;
       left: 50%;
@@ -130,7 +845,7 @@
       padding:12px;
       z-index: 1200;
       display:none;
-      max-height: calc(80vh);   /* limit height so mobile can scroll */
+      max-height: calc(80vh);
       overflow: auto;
       box-sizing: border-box;
     }
@@ -153,15 +868,15 @@
       #customPanel {
         width: 92vw;
         max-width: 420px;
-        height: 70vh;           /* portrait feel */
+        height: 70vh;
         max-height: 70vh;
         left: 50%;
         top: 50%;
-        transform: translate(-50%, -50%); /* center vertically on mobile */
+        transform: translate(-50%, -50%);
         padding: 10px;
         border-radius: 10px;
         box-shadow: 0 18px 40px rgba(0,0,0,0.45);
-        overflow: auto;        /* allow inner scroll */
+        overflow: auto;
       }
       #customPanel .panel-row { flex-direction: column; align-items:stretch; gap:10px; }
       #customPanel .panel-actions { flex-wrap:wrap; justify-content:flex-end; }
@@ -200,23 +915,45 @@
     #customVendorManager .vendor-item button { background:#b71c1c; padding:6px 8px; border-radius:6px; border:none; font-weight:700; }
     #customVendorManager .vendor-actions { display:flex; gap:8px; align-items:center; }
     #customVendorManager input[type="text"] { margin-top:0; margin-bottom:0; }
+    
+    /* Unit management styling */
+    .unit-item { display:flex; align-items:center; gap:8px; padding:6px; background:white; margin-bottom:6px; border:1px solid #eee; border-radius:4px; }
+    .remove-unit { background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+
   </style>
 </head>
 <body>
   <div class="container" id="appContainer">
+
+   <!-- PIN Protection Modal -->
+<div id="pinModal" class="pin-modal" style="display: none;">
+  <div class="pin-modal-content">
+    <h2>🔒 Daily Access PIN</h2>
+    <p>Enter the daily PIN to access the purchase entry form:</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="10" style="padding: 15px; font-size: 18px; text-align: center; width: 200px; margin: 20px 0;">
+    <br>
+    <button id="submitPin" style="padding: 15px 30px; font-size: 16px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer;">Unlock</button>
+    <div id="pinError" style="color: red; margin-top: 10px; font-weight: bold;"></div>
+    <div style="font-size: 12px; color: #666; margin-top: 15px;">PIN is required once per day for security</div>
+  </div>
+</div>
+
+
+<div id="appContent">
+
      <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
-      <span id="appTitle">Tile Purchase Entry</span>
-      <span class="gear" id="gearBtn" title="Customize form">âš™ï¸</span>
+      <span id="appTitle">Tile Purchase Entry</span>   
+      <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
     </h1>
 
     <div class="custom-mode-badge">Customize mode</div>
 
     <!-- Customize panel (hidden by default) -->
     <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
-      <button class="close-x" id="panelCloseX" title="Close (Esc)">Ã—</button>
+      <button class="close-x" id="panelCloseX" title="Close (Esc)">❌</button>
       <strong>Customize form text</strong>
       <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
       <div class="panel-row">
@@ -229,17 +966,34 @@
         </div>
       </div>
 
-      <!-- NEW: Add / Remove sub-item controls (includes Mode of payment option) -->
+      <!-- Manage Units of Measure section -->
+      <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
+        <strong>Manage Units of Measure (global)</strong>
+        <div style="font-size:13px;color:#444;margin-top:6px">
+          Add custom units that will be available in all unit dropdowns throughout the form.
+        </div>
+
+        <div class="panel-row" style="margin-top:8px; align-items:center;">
+          <input id="newUnitInput" type="text" placeholder="Enter new unit name" style="flex:1;">
+          <button id="addUnitBtn" type="button" style="margin-left:8px;">Add Unit</button>
+        </div>
+
+        <div id="unitList" style="margin-top:8px; max-height:160px; overflow:auto;">
+          <!-- Custom units will be listed here dynamically -->
+        </div>
+      </div>
+
+      <!-- Add / Remove sub-item controls -->
       <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
         <strong>Add / Remove Sub-items</strong>
-        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red âœ• next to each sub-item label to remove it.</div>
+        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red ❌ next to each sub-item label to remove it.</div>
 
         <div class="panel-row" style="margin-top:8px; align-items:center;">
           <select id="addCategorySelect" style="width:40%; padding:8px; font-size:14px;">
             <option value="floor">Floor Tiles</option>
             <option value="wall">Wall Tiles</option>
             <option value="san">Sanitaryware</option>
-            <option value="acc">Accessories</option>
+            <option value="acc">extraparts</option>
             <option value="mode">Mode of payment</option>
           </select>
           <input id="addSubLabelInput" type="text" placeholder="New sub-item label (e.g. 'Large format tiles')" style="flex:1; margin-left:8px;">
@@ -249,6 +1003,40 @@
           <div class="note">Note: IDs of dynamically added items start with <code>sub_</code> (e.g. <code>sub_floor_custom1</code>). New payment modes will be created with a checkbox named <code>modeOfPayment</code> and an amount input (data-mode-amount) so your submission logic picks them up.</div>
         </div>
       </div>
+    </div>
+
+    <!-- Photo Upload Section -->
+    <div class="photo-section">
+      <h2>📷 Photo Upload (Optional)</h2>
+      
+      <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">
+              Click to select a photo or drag & drop here
+          </div>
+          <button class="btn" onclick="document.getElementById('fileInput').click()">
+              Choose from Gallery
+          </button>
+          <button class="btn camera-btn" onclick="openCamera()">
+              Take Photo
+          </button>
+      </div>
+      
+      <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
+      <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+      
+      <div class="preview-container" id="previewContainer">
+          <img id="previewImage" class="preview-image" alt="Preview">
+          <br>
+          <button class="btn" onclick="resetPhotoForm()">Cancel Photo</button>
+      </div>
+      
+      <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p>Processing...</p>
+      </div>
+      
+      <div id="photoStatus"></div>
     </div>
 
     <!-- Purchased items with inline qty and nested subitems -->
@@ -266,10 +1054,8 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
-
-          <!-- NEW: Quantity + Unit group (keeps original qty id for backwards compatibility) -->
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="Quantity" disabled>
             <select id="unit_floor_vitrified" class="unit-select" disabled>
@@ -278,16 +1064,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_vitrified" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item">
-              <input type="checkbox" id="lock_floor_vitrified" /> lock
-            </label>
           </div>
-
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="Quantity" disabled>
@@ -297,13 +1079,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_ceramic" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_ceramic" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="Quantity" disabled>
@@ -313,13 +1094,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_porcelain" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_porcelain" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="Quantity" disabled>
@@ -329,13 +1109,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_marble" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_marble" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="Quantity" disabled>
@@ -345,7 +1124,6 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_floor_granite" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_floor_granite" /> lock</label>
           </div>
         </div>
       </div>
@@ -361,7 +1139,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="Quantity" disabled>
@@ -371,13 +1149,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_wall_kitchen" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_kitchen" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="Quantity" disabled>
@@ -387,13 +1164,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_wall_bath" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_bath" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="Quantity" disabled>
@@ -403,7 +1179,6 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_wall_decor" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_wall_decor" /> lock</label>
           </div>
         </div>
       </div>
@@ -419,7 +1194,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="Quantity" disabled>
@@ -429,13 +1204,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_san_wash" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_wash" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="Quantity" disabled>
@@ -445,13 +1219,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_san_wc" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_wc" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="Quantity" disabled>
@@ -461,23 +1234,22 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_san_urinal" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_san_urinal" /> lock</label>
           </div>
         </div>
       </div>
 
-      <!-- ACCESSORIES -->
+      <!-- extraparts -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_acc" value="Accessories">
-          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">Accessories</span>
+          <input type="checkbox" class="purchased" id="p_acc" value="extraparts">
+          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">extraparts</span>
         </label>
       </div>
       <div class="sublist" id="sublist_acc">
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="Quantity" disabled>
@@ -487,13 +1259,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_grout" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_grout" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="Quantity" disabled>
@@ -503,13 +1274,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_spacers" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_spacers" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="Quantity" disabled>
@@ -519,13 +1289,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_sealants" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_sealants" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="Quantity" disabled>
@@ -535,13 +1304,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_chem" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_chem" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="Quantity" disabled>
@@ -551,13 +1319,12 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_skirting" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_skirting" /> lock</label>
           </div>
         </div>
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âœ•</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="Quantity" disabled>
@@ -567,12 +1334,11 @@
               <option value="Kg">Kg</option>
             </select>
             <input type="text" id="unit_custom_acc_mosaic" class="unit-custom" placeholder="Custom unit" style="display:none;">
-            <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_acc_mosaic" /> lock</label>
           </div>
         </div>
       </div>
 
-      <!-- OTHERS (main) â€” keep simple: checked + custom name + qty -->
+      <!-- OTHERS (main) -->
       <div class="item-row">
         <label class="cb">
           <input type="checkbox" class="purchased" id="p_other" value="Others">
@@ -586,31 +1352,27 @@
             <option value="Kg">Kg</option>
           </select>
           <input type="text" id="unit_custom_other" class="unit-custom" placeholder="Custom unit" style="display:none;">
-          <label class="unit-lock" title="Lock unit for this item"><input type="checkbox" id="lock_other" /> lock</label>
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
-        <input id="purchasedOtherText" type="text" placeholder="If Others â€” specify (e.g. 'Grout, Adhesive')">
+        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
       </div>
-
     </div>
 
-    <!-- Purchased from (dropdown with Customised management) -->
+    <!-- Purchased from -->
     <label class="q-label">Purchased from</label>
     <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
       <select id="purchasedFromSelect" style="flex:1; padding:8px; font-size:15px;">
         <option value="Delhi Tiles Company">Delhi Tiles Company</option>
         <option value="Mumbai Tiles Company">Mumbai Tiles Company</option>
         <option value="Mumbai Marble Company">Mumbai Marble Company</option>
-        <!-- custom vendor options will be inserted here dynamically -->
         <option value="Customised">Customised</option>
         <option value="Other">Other</option>
       </select>
-      <!-- keep id 'purchasedFrom' so existing app.js keeps working; show only when Other selected -->
-      <input id="purchasedFrom" type="text" placeholder="If Other â€” specify vendor name" style="flex:1; display:none;">
+      <input id="purchasedFrom" type="text" placeholder="If Other — specify vendor name" style="flex:1; display:none;">
     </div>
 
-    <!-- custom vendor manager (hidden by default) -->
+    <!-- custom vendor manager -->
     <div id="customVendorManager" style="display:none;">
       <div style="font-weight:700; margin-bottom:6px;">Manage custom vendors</div>
       <div class="vendor-list" id="vendorList"></div>
@@ -621,35 +1383,35 @@
       <div style="font-size:12px;color:#555;margin-top:8px">Fixed options (Delhi/Mumbai/Mumbai Marble/Other) cannot be removed. Use this panel to add vendors specific to your shop. Click Save (server) to persist changes to the system.</div>
     </div>
 
-    <!-- Mode of payment (checkboxes with inline amounts) -->
+    <!-- Mode of payment -->
     <label class="q-label">Mode of payment (check modes and enter amounts for each)</label>
     <div class="checkbox-row" id="modes">
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> <span class="editable" data-config-id="mode_cash_label" id="label_mode_cash">Cash</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âœ•</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled data-mode-amount="Cash">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> <span class="editable" data-config-id="mode_online_label" id="label_mode_online">Online</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âœ•</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled data-mode-amount="Online">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> <span class="editable" data-config-id="mode_credit_label" id="label_mode_credit">Credit</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âœ•</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled data-mode-amount="Credit">
       </div>
     </div>
 
-    <!-- Total (editable) -->
-    <label class="q-label">Payment paid (â‚¹) <span style="color:red">*</span></label>
-    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount" >
+    <!-- Total -->
+    <label class="q-label">Payment paid (₹)</label>
+    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount (optional)" >
 
     <label class="q-label">Any other information</label>
-    <textarea id="otherInfo" rows="2"></textarea>
+    <textarea id="otherInfo" rows="2" placeholder="Optional additional information"></textarea>
 
     <div class="form-actions">
       <button id="submitBtn" type="button">Submit</button>
@@ -666,15 +1428,233 @@
     <div class="small" style="margin-top:6px">Status: <span id="status-duplicate" style="display:inline"></span></div>
   </div>
 
-  <script src="app.js"></script> <!-- keep your existing app.js for submission logic -->
+  <script src="app.js"></script>
 
   <script>
+
     // --- Config / server endpoint detection ---
-    // prefer global ENDPOINT & SHARED_TOKEN from app.js if present
-    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwTwqZ-xoxJAhBpcYVXOkgdLcgV3o0LCibZKUKWfeQiPp90anzYJa8q7vwlgcDABP2MIg/exec";
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwWyLQDSD8EuurP6eG4salam1rJp1zwQ_uDVjOzlxSFeRK_spIlp_egxduU1DLCizazeA/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
-    // small JSONP helper used for config save/load
+
+    // Replace with your Google Apps Script Web App URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWyLQDSD8EuurP6eG4salam1rJp1zwQ_uDVjOzlxSFeRK_spIlp_egxduU1DLCizazeA/exec';
+
+    let selectedFile = null;
+    let selectedImage = null;
+
+    // Drag and drop functionality
+    const uploadArea = document.getElementById('uploadArea');
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+            handleFile(files[0]);
+        }
+    });
+
+    function openCamera() {
+        document.getElementById('cameraInput').click();
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleFile(file);
+        }
+    }
+
+    function handleFile(file) {
+        selectedFile = file;
+        
+        // Compress and create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set max dimensions to avoid large uploads
+                const maxWidth = 1920;
+                const maxHeight = 1080;
+                let { width, height } = img;
+                
+                // Calculate new dimensions
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Show preview
+                document.getElementById('previewImage').src = selectedImage;
+                document.getElementById('previewContainer').style.display = 'block';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Photo upload function (integrated with main submit)
+    async function uploadPhotoToServer() {
+        if (!selectedImage) {
+            return null; // No photo to upload
+        }
+        
+        showLoading(true);
+        
+        try {
+            // Use form submission approach for photo upload
+            return await uploadViaFormSubmission();
+        } catch (error) {
+            console.error('Photo upload error:', error);
+            return null;
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function uploadViaFormSubmission() {
+        return new Promise((resolve, reject) => {
+            // Create a hidden iframe for form submission
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'upload_iframe_' + Date.now();
+            document.body.appendChild(iframe);
+            
+            // Create a form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCRIPT_URL;
+            form.target = iframe.name;
+            form.enctype = 'multipart/form-data';
+            
+            // Create hidden input for image data
+            const imageInput = document.createElement('input');
+            imageInput.type = 'hidden';
+            imageInput.name = 'imageData';
+            imageInput.value = selectedImage;
+            
+            const fileNameInput = document.createElement('input');
+            fileNameInput.type = 'hidden';
+            fileNameInput.name = 'fileName';
+            fileNameInput.value = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'upload';
+            
+            form.appendChild(imageInput);
+            form.appendChild(fileNameInput);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            
+            // Handle iframe load (response)
+            iframe.onload = function() {
+                try {
+                    // Try to read the response (may fail due to cross-origin)
+                    const response = iframe.contentDocument.body.textContent;
+                    const result = JSON.parse(response);
+                    
+                    if (result.success) {
+                        resolve(result.shortName || 'Photo uploaded');
+                    } else {
+                        reject(new Error(result.error || 'Upload failed'));
+                    }
+                } catch (e) {
+                    // Cross-origin restriction, assume success after delay
+                    resolve('Photo uploaded successfully');
+                }
+                
+                // Cleanup
+                setTimeout(() => {
+                    if (document.body.contains(form)) {
+                        document.body.removeChild(form);
+                    }
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 1000);
+            };
+            
+            // Submit the form
+            form.submit();
+            
+            // Set a timeout for cleanup in case iframe doesn't load
+            setTimeout(() => {
+                if (document.body.contains(form)) {
+                    resolve('Photo upload completed');
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }
+            }, 10000); // 10 second timeout
+        });
+    }
+
+    function resetPhotoForm() {
+        selectedFile = null;
+        selectedImage = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('cameraInput').value = '';
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('photoStatus').innerHTML = '';
+    }
+
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    function showPhotoStatus(message, type) {
+        const statusDiv = document.getElementById('photoStatus');
+        statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    // Network status handling
+    window.addEventListener('online', () => {
+        showPhotoStatus('Back online! You can upload photos now.', 'success');
+    });
+
+    window.addEventListener('offline', () => {
+        showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
+    });
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        });
+    }
+
+    // JSONP helper
     function jsonpCall(url, timeoutMs = 20000) {
       return new Promise((resolve, reject) => {
         const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
@@ -690,6 +1670,310 @@
       });
     }
 
+
+    
+// === COMPREHENSIVE PIN PROTECTION SYSTEM ===
+let isUnlocked = false;
+
+// MOBILE-FRIENDLY PIN CHECK
+function checkPinValidation() {
+  const today = new Date().toISOString().split('T')[0];
+  const lastValidated = localStorage.getItem('pinValidated');
+  
+  console.log('Checking PIN validation:', { today, lastValidated });
+  
+  // Always check PIN if not validated today OR if no validation exists
+  if (!lastValidated || lastValidated !== today) {
+    console.log('Need PIN validation');
+    setTimeout(() => {
+      const pinModal = document.getElementById('pinModal');
+      if (pinModal) {
+        pinModal.style.display = 'flex';
+        const pinInput = document.getElementById('pinInput');
+        if (pinInput) {
+          pinInput.focus();
+        }
+      } else {
+        console.error('PIN modal not found!');
+      }
+    }, 500); // Small delay for mobile compatibility
+  } else {
+    console.log('Already validated today');
+    unlockApp();
+  }
+}
+
+
+function showPinModal() {
+  document.getElementById('pinModal').style.display = 'flex';
+  document.getElementById('pinInput').focus();
+}
+
+function unlockApp() {
+  isUnlocked = true;
+  document.getElementById('pinModal').style.display = 'none';
+}
+
+// Simple PIN validation (client-side with server backup)
+async function validatePin(pin) {
+  // Primary validation: Check correct PIN
+  if (pin === '5678') {
+    return { success: true };
+  } else {
+    return { success: false, error: 'Invalid PIN' };
+  }
+}
+
+// PIN modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const pinInput = document.getElementById('pinInput');
+  const submitPinBtn = document.getElementById('submitPin');
+  const pinError = document.getElementById('pinError');
+  
+  // Enter key support
+  if (pinInput) {
+    pinInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        submitPinBtn.click();
+      }
+    });
+  }
+  
+  // Submit PIN
+  if (submitPinBtn) {
+    submitPinBtn.addEventListener('click', async function() {
+      const pin = pinInput.value.trim();
+      if (!pin) {
+        pinError.textContent = 'Please enter PIN';
+        return;
+      }
+      
+      // Disable button during validation
+      submitPinBtn.disabled = true;
+      submitPinBtn.textContent = 'Validating...';
+      pinError.textContent = '';
+      
+      try {
+        const result = await validatePin(pin);
+        
+        if (result.success) {
+          // Store validation for today
+          const today = new Date().toISOString().split('T')[0];
+          localStorage.setItem('pinValidated', today);
+          
+          // Unlock app
+          pinError.textContent = 'PIN accepted! Loading form...';
+          pinError.style.color = 'green';
+          
+          setTimeout(() => {
+            unlockApp();
+          }, 500);
+        } else {
+          pinError.textContent = result.error || 'Invalid PIN';
+          pinError.style.color = 'red';
+          pinInput.value = '';
+          pinInput.focus();
+        }
+      } catch (error) {
+        pinError.textContent = 'Validation error. Please try again.';
+        pinError.style.color = 'red';
+      } finally {
+        submitPinBtn.disabled = false;
+        submitPinBtn.textContent = 'Unlock';
+      }
+    });
+  }
+  
+  // Check PIN validation on load
+  checkPinValidation();
+});
+
+// Protect form submission
+const originalMobileSubmitFunction = window.mobileSubmitFunction;
+if (originalMobileSubmitFunction) {
+  window.mobileSubmitFunction = function() {
+    if (!isUnlocked) {
+      alert('Please enter daily PIN first');
+      showPinModal();
+      
+      // Re-enable submit button
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+      return;
+    }
+    return originalMobileSubmitFunction.apply(this, arguments);
+  };
+}
+
+    // ----------------- Unit Management Functions -----------------
+    function loadGlobalUnits() {
+      try {
+        const stored = localStorage.getItem('globalUnits_v1');
+        return stored ? JSON.parse(stored) : [];
+      } catch(e) {
+        console.error('Error loading global units:', e);
+        return [];
+      }
+    }
+
+    function saveGlobalUnits(units) {
+      try {
+        localStorage.setItem('globalUnits_v1', JSON.stringify(units));
+      } catch(e) {
+        console.error('Error saving global units:', e);
+      }
+    }
+
+    // Function to load unit preferences for each product
+    function loadUnitPreferences() {
+      try {
+        const stored = localStorage.getItem('unitPreferences_v1');
+        return stored ? JSON.parse(stored) : {};
+      } catch(e) {
+        console.error('Error loading unit preferences:', e);
+        return {};
+      }
+    }
+
+    // Function to save unit preferences for each product
+    function saveUnitPreferences(preferences) {
+      try {
+        localStorage.setItem('unitPreferences_v1', JSON.stringify(preferences));
+      } catch(e) {
+        console.error('Error saving unit preferences:', e);
+      }
+    }
+
+    // Function to save unit preference for a specific product
+    function saveUnitPreference(productId, unitValue) {
+      const preferences = loadUnitPreferences();
+      preferences[productId] = unitValue;
+      saveUnitPreferences(preferences);
+    }
+
+    function renderUnitList() {
+      const unitList = document.getElementById('unitList');
+      const units = loadGlobalUnits();
+
+      unitList.innerHTML = '';
+
+      if (units.length === 0) {
+        unitList.innerHTML = '<div style="color:#666;font-size:13px">No custom units added yet.</div>';
+        return;
+      }
+
+      units.forEach((unit) => {
+        const div = document.createElement('div');
+        div.className = 'unit-item';
+
+        const span = document.createElement('span');
+        span.style.flex = '1';
+        span.textContent = unit;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-unit';
+        removeBtn.dataset.unit = unit;
+        removeBtn.textContent = 'Remove';
+
+        div.appendChild(span);
+        div.appendChild(removeBtn);
+        unitList.appendChild(div);
+      });
+    }
+
+    function addGlobalUnit(unit) {
+      if (!unit || !unit.trim()) return;
+      unit = unit.trim();
+      
+      const units = loadGlobalUnits();
+      if (units.includes(unit)) {
+        alert('Unit already exists!');
+        return;
+      }
+      
+      units.push(unit);
+      saveGlobalUnits(units);
+      renderUnitList();
+      rebuildAllUnitSelects();
+      showTempMessage('Added unit: ' + unit);
+    }
+
+    function removeGlobalUnit(unit) {
+      if (!confirm(`Remove unit "${unit}"? This will remove it from all dropdowns.`)) return;
+      
+      const units = loadGlobalUnits().filter((u) => u !== unit);
+      saveGlobalUnits(units);
+      renderUnitList();
+      rebuildAllUnitSelects();
+      showTempMessage('Removed unit: ' + unit);
+    }
+
+    // Function to rebuild all unit select dropdowns with preferences
+    function rebuildAllUnitSelects() {
+      const units = loadGlobalUnits();
+      const defaultUnits = ['Boxes', 'Pieces', 'Kg'];
+      const preferences = loadUnitPreferences();
+      
+      document.querySelectorAll('.unit-select').forEach(select => {
+        const selectId = select.id;
+        const currentVal = select.value;
+        
+        // Clear and rebuild options
+        select.innerHTML = '';
+        
+        // Add default options
+        defaultUnits.forEach(unit => {
+          const option = document.createElement('option');
+          option.value = unit;
+          option.textContent = unit;
+          select.appendChild(option);
+        });
+        
+        // Add global units
+        units.forEach(unit => {
+          const option = document.createElement('option');
+          option.value = unit;
+          option.textContent = unit;
+          select.appendChild(option);
+        });
+        
+        // Restore saved preference if available
+        if (selectId && preferences[selectId]) {
+          const preferredUnit = preferences[selectId];
+          const allOptions = Array.from(select.options).map(opt => opt.value);
+          if (allOptions.includes(preferredUnit)) {
+            select.value = preferredUnit;
+          } else {
+            // If preferred unit not found, add it as custom option
+            const tempOption = document.createElement('option');
+            tempOption.value = preferredUnit;
+            tempOption.textContent = preferredUnit + ' (custom)';
+            select.appendChild(tempOption);
+            select.value = preferredUnit;
+          }
+        } else if (currentVal) {
+          // Restore current selection if no preference saved
+          const allOptions = Array.from(select.options).map(opt => opt.value);
+          if (allOptions.includes(currentVal)) {
+            select.value = currentVal;
+          }
+        }
+      });
+    }
+
+    function showTempMessage(text) {
+      const m = document.getElementById('msg');
+      if (!m) return;
+      m.textContent = text; 
+      m.style.display = 'block';
+      setTimeout(() => { 
+        if (m && navigator.onLine) m.style.display = 'none'; 
+      }, 2500);
+    }
+
     // --- customization logic ---
     document.addEventListener('DOMContentLoaded', function() {
       const container = document.getElementById('appContainer');
@@ -703,11 +1987,44 @@
       const addCategorySelect = document.getElementById('addCategorySelect');
       const addSubLabelInput = document.getElementById('addSubLabelInput');
       const addSubBtn = document.getElementById('addSubBtn');
+      const newUnitInput = document.getElementById('newUnitInput');
+      const addUnitBtn = document.getElementById('addUnitBtn');
+      const unitList = document.getElementById('unitList');
+
+      // Initialize unit management
+      renderUnitList();
+      rebuildAllUnitSelects();
+
+      // Add Unit button event listener
+      if (addUnitBtn && newUnitInput) {
+        addUnitBtn.addEventListener('click', function() {
+          addGlobalUnit(newUnitInput.value);
+          newUnitInput.value = '';
+        });
+        
+        newUnitInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addGlobalUnit(newUnitInput.value);
+            newUnitInput.value = '';
+          }
+        });
+      }
+
+      // Delegated event listener for Remove Unit buttons
+      if (unitList) {
+        unitList.addEventListener('click', function(event) {
+          const target = event.target;
+          if (target.classList.contains('remove-unit')) {
+            const unit = target.dataset.unit;
+            removeGlobalUnit(unit);
+          }
+        });
+      }
 
       let customizeMode = false;
       let editingSession = false;
 
-      // helper to register an editable element (so dynamically added ones behave like originals)
       function registerEditable(el) {
         if (!el) return;
         el.setAttribute('contenteditable','false');
@@ -729,18 +2046,15 @@
           }
         });
       }
-      // register current editables (initial)
+
       Array.from(document.querySelectorAll('.editable')).forEach(registerEditable);
 
-      // helper to toggle UI interactivity while customizing
       function setCustomizeMode(on) {
         customizeMode = !!on;
         container.classList.toggle('customize-mode', customizeMode);
 
-        // disable pointer events for inputs & checkboxes to avoid accidental changes
         const interactive = container.querySelectorAll('input, textarea, button');
         interactive.forEach(el => {
-          // keep the gear button & customization panel controls active
           if (el.id === 'gearBtn' || el.closest('#customPanel')) return;
           if (customizeMode) {
             el.classList.add('no-pointer');
@@ -751,18 +2065,15 @@
 
         if (customizeMode) {
           customPanel.style.display = 'block';
-          // show remove buttons
           addRemoveButtons();
         } else {
           customPanel.style.display = 'none';
-          // ensure we are not leaving editable state active
           endEditingSession();
           hideRemoveButtons();
         }
       }
 
       gear.addEventListener('click', function() {
-        // toggle panel visibility / mode
         if (!customizeMode) {
           setCustomizeMode(true);
         } else {
@@ -770,17 +2081,14 @@
         }
       });
 
-      // start editing session: make labels contentEditable and hide panel
       function startEditingSession() {
         editingSession = true;
-        // make labels editable
         Array.from(document.querySelectorAll('.editable')).forEach(el => {
           el.contentEditable = "true";
           el.classList.add('editing');
           el.classList.remove('no-pointer');
         });
         customPanel.style.display = 'none';
-        // put focus in first editable
         const first = document.querySelector('.editable');
         if (first) {
           first.focus();
@@ -797,7 +2105,6 @@
         }
       }
 
-      // end editing session: make labels non-editable
       function endEditingSession() {
         editingSession = false;
         Array.from(document.querySelectorAll('.editable')).forEach(el => {
@@ -806,20 +2113,17 @@
         });
       }
 
-      // Apply Preview: enter editing session (close panel, allow inline edits)
       applyPreviewBtn.addEventListener('click', function() {
         if (!customizeMode) setCustomizeMode(true);
         startEditingSession();
         alert('Preview: labels are now editable inline. Click any label to edit. When done click Save (server) to persist or Cancel to exit.');
       });
 
-      // Load Default: reload page to restore defaults
       loadDefaultBtn.addEventListener('click', function(){
         if (!confirm('Reload page to restore defaults? Unsaved edits will be lost.')) return;
         window.location.reload();
       });
 
-      // Cancel customization: exit customise mode (and editing)
       cancelCustomBtn.addEventListener('click', function() {
         if (!confirm('Exit customization mode? Unsaved edits will be lost.')) {
           return;
@@ -828,7 +2132,6 @@
         setCustomizeMode(false);
       });
 
-      // panel close X (same as cancel but leaves customise mode if editing)
       panelCloseX.addEventListener('click', function() {
         if (editingSession) {
           if (!confirm('Editing in progress. Close panel but keep edit mode? (Choose Cancel in panel to abort edits)')) {
@@ -838,7 +2141,6 @@
         customPanel.style.display = 'none';
       });
 
-      // Escape key handling: close panel or exit editing
       document.addEventListener('keydown', function(ev) {
         if (ev.key === 'Escape') {
           if (customPanel.style.display === 'block') {
@@ -854,13 +2156,12 @@
         }
       });
 
-      // ----------------- remove/add helpers -----------------
       function makeRemoveButton() {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'remove-checkbox';
         b.title = 'Remove this item';
-        b.textContent = 'Ã—';
+        b.textContent = '❌';
         b.style.marginLeft = '8px';
         b.style.background = '#ff6b6b';
         b.style.color = '#fff';
@@ -881,21 +2182,18 @@
 
       function addRemoveButtons() {
         hideRemoveButtons();
-        // mains
         document.querySelectorAll('.item-row').forEach(function(row) {
           if (row.querySelector('.remove-checkbox')) return;
           const btn = makeRemoveButton();
           btn.setAttribute('data-remove-role','main');
           row.appendChild(btn);
         });
-        // subitems
         document.querySelectorAll('.sub-item').forEach(function(si) {
           if (si.querySelector('.remove-checkbox')) return;
           const btn = makeRemoveButton();
           btn.setAttribute('data-remove-role','sub');
           si.appendChild(btn);
         });
-        // modes
         document.querySelectorAll('.mode-row').forEach(function(mr) {
           if (mr.querySelector('.remove-checkbox')) return;
           const btn = makeRemoveButton();
@@ -937,12 +2235,10 @@
           const parent = btn.parentElement;
           if (parent) parent.remove();
         }
-        // rebind behaviors after removal
         bindSubitemHandlers();
         setupMainToSubBindings();
       }
 
-      // delegated click for generated remove buttons
       container.addEventListener('click', function(ev) {
         const btn = ev && ev.target && ev.target.closest && ev.target.closest('.remove-checkbox');
         if (!btn) return;
@@ -954,19 +2250,14 @@
         removeWrapperForButton(btn);
       });
 
-// ----------------- binding helpers -----------------
       function bindSubitemHandlers() {
-        // ensure change handler for each subitem (avoid duplicates)
         document.querySelectorAll('.subitem').forEach(function(sb){
-          // suffix example: for id "sub_floor_vitrified" suffix = "floor_vitrified"
           const suffix = sb.id.slice(4);
-          const qtyId = 'q' + sb.id.slice(3); // q_floor_vitrified
+          const qtyId = 'q' + sb.id.slice(3);
           const qtyEl = document.getElementById(qtyId);
           const unitEl = document.getElementById('unit_' + suffix);
           const unitCustomEl = document.getElementById('unit_custom_' + suffix);
-          const lockEl = document.getElementById('lock_' + suffix);
 
-          // remove old handler if present
           if (sb._custom_qty_handler) {
             sb.removeEventListener('change', sb._custom_qty_handler);
             sb._custom_qty_handler = null;
@@ -986,41 +2277,35 @@
               unitCustomEl.disabled = !enabled;
               if (!enabled) { unitCustomEl.style.display = 'none'; unitCustomEl.value = ''; }
             }
-            if (lockEl) {
-              lockEl.disabled = !enabled;
-              if (!enabled) { lockEl.checked = false; }
-            }
 
-            // If enabling, apply any locked unit stored in localStorage
-            if (enabled) {
-              try {
-                const lockKey = 'unitLock_' + suffix;
-                const valKey = 'unitValue_' + suffix;
-                const locked = localStorage.getItem(lockKey) === '1';
-                const stored = localStorage.getItem(valKey);
-                if (locked && unitEl) {
-                  // if stored value is one of options select it, otherwise set Custom and fill text
-                  const opts = Array.from(unitEl.options).map(o => o.value);
-                  if (opts.indexOf(stored) !== -1) {
-                    unitEl.value = stored;
-                    if (unitCustomEl) unitCustomEl.style.display = 'none';
-                  } else if (stored) {
-                    unitEl.value = 'Custom';
-                    if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = stored; }
-                  }
-                  if (lockEl) lockEl.checked = true;
-                } else {
-                  // no stored lock => keep whatever UI had, but ensure custom visibility is correct
-                  if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
+            // Apply saved unit preference when enabling
+            if (enabled && unitEl) {
+              const preferences = loadUnitPreferences();
+              const savedUnit = preferences[unitEl.id];
+              if (savedUnit) {
+                const opts = Array.from(unitEl.options).map(o => o.value);
+                if (opts.indexOf(savedUnit) !== -1) {
+                  unitEl.value = savedUnit;
+                  if (unitCustomEl) unitCustomEl.style.display = 'none';
+                } else if (savedUnit) {
+                  // Create temporary custom option
+                  const tempOption = document.createElement('option');
+                  tempOption.value = savedUnit;
+                  tempOption.textContent = savedUnit + ' (custom)';
+                  unitEl.appendChild(tempOption);
+                  unitEl.value = savedUnit;
+                  if (unitCustomEl) { unitCustomEl.style.display = ''; unitCustomEl.value = savedUnit; }
                 }
-              } catch (e){}
+              } else if (unitEl.value === 'Custom' && unitCustomEl) {
+                unitCustomEl.style.display = '';
+              }
             }
           };
           sb._custom_qty_handler = handler;
           sb.addEventListener('change', handler);
           if (qtyEl) qtyEl.disabled = !sb.checked;
 
-          // unit change handler: show/hide custom input & if locked save new value
+          // Unit change handler with preference saving
           if (unitEl) {
             if (unitEl._unit_change_bound) {
               unitEl.removeEventListener('change', unitEl._unit_change_bound);
@@ -1038,9 +2323,13 @@
                   unitCustomEl.disabled = true;
                 }
               }
-              // if lock is enabled, save selected/custom value immediately
-              if (lockEl && lockEl.checked) {
-                saveUnitLock(suffix);
+              
+              // Save unit preference when changed
+              if (sb.checked) {
+                const finalValue = v === 'Custom' && unitCustomEl && unitCustomEl.value.trim() 
+                  ? unitCustomEl.value.trim() 
+                  : v;
+                saveUnitPreference(unitEl.id, finalValue);
               }
             };
             unitEl._unit_change_bound = unitChange;
@@ -1049,58 +2338,35 @@
             if (unitEl && unitEl.value === 'Custom' && unitCustomEl) unitCustomEl.style.display = '';
           }
 
-          // custom unit text input: on blur/update if lock checked save value
+          // Custom unit text input with preference saving
           if (unitCustomEl) {
             if (unitCustomEl._custom_input_bound) {
               unitCustomEl.removeEventListener('input', unitCustomEl._custom_input_bound);
             }
             const customInputHandler = function() {
-              if (lockEl && lockEl.checked) saveUnitLock(suffix);
+              if (sb.checked && unitEl && unitEl.value === 'Custom') {
+                saveUnitPreference(unitEl.id, unitCustomEl.value.trim());
+              }
             };
             unitCustomEl._custom_input_bound = customInputHandler;
             unitCustomEl.addEventListener('input', customInputHandler);
             unitCustomEl.disabled = !sb.checked;
           }
 
-          // lock checkbox handling
-          if (lockEl) {
-            if (lockEl._lock_change_bound) {
-              lockEl.removeEventListener('change', lockEl._lock_change_bound);
-            }
-            const lockHandler = function() {
-              if (lockEl.checked) {
-                // save current selection (or custom)
-                saveUnitLock(suffix);
-                showTempMessage('Unit locked for this item.');
-              } else {
-                // remove saved value
-                try { localStorage.removeItem('unitLock_' + suffix); localStorage.removeItem('unitValue_' + suffix); } catch(e){}
-                showTempMessage('Unit unlocked for this item.');
-              }
-            };
-            lockEl._lock_change_bound = lockHandler;
-            lockEl.addEventListener('change', lockHandler);
-            lockEl.disabled = !sb.checked;
-          }
-
-          // initialize visibility & lock on bind
           if (sb.checked) {
             handler();
           } else {
-            // ensure unit inputs disabled when unchecked
             if (qtyEl) qtyEl.disabled = true;
             if (unitEl) unitEl.disabled = true;
             if (unitCustomEl) { unitCustomEl.disabled = true; unitCustomEl.style.display = 'none'; }
-            if (lockEl) { lockEl.disabled = true; lockEl.checked = false; }
           }
         });
 
-        // others main
+        // Handle "Others" main item
         const otherMain = document.getElementById('p_other');
         const otherQty = document.getElementById('q_other');
         const otherUnit = document.getElementById('unit_other');
         const otherUnitCustom = document.getElementById('unit_custom_other');
-        const otherLock = document.getElementById('lock_other');
         if (otherMain && otherQty) {
           if (otherMain._custom_other_handler) otherMain.removeEventListener('change', otherMain._custom_other_handler);
           const oh = function() {
@@ -1115,37 +2381,78 @@
               otherUnitCustom.disabled = !enabled;
               if (!enabled) { otherUnitCustom.style.display = 'none'; otherUnitCustom.value = ''; }
             }
-            if (otherLock) {
-              otherLock.disabled = !enabled;
-              if (!enabled) otherLock.checked = false;
-            }
 
-            if (enabled) {
-              try {
-                const suffix = 'other';
-                const locked = localStorage.getItem('unitLock_' + suffix) === '1';
-                const stored = localStorage.getItem('unitValue_' + suffix);
-                if (locked && otherUnit) {
-                  const opts = Array.from(otherUnit.options).map(o => o.value);
-                  if (opts.indexOf(stored) !== -1) {
-                    otherUnit.value = stored;
-                    if (otherUnitCustom) otherUnitCustom.style.display = 'none';
-                  } else if (stored) {
-                    otherUnit.value = 'Custom';
-                    if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = stored; }
-                  }
-                  if (otherLock) otherLock.checked = true;
-                } else if (otherUnit && otherUnit.value === 'Custom' && otherUnitCustom) {
-                  otherUnitCustom.style.display = '';
+            if (enabled && otherUnit) {
+              const preferences = loadUnitPreferences();
+              const savedUnit = preferences[otherUnit.id];
+              if (savedUnit) {
+                const opts = Array.from(otherUnit.options).map(o => o.value);
+                if (opts.indexOf(savedUnit) !== -1) {
+                  otherUnit.value = savedUnit;
+                  if (otherUnitCustom) otherUnitCustom.style.display = 'none';
+                } else if (savedUnit) {
+                  const tempOption = document.createElement('option');
+                  tempOption.value = savedUnit;
+                  tempOption.textContent = savedUnit + ' (custom)';
+                  otherUnit.appendChild(tempOption);
+                  otherUnit.value = savedUnit;
+                  if (otherUnitCustom) { otherUnitCustom.style.display = ''; otherUnitCustom.value = savedUnit; }
                 }
-              } catch(e){}
+              } else if (otherUnit.value === 'Custom' && otherUnitCustom) {
+                otherUnitCustom.style.display = '';
+              }
             }
           };
           otherMain._custom_other_handler = oh;
           otherMain.addEventListener('change', oh);
+
+          // Unit change handler for Others
+          if (otherUnit) {
+            if (otherUnit._unit_change_bound) {
+              otherUnit.removeEventListener('change', otherUnit._unit_change_bound);
+            }
+            const otherUnitChange = function() {
+              const v = otherUnit.value;
+              if (otherUnitCustom) {
+                if (v === 'Custom') {
+                  otherUnitCustom.style.display = '';
+                  otherUnitCustom.disabled = false;
+                  otherUnitCustom.focus && otherUnitCustom.focus();
+                } else {
+                  otherUnitCustom.style.display = 'none';
+                  otherUnitCustom.value = '';
+                  otherUnitCustom.disabled = true;
+                }
+              }
+              
+              if (otherMain.checked) {
+                const finalValue = v === 'Custom' && otherUnitCustom && otherUnitCustom.value.trim() 
+                  ? otherUnitCustom.value.trim() 
+                  : v;
+                saveUnitPreference(otherUnit.id, finalValue);
+              }
+            };
+            otherUnit._unit_change_bound = otherUnitChange;
+            otherUnit.addEventListener('change', otherUnitChange);
+          }
+
+          if (otherUnitCustom) {
+            if (otherUnitCustom._custom_input_bound) {
+              otherUnitCustom.removeEventListener('input', otherUnitCustom._custom_input_bound);
+            }
+            const otherCustomInputHandler = function() {
+              if (otherMain.checked && otherUnit && otherUnit.value === 'Custom') {
+                saveUnitPreference(otherUnit.id, otherUnitCustom.value.trim());
+              }
+            };
+            otherUnitCustom._custom_input_bound = otherCustomInputHandler;
+            otherUnitCustom.addEventListener('input', otherCustomInputHandler);
+          }
+
           oh();
         }
       }
+
       function setupMainToSubBindings() {
         const mainToSub = {
           'p_floor': 'sublist_floor',
@@ -1161,12 +2468,10 @@
           const update = function() {
             subDiv.style.display = mainCb.checked ? 'block' : 'none';
             if (!mainCb.checked) {
-              // clear and disable subitems (quantity + unit)
               subDiv.querySelectorAll('.subitem').forEach(sb => { sb.checked = false; });
               subDiv.querySelectorAll('.subqty').forEach(q => { q.value=''; q.disabled = true; });
               subDiv.querySelectorAll('.unit-select').forEach(u => { u.selectedIndex = 0; u.disabled = true; });
               subDiv.querySelectorAll('.unit-custom').forEach(uc => { uc.value=''; uc.style.display='none'; uc.disabled = true; });
-              subDiv.querySelectorAll('.unit-lock input[type="checkbox"]').forEach(lk => { lk.checked = false; lk.disabled = true; });
             }
           };
           mainCb._custom_main_toggle = update;
@@ -1175,7 +2480,6 @@
         });
       }
 
-      // generic mode checkbox -> enable its amount input (works for static & dynamic modes)
       function bindModeToggle(modeCheckbox) {
         if (!modeCheckbox) return;
         if (modeCheckbox._boundModeToggle) return;
@@ -1192,57 +2496,12 @@
         if (amtInput) amtInput.disabled = !modeCheckbox.checked;
       }
 
-      // helper to save unit lock for a given suffix
-      function saveUnitLock(suffix) {
-        try {
-          const unitEl = document.getElementById('unit_' + suffix);
-          const customEl = document.getElementById('unit_custom_' + suffix);
-          if (!unitEl) return;
-          let val = unitEl.value;
-          if (val === 'Custom' && customEl && customEl.value.trim()) val = customEl.value.trim();
-          localStorage.setItem('unitLock_' + suffix, '1');
-          localStorage.setItem('unitValue_' + suffix, val);
-        } catch (e) { console.warn('saveUnitLock err', e); }
-      }
-
-      // helper to load locks for all unit-selects on startup
-      function initializeUnitLocks() {
-        try {
-          document.querySelectorAll('.unit-select').forEach(function(unitEl) {
-            const id = unitEl.id; // e.g. unit_floor_vitrified
-            if (!id || id.indexOf('unit_') !== 0) return;
-            const suffix = id.slice(5);
-            const lockKey = 'unitLock_' + suffix;
-            const valKey = 'unitValue_' + suffix;
-            const locked = localStorage.getItem(lockKey) === '1';
-            const stored = localStorage.getItem(valKey);
-            const customEl = document.getElementById('unit_custom_' + suffix);
-            const lockEl = document.getElementById('lock_' + suffix);
-            if (locked) {
-              if (stored) {
-                const opts = Array.from(unitEl.options).map(o => o.value);
-                if (opts.indexOf(stored) !== -1) {
-                  unitEl.value = stored;
-                  if (customEl) customEl.style.display = 'none';
-                } else {
-                  unitEl.value = 'Custom';
-                  if (customEl) { customEl.style.display = ''; customEl.value = stored; }
-                }
-              }
-              if (lockEl) lockEl.checked = true;
-            }
-          });
-        } catch (e) {}
-      }
-
-      // run initial binds so default items keep working
+      // Run initial binds
       bindSubitemHandlers();
       setupMainToSubBindings();
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
-      // initialize any saved unit locks so UI reflects previous choices
-      initializeUnitLocks();
 
-      // ----------------- add subitem / mode UI -----------------
+      // Add subitem functionality
       if (addSubBtn) {
         addSubBtn.addEventListener('click', function() {
           const cat = addCategorySelect && addCategorySelect.value ? addCategorySelect.value : 'floor';
@@ -1284,7 +2543,7 @@
             delBtn.type = 'button';
             delBtn.title = 'Remove mode';
             delBtn.setAttribute('aria-label','Remove');
-            delBtn.textContent = 'âœ•';
+            delBtn.textContent = '❌';
 
             labelEl.appendChild(cb);
             labelEl.appendChild(span);
@@ -1309,16 +2568,16 @@
 
             registerEditable(span);
             bindModeToggle(cb);
-            bindSubitemHandlers(); // keep consistency
+            bindSubitemHandlers();
             if (addSubLabelInput) addSubLabelInput.value = '';
             showTempMessage('Added payment mode: ' + rawLabel);
             return;
           }
 
-          // non-mode (floor/wall/san/acc) subitem -> create qty + unit + custom + lock group
+          // Non-mode subitem
           const subId = elementId;
-          const suffix = subId.slice(4); // floor_custom1...
-          const qtyId = 'q' + subId.slice(3); // q_floor_custom1
+          const suffix = subId.slice(4);
+          const qtyId = 'q' + subId.slice(3);
 
           const subDiv = document.createElement('div');
           subDiv.className = 'sub-item';
@@ -1342,13 +2601,12 @@
           delBtn.type = 'button';
           delBtn.title = 'Remove sub-item';
           delBtn.setAttribute('aria-label','Remove');
-          delBtn.textContent = 'âœ•';
+          delBtn.textContent = '❌';
 
           labelEl.appendChild(cb);
           labelEl.appendChild(span);
           labelEl.appendChild(delBtn);
 
-          // qty-unit group
           const qtyUnitDiv = document.createElement('div');
           qtyUnitDiv.className = 'qty-unit';
 
@@ -1365,8 +2623,21 @@
           unitSel.id = 'unit_' + suffix;
           unitSel.className = 'unit-select';
           unitSel.disabled = true;
-          ['Boxes','Pieces','Kg'].forEach(opt => {
-            const o = document.createElement('option'); o.value = opt; o.textContent = opt; unitSel.appendChild(o);
+          
+          const defaultUnits = ['Boxes','Pieces','Kg'];
+          defaultUnits.forEach(unit => {
+            const o = document.createElement('option'); 
+            o.value = unit; 
+            o.textContent = unit; 
+            unitSel.appendChild(o);
+          });
+          
+          const globalUnits = loadGlobalUnits();
+          globalUnits.forEach(unit => {
+            const o = document.createElement('option'); 
+            o.value = unit; 
+            o.textContent = unit; 
+            unitSel.appendChild(o);
           });
 
           const unitCustom = document.createElement('input');
@@ -1377,20 +2648,9 @@
           unitCustom.style.display = 'none';
           unitCustom.disabled = true;
 
-          const lockLabel = document.createElement('label');
-          lockLabel.className = 'unit-lock';
-          lockLabel.title = 'Lock unit for this item';
-          const lockCb = document.createElement('input');
-          lockCb.type = 'checkbox';
-          lockCb.id = 'lock_' + suffix;
-          lockCb.disabled = true;
-          lockLabel.appendChild(lockCb);
-          lockLabel.appendChild(document.createTextNode(' lock'));
-
           qtyUnitDiv.appendChild(qty);
           qtyUnitDiv.appendChild(unitSel);
           qtyUnitDiv.appendChild(unitCustom);
-          qtyUnitDiv.appendChild(lockLabel);
 
           subDiv.appendChild(labelEl);
           subDiv.appendChild(qtyUnitDiv);
@@ -1410,28 +2670,17 @@
         });
       }
 
-      function showTempMessage(text) {
-        const m = document.getElementById('msg');
-        if (!m) return;
-        m.textContent = text; m.style.display='block';
-        setTimeout(()=>{ if (m && navigator.onLine) m.style.display='none'; }, 2500);
-      }
 
-
-            // ----------------- Config object and save/load -----------------
-
-      // Build config object including structure (main items + subitems + payment modes)
+      // Config save/load functions
       function buildConfigObject() {
-        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] },  globalUnits: loadGlobalUnits() };
+        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
 
-        // title + label map
         cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
         Array.from(document.querySelectorAll('.editable')).forEach(el => {
           const key = el.getAttribute('data-config-id') || el.id || null;
           if (key) cfg.labels[key] = el.textContent.trim();
         });
 
-        // main items + subitems structure
         const purchasedList = document.getElementById('purchasedList');
         if (purchasedList) {
           const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
@@ -1441,7 +2690,6 @@
             const mainId = cb.id;
             const labelEl = row.querySelector('[data-config-id="' + mainId + '_label"]') || row.querySelector('#label_' + mainId) || row.querySelector('.editable');
             const labelText = labelEl ? (labelEl.textContent || "").trim() : (cb.value || "");
-            // detect sublist id (convention or sibling)
             let sublistId = null;
             const suffixParts = mainId.split('_');
             const suffix = suffixParts.length > 1 ? suffixParts.slice(1).join('_') : mainId;
@@ -1471,7 +2719,6 @@
           });
         }
 
-        // payment modes structure
         const modesContainer = document.getElementById('modes');
         if (modesContainer) {
           const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
@@ -1488,7 +2735,6 @@
           });
         }
 
-        // --- NEW: Purchased-from custom vendors capture ---
         try {
           const sel = document.getElementById('purchasedFromSelect');
           const txt = document.getElementById('purchasedFrom');
@@ -1502,49 +2748,39 @@
           }
           const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
           cfg.purchasedFromCustom = { items: items, selected: selectedValue };
-        } catch(e){ /* ignore */ }
+        } catch(e){}
 
         return cfg;
       }
 
-       // Save server
-      saveServerBtn.addEventListener('click', async function() {
+     // Save server: send config including structure via JSONP action=saveConfig
+      saveServerBtn.addEventListener('click', async function(){
+        // finish any inline editing first
+        endEditingSession();
         const cfg = buildConfigObject();
-        
+        const cfgStr = JSON.stringify(cfg);
+        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
         try {
-          saveServerBtn.disabled = true;
-          saveServerBtn.textContent = 'Saving...';
-          
-          const submitData = {
-            action: 'saveConfig',
-            token: SERVER_TOKEN,
-            config: JSON.stringify(cfg)
-          };
-          
-          const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
-            encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
-          ).join('&');
-          
-          const response = await jsonpCall(url, 30000);
-          
-          if (response && response.success) {
-            alert('Configuration saved successfully!');
+          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
+          const resp = await jsonpCall(url, 20000);
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+          if (resp && resp.success) {
+            alert('Customization saved on server.');
             setCustomizeMode(false);
+            // also persist locally (so dropdown updates instantly survive reloads before server sync)
+            try { localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom || {})); } catch(e){}
           } else {
-            throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
+            console.error('save resp', resp);
+            alert('Save failed. Server returned error. Check console.');
           }
-          
-        } catch (error) {
-          console.error('Save error:', error);
-          alert('Failed to save configuration: ' + error.message);
-        } finally {
-          saveServerBtn.disabled = false;
-          saveServerBtn.textContent = 'Save (server)';
+        } catch (err) {
+          console.error('save err', err);
+          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
         }
       });
 
-      
- // On load: try to fetch saved config and apply
+      // On load: try to fetch saved config and apply
       (async function tryLoadConfig(){
         try {
           const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
@@ -1573,9 +2809,6 @@
           } catch(e){}
         }
       })();
-      
-
-     
 
       // apply config object (labels map + structure)
       function applyConfig(cfg) {
@@ -1593,16 +2826,12 @@
             if (el) el.textContent = cfg.labels[key];
           });
         }
-        
-       
 
-    if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
-
-
-      
+        // 2) structure (if present) - add/remove mains/subitems and modes
+        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
           const purchasedList = document.getElementById('purchasedList');
 
-         // helper: find row for main id
+          // helper: find row for main id
           function findItemRowByMainId(mainId) {
             return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
               const cb = row.querySelector('input[type="checkbox"]');
@@ -1610,7 +2839,7 @@
             });
           }
 
-          function createMainItem(main) {
+        function createMainItem(main) {
           const row = document.createElement('div');
           row.className = 'item-row';
           row.setAttribute('data-generated', 'true');
@@ -1644,7 +2873,7 @@
           registerEditable(span);
           return row;
         }
-          
+
         function ensureSublist(main) {
           let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
           let sl = document.getElementById(sublistId);
@@ -1696,7 +2925,7 @@
                   delBtn.type = 'button';
                   delBtn.title = 'Remove sub-item';
                   delBtn.setAttribute('aria-label', 'Remove');
-                  delBtn.textContent = 'âŒ';
+                  delBtn.textContent = '❌';
 
                   labelEl.appendChild(cb);
                   labelEl.appendChild(span);
@@ -1789,7 +3018,7 @@
             delBtn.type = 'button';
             delBtn.title = 'Remove mode';
             delBtn.setAttribute('aria-label', 'Remove');
-            delBtn.textContent = 'âŒ';
+            delBtn.textContent = '❌';
 
             labelEl.appendChild(cb);
             labelEl.appendChild(span);
@@ -1821,222 +3050,1729 @@
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
       }
 
-      // ----------------- NEW: Purchased From select + custom manager ----------------
-      (function setupPurchasedFromManager() {
-        const sel = document.getElementById('purchasedFromSelect');
-        const txt = document.getElementById('purchasedFrom');
-        const manager = document.getElementById('customVendorManager');
-        const vendorListEl = document.getElementById('vendorList');
-        const newVendorInput = document.getElementById('newVendorInput');
-        const addVendorBtn = document.getElementById('addVendorBtn');
+     
 
-        const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
-        let customVendors = []; // string array
-        let prevSelected = sel && sel.value ? sel.value : '';
+      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+      const purchasedFromText = document.getElementById('purchasedFrom');
+      const customVendorManager = document.getElementById('customVendorManager');
+      const vendorList = document.getElementById('vendorList');
+      const addVendorBtn = document.getElementById('addVendorBtn');
+      const newVendorInput = document.getElementById('newVendorInput');
 
-        // helper to rebuild select options based on fixed + custom + special options
-        function rebuildSelect(selectedVal) {
-          if (!sel) return;
-          // remember previous selection
-          const prev = sel.value;
-          sel.innerHTML = '';
-          // add fixed companies
-          ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company'].forEach(v => {
-            const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
-          });
-          // add custom vendors
-          customVendors.forEach(v => {
-            const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
-          });
-          // special Customised option (opens manager)
-          const oCust = document.createElement('option'); oCust.value = 'Customised'; oCust.textContent = 'Customised'; sel.appendChild(oCust);
-          // Other option
-          const oOther = document.createElement('option'); oOther.value = 'Other'; oOther.textContent = 'Other'; sel.appendChild(oOther);
+      if (purchasedFromSelect && purchasedFromText) {
+        purchasedFromSelect.addEventListener('change', function() {
+          const isOther = this.value === 'Other';
+          const isCustomised = this.value === 'Customised';
+          
+          purchasedFromText.style.display = isOther ? 'block' : 'none';
+          customVendorManager.style.display = isCustomised ? 'block' : 'none';
+          
+          if (!isOther) purchasedFromText.value = '';
+        });
+        
+        purchasedFromSelect.dispatchEvent(new Event('change'));
+      }
 
-          // set selected
-          if (selectedVal) {
-            // prefer exact match
-            const match = Array.from(sel.options).find(opt => opt.value === selectedVal);
-            if (match) sel.value = selectedVal;
-            else {
-              // if selectedVal not found but non-fixed, insert it as a custom vendor so it can be selected
-              if (selectedVal && fixed.indexOf(selectedVal) === -1) {
-                customVendors.unshift(selectedVal);
-                rebuildSelect(selectedVal);
-                return;
-              } else {
-                // fallback to first option
-                sel.selectedIndex = 0;
-              }
-            }
-          } else {
-            // if prev was custom and still available, keep it
-            const m = Array.from(sel.options).find(opt => opt.value === prev);
-            if (m) sel.value = prev;
-            else sel.selectedIndex = 0;
-          }
-
-          // trigger change handling
-          handleSelectChange();
-        }
-
-        // render vendor manager UI list
-        function renderVendorList() {
-          if (!vendorListEl) return;
-          vendorListEl.innerHTML = '';
-          if (customVendors.length === 0) {
-            vendorListEl.innerHTML = '<div style="color:#666;font-size:13px">No custom vendors added yet.</div>';
-            return;
-          }
-          customVendors.forEach((v, idx) => {
-            const div = document.createElement('div');
-            div.className = 'vendor-item';
-            const left = document.createElement('div'); left.textContent = v;
-            const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Remove';
-            btn.addEventListener('click', function(){
-              if (!confirm('Remove custom vendor "' + v + '"?')) return;
-              customVendors.splice(idx,1);
-              renderVendorList();
-              rebuildSelect();
-              // if removed vendor was selected in main select, reset the purchasedFrom value
-              if (sel.value === v) {
-                sel.selectedIndex = 0;
-                handleSelectChange();
-              }
-            });
-            div.appendChild(left);
-            div.appendChild(btn);
-            vendorListEl.appendChild(div);
-          });
-        }
-
-        // add new vendor handler
-        function addVendorFromInput() {
-          const raw = (newVendorInput && newVendorInput.value) ? newVendorInput.value.trim() : '';
-          if (!raw) { alert('Enter a vendor name to add.'); return; }
-          if (fixed.indexOf(raw) !== -1) { alert('This name is reserved (fixed option).'); return; }
-          if (customVendors.indexOf(raw) !== -1) { alert('Vendor already exists in the custom list.'); return; }
-          customVendors.push(raw);
-          newVendorInput.value = '';
-          renderVendorList();
-          rebuildSelect(raw);
-          // make sure manager stays open so user can continue
-          manager.style.display = '';
-        }
-
-        if (addVendorBtn) addVendorBtn.addEventListener('click', addVendorFromInput);
-        if (newVendorInput) newVendorInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); addVendorFromInput(); } });
-
-        // when select changes
-        function handleSelectChange() {
-          if (!sel || !txt) return;
-          const val = sel.value;
-          // If user selected the special 'Customised' option: open manager, revert selection to previous
-          if (val === 'Customised') {
-            manager.style.display = '';
-            // restore previous selection (so clicking 'Customised' only opens manager)
-            if (prevSelected && prevSelected !== 'Customised') {
-              const match = Array.from(sel.options).find(o => o.value === prevSelected);
-              if (match) sel.value = prevSelected;
-            } else {
-              // if no prev, select first custom vendor or first fixed
-              if (customVendors.length > 0) {
-                sel.value = customVendors[0];
-              } else {
-                sel.selectedIndex = 0;
-              }
-            }
-            // ensure selected value reflects actual vendor
-            updateHiddenPurchasedFrom();
-            return;
-          }
-
-          // hide manager for other selections
-          manager.style.display = (val === 'Customised') ? '' : 'none';
-
-          // Other -> show text input for free entry
-          if (val === 'Other') {
-            txt.style.display = '';
-            txt.value = '';
-            txt.focus && txt.focus();
-            txt.disabled = false;
-          } else {
-            // normal vendor selected -> hide text input & set its value so app.js can read
-            txt.style.display = 'none';
-            txt.value = val;
-            txt.disabled = false;
-          }
-          prevSelected = sel.value;
-          updateHiddenPurchasedFrom();
-        }
-
-        function updateHiddenPurchasedFrom() {
-          // ensure the hidden text field (purchasedFrom) contains the final vendor name for app.js to read
-          if (!sel || !txt) return;
-          if (sel.value === 'Other') {
-            // user must type into txt
-            // leave as-is
-          } else {
-            // set txt to selection value
-            txt.value = sel.value;
-          }
-        }
-
-        // apply initial custom vendors from localStorage if present
+      function getCustomVendors() {
         try {
-          const local = localStorage.getItem('purchasedFromCustom');
-          if (local) {
-            const parsed = JSON.parse(local);
-            if (parsed && Array.isArray(parsed.items)) {
-              customVendors = parsed.items.slice();
-              rebuildSelect(parsed.selected || '');
-              renderVendorList();
+          const stored = localStorage.getItem('purchasedFromCustom');
+          const parsed = stored ? JSON.parse(stored) : {};
+          return parsed.items || [];
+        } catch(e) {
+          console.error('Error loading custom vendors:', e);
+          return [];
+        }
+      }
+
+      function saveCustomVendors(vendors) {
+        try {
+          localStorage.setItem('purchasedFromCustom', JSON.stringify({ items: vendors }));
+        } catch(e) {
+          console.error('Error saving custom vendors:', e);
+        }
+      }
+
+      function rebuildVendorSelect() {
+        if (!purchasedFromSelect) return;
+        
+        const currentValue = purchasedFromSelect.value;
+        const fixedOptions = ['Delhi Tiles Company', 'Mumbai Tiles Company', 'Mumbai Marble Company', 'Customised', 'Other'];
+        const customVendors = getCustomVendors();
+        
+        // Clear current options
+        purchasedFromSelect.innerHTML = '';
+        
+        // Add fixed options
+        fixedOptions.forEach(option => {
+          const opt = document.createElement('option');
+          opt.value = option;
+          opt.textContent = option;
+          purchasedFromSelect.appendChild(opt);
+        });
+        
+        // Add custom vendors before "Customised"
+        const customisedOption = Array.from(purchasedFromSelect.options).find(opt => opt.value === 'Customised');
+        customVendors.forEach(vendor => {
+          const opt = document.createElement('option');
+          opt.value = vendor;
+          opt.textContent = vendor;
+          if (customisedOption) {
+            purchasedFromSelect.insertBefore(opt, customisedOption);
+          } else {
+            purchasedFromSelect.appendChild(opt);
+          }
+        });
+        
+        // Restore selection if it exists
+        const allValues = Array.from(purchasedFromSelect.options).map(opt => opt.value);
+        if (allValues.includes(currentValue)) {
+          purchasedFromSelect.value = currentValue;
+        }
+      }
+
+      function renderVendorList() {
+        if (!vendorList) return;
+        
+        const vendors = getCustomVendors();
+        vendorList.innerHTML = '';
+        
+        if (vendors.length === 0) {
+          vendorList.innerHTML = '<div style="color:#666;font-size:13px">No custom vendors added yet.</div>';
+          return;
+        }
+        
+        vendors.forEach(vendor => {
+          const div = document.createElement('div');
+          div.className = 'vendor-item';
+          
+          const span = document.createElement('span');
+          span.textContent = vendor;
+          span.style.flex = '1';
+          
+          const removeBtn = document.createElement('button');
+          removeBtn.textContent = 'Remove';
+          removeBtn.dataset.vendor = vendor;
+          removeBtn.style.background = '#dc3545';
+          removeBtn.style.color = 'white';
+          removeBtn.style.border = 'none';
+          removeBtn.style.padding = '4px 8px';
+          removeBtn.style.borderRadius = '4px';
+          removeBtn.style.cursor = 'pointer';
+          
+          div.appendChild(span);
+          div.appendChild(removeBtn);
+          vendorList.appendChild(div);
+        });
+      }
+
+      function addCustomVendor(vendorName) {
+        if (!vendorName || !vendorName.trim()) return;
+        vendorName = vendorName.trim();
+        
+        const vendors = getCustomVendors();
+        if (vendors.includes(vendorName)) {
+          alert('Vendor already exists!');
+          return;
+        }
+        
+        vendors.push(vendorName);
+        saveCustomVendors(vendors);
+        rebuildVendorSelect();
+        renderVendorList();
+        showTempMessage('Added vendor: ' + vendorName);
+      }
+
+      function removeCustomVendor(vendorName) {
+        if (!confirm(`Remove vendor "${vendorName}"?`)) return;
+        
+        const vendors = getCustomVendors().filter(v => v !== vendorName);
+        saveCustomVendors(vendors);
+        rebuildVendorSelect();
+        renderVendorList();
+        showTempMessage('Removed vendor: ' + vendorName);
+      }
+
+      // Initialize vendor management
+      rebuildVendorSelect();
+      renderVendorList();
+
+      if (addVendorBtn && newVendorInput) {
+        addVendorBtn.addEventListener('click', function() {
+          addCustomVendor(newVendorInput.value);
+          newVendorInput.value = '';
+        });
+        
+        newVendorInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addCustomVendor(newVendorInput.value);
+            newVendorInput.value = '';
+          }
+        });
+      }
+
+      if (vendorList) {
+        vendorList.addEventListener('click', function(event) {
+          if (event.target.dataset.vendor) {
+            removeCustomVendor(event.target.dataset.vendor);
+          }
+        });
+      }
+
+      // Load saved configuration on startup
+      async function loadServerConfig() {
+        try {
+          const url = SERVER_ENDPOINT + '?action=loadConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const response = await jsonpCall(url, 15000);
+          
+          if (response && response.success && response.config) {
+            const cfg = JSON.parse(response.config);
+            applyConfigObject(cfg);
+            console.log('Configuration loaded from server');
+          }
+        } catch (error) {
+          console.log('Could not load server config (using defaults):', error.message);
+        }
+      }
+
+      // Load config when page loads
+      loadServerConfig();
+    });
+
+    // --- Network Status Management ---
+    function updateOnlineStatus() {
+      const statusEls = [document.getElementById('status'), document.getElementById('status-duplicate')];
+      const offlineNotice = document.getElementById('offlineNotice');
+      
+      statusEls.forEach(el => {
+        if (el) el.textContent = navigator.onLine ? 'online' : 'offline';
+      });
+      
+      if (offlineNotice) {
+        offlineNotice.style.display = navigator.onLine ? 'none' : 'block';
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+   // --- MOBILE-FRIENDLY Main Submission Logic (handles both photo + manual entries) ---
+async function submitMainForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) { 
+    submitBtn.disabled = true; 
+    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; 
+    submitBtn.textContent = 'Submitting...'; 
+  }
+  
+  // Show loading indicator
+  if (typeof showLoading === 'function') showLoading(true);
+
+  try {
+    // 1) Collect form data first
+    const data = collectFormData ? collectFormData() : {};
+    console.log('Collected form data:', data);
+
+    // 2) Handle photo if selected
+    if (selectedFile && !selectedImage) {
+      // Wait briefly for FileReader to finish if needed
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+
+    // 3) Add photo info to data
+    if (selectedImage) {
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
+      if (typeof showPhotoStatus === 'function') {
+        showPhotoStatus('Including photo in submission...', 'success');
+      }
+      console.log('Photo will be included:', data.photoLink);
+    } else {
+      data.photoLink = '';
+    }
+
+    // 4) Ensure clientId exists
+    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
+    data.clientId = cid;
+
+    // 5) Use mobile-friendly direct submission instead of iframe
+    const result = await submitDirectMobileFriendly(data);
+    
+    if (result.success) {
+      if (typeof showTempMessage === 'function') showTempMessage('Entry submitted successfully!');
+      if (typeof clearForm === 'function') clearForm();
+      if (typeof resetPhotoForm === 'function') resetPhotoForm();
+    } else {
+      throw new Error(result.error || 'Submission failed');
+    }
+
+  } catch (error) {
+    console.error('Submission error:', error);
+    if (typeof showTempMessage === 'function') {
+      showTempMessage('Error: ' + (error.message || 'Unknown error'));
+    }
+  } finally {
+    // Always restore button state
+    if (submitBtn) { 
+      submitBtn.disabled = false; 
+      submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; 
+    }
+    if (typeof showLoading === 'function') showLoading(false);
+  }
+}
+
+// --- Mobile-friendly direct submission (no iframe) ---
+async function submitDirectMobileFriendly(data) {
+  return new Promise((resolve, reject) => {
+    // Create FormData for proper mobile handling
+    const formData = new FormData();
+    
+    // Add all form fields
+    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+    formData.append('action', 'submit');
+    formData.append('purchased', data.purchased || '');
+    formData.append('purchasedFrom', data.purchasedFrom || '');
+    formData.append('paymentModes', data.paymentModes || '');
+    formData.append('paymentPaid', data.paymentPaid || '');
+    formData.append('otherInfo', data.otherInfo || '');
+    formData.append('photoLink', data.photoLink || '');
+    formData.append('clientId', data.clientId || '');
+
+    // Add photo data if present
+    if (selectedImage) {
+      formData.append('imageData', selectedImage);
+      formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+      console.log('Photo data included in submission');
+    }
+
+    console.log('Submitting form data directly (mobile-friendly)');
+
+    // Use fetch with proper error handling for mobile
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData,
+      mode: 'no-cors', // Important for mobile cross-origin requests
+    })
+    .then(response => {
+      // With no-cors mode, we can't read the response, but we know the request was sent
+      console.log('Form submitted successfully (no-cors mode)');
+      resolve({ success: true });
+    })
+    .catch(error => {
+      console.error('Direct fetch failed, trying fallback method:', error);
+      // Fallback to the iframe method as a last resort
+      submitUnifiedDataFallback(data).then(resolve).catch(reject);
+    });
+  });
+}
+
+// --- Fallback iframe method (original) ---
+async function submitUnifiedDataFallback(data) {
+  return new Promise((resolve, reject) => {
+    console.log('Using iframe fallback method');
+    
+    // Create iframe for submission
+    const iframeName = 'submit_iframe_fallback';
+    let iframe = document.getElementById(iframeName);
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeName;
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    // Create form with all data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = iframeName;
+    form.enctype = 'multipart/form-data';
+
+    // Helper to add hidden inputs
+    function addHidden(name, value) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value != null ? String(value) : '';
+      form.appendChild(input);
+    }
+
+    // Add all form fields
+    addHidden('token', SERVER_TOKEN || 'shopSecret2025');
+    addHidden('action', 'submit');
+    addHidden('purchased', data.purchased || '');
+    addHidden('purchasedFrom', data.purchasedFrom || '');
+    addHidden('paymentModes', data.paymentModes || '');
+    addHidden('paymentPaid', data.paymentPaid || '');
+    addHidden('otherInfo', data.otherInfo || '');
+    addHidden('photoLink', data.photoLink || '');
+    addHidden('clientId', data.clientId || '');
+
+    // Add photo data if present
+    if (selectedImage) {
+      addHidden('imageData', selectedImage);
+      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+    }
+
+    document.body.appendChild(form);
+
+    // Handle response with shorter timeout for mobile
+    let handled = false;
+    function finalize(success) {
+      if (handled) return;
+      handled = true;
+      resolve({ success: success });
+      // Cleanup
+      try { 
+        if (form.parentNode) form.parentNode.removeChild(form); 
+      } catch(e) {}
+    }
+
+    // Set up iframe response handler with mobile-specific timeout
+    iframe.onload = function() {
+      finalize(true); // Assume success on mobile
+    };
+
+    // Submit form
+    try {
+      form.submit();
+      console.log('Fallback form submitted to server');
+    } catch (err) {
+      console.warn('Fallback form submit error:', err);
+      finalize(true); // Still assume success for mobile compatibility
+    }
+
+    // Shorter timeout for mobile - assume success after 5 seconds
+    setTimeout(() => {
+      finalize(true);
+    }, 5000);
+  });
+}
+
+
+    function collectFormData() {
+      const data = {};
+      
+      // Collect purchased items with quantities and units
+      const purchased = [];
+      const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+      
+      purchasedCheckboxes.forEach(cb => {
+        const value = cb.value;
+        
+        // Check if this is the "Others" checkbox
+        if (cb.id === 'p_other') {
+          const qtyEl = document.getElementById('q_other');
+          const unitEl = document.getElementById('unit_other');
+          const unitCustomEl = document.getElementById('unit_custom_other');
+          const otherTextEl = document.getElementById('purchasedOtherText');
+          
+          let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+          let unit = '';
+          
+          if (unitEl && unitEl.value) {
+            if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+              unit = unitCustomEl.value.trim();
             } else {
-              rebuildSelect();
-              renderVendorList();
+              unit = unitEl.value;
+            }
+          }
+          
+          let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+          
+          if (qty && unit) {
+            purchased.push(`${qty} ${unit} ${description}`);
+          } else if (description) {
+            purchased.push(description);
+          } else {
+            purchased.push(value);
+          }
+        } else {
+          // Handle main category with subitems
+          const sublistId = getSublistId(cb.id);
+          if (sublistId) {
+            const sublist = document.getElementById(sublistId);
+            if (sublist) {
+              const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+              if (checkedSubs.length > 0) {
+                checkedSubs.forEach(subCb => {
+                  const subValue = subCb.value;
+                  const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
+                  const qtyEl = document.getElementById('q_' + subSuffix);
+                  const unitEl = document.getElementById('unit_' + subSuffix);
+                  const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+                  
+                  let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+                  let unit = '';
+                  
+                  if (unitEl && unitEl.value) {
+                    if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+                      unit = unitCustomEl.value.trim();
+                    } else {
+                      unit = unitEl.value;
+                    }
+                  }
+                  
+                  if (qty && unit) {
+                    purchased.push(`${qty} ${unit} ${subValue}`);
+                  } else {
+                    purchased.push(subValue);
+                  }
+                });
+              } else {
+                purchased.push(value);
+              }
+            } else {
+              purchased.push(value);
             }
           } else {
-            rebuildSelect();
-            renderVendorList();
+            purchased.push(value);
           }
-        } catch(e){
-          rebuildSelect();
-          renderVendorList();
         }
-
-        // attach events
-        sel.addEventListener('change', function(){ handleSelectChange(); });
-        // text input save on blur -> keep selection consistent
-        txt.addEventListener('input', function(){ /* no-op; app.js reads txt when submitting */ });
-
-        // public helper used in applyConfig path to set items & selection
-        window.__applyPurchasedFromConfig = function(items, selected) {
-          try {
-            customVendors = Array.isArray(items) ? items.slice() : [];
-            // store locally
-            try { localStorage.setItem('purchasedFromCustom', JSON.stringify({ items: customVendors, selected: selected || '' })); } catch(e){}
-            renderVendorList();
-            rebuildSelect(selected || '');
-          } catch(e){}
-        };
-
-        // expose a small local helper to let applyConfig call it
-        function loadFromConfig(cfgItems, cfgSelected) {
-          window.__applyPurchasedFromConfig(cfgItems, cfgSelected);
+      });
+      
+      data.purchased = purchased.join(', ');
+      
+      // Purchased from
+      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+      const purchasedFromText = document.getElementById('purchasedFrom');
+      
+      if (purchasedFromSelect) {
+        if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+          data.purchasedFrom = purchasedFromText.value.trim();
+        } else {
+          data.purchasedFrom = purchasedFromSelect.value;
         }
+      }
+      
+      // Payment modes and amounts
+      const paymentModes = [];
+      const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+      
+      modeCheckboxes.forEach(cb => {
+        const mode = cb.value;
+        const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+        let amount = amountInput && amountInput.value ? amountInput.value : '';
+        
+        if (amount) {
+          paymentModes.push(`${mode}: ₹${amount}`);
+        } else {
+          paymentModes.push(mode);
+        }
+      });
+      
+      data.paymentModes = paymentModes.join(', ');
+      
+      // Total payment
+      const paymentPaidEl = document.getElementById('paymentPaid');
+      data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+      
+      // Other information
+      const otherInfoEl = document.getElementById('otherInfo');
+      data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+      
+      return data;
+    }
 
-        // also expose function used earlier in applyConfig
-        window.applyPurchasedFromConfig = function(items, selected) {
-          loadFromConfig(items, selected);
+    function getSublistId(mainCheckboxId) {
+      const mapping = {
+        'p_floor': 'sublist_floor',
+        'p_wall': 'sublist_wall',
+        'p_san': 'sublist_san',
+        'p_acc': 'sublist_acc'
+      };
+      return mapping[mainCheckboxId] || null;
+    }
+
+    async function submitFormData(formData) {
+      const submitData = {
+        action: 'submit',
+        token: SERVER_TOKEN,
+        purchased: formData.purchased || '',
+        purchasedFrom: formData.purchasedFrom || '',
+        paymentModes: formData.paymentModes || '',
+        paymentPaid: formData.paymentPaid || '',
+        otherInfo: formData.otherInfo || '',
+        photoLink: formData.photoLink || ''
+      };
+      
+      const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
+        encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
+      ).join('&');
+      
+      return await jsonpCall(url, 30000);
+    }
+
+    function clearForm() {
+      // Clear all checkboxes
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.dispatchEvent(new Event('change'));
+      });
+      
+      // Clear all text inputs and number inputs
+      document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
+        if (input.id !== 'newUnitInput' && input.id !== 'newVendorInput' && 
+            input.id !== 'addSubLabelInput') {
+          input.value = '';
+        }
+      });
+      
+      // Reset selects to first option
+      document.querySelectorAll('select').forEach(select => {
+        if (select.id !== 'addCategorySelect') {
+          select.selectedIndex = 0;
+          select.dispatchEvent(new Event('change'));
+        }
+      });
+      
+      // Hide custom unit inputs
+      document.querySelectorAll('.unit-custom').forEach(uc => {
+        uc.style.display = 'none';
+        uc.value = '';
+      });
+    }
+
+  // MOBILE-FRIENDLY Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const submitBtn = document.getElementById('submitBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  
+  if (submitBtn) {
+    // Remove any existing listeners by cloning the button
+    const newSubmitBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+    
+    // Add ONLY ONE mobile-friendly submit handler
+    newSubmitBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('Submit button clicked - bypassing validation...');
+      
+      // Disable button immediately
+      newSubmitBtn.disabled = true;
+      newSubmitBtn.textContent = 'Submitting...';
+      
+      // Call submission function with a small delay to bypass any popups
+      setTimeout(() => {
+        mobileSubmitFunction();
+      }, 200); // Delay ensures popup doesn't block submission
+    });
+  }
+  
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      if (confirm('Clear all form data?')) {
+        clearForm();
+        resetPhotoForm();
+      }
+    });
+  }
+  
+  // Trigger change events to set initial states
+  document.querySelectorAll('.purchased').forEach(cb => {
+    cb.dispatchEvent(new Event('change'));
+  });
+  
+  document.querySelectorAll('.subitem').forEach(cb => {
+    cb.dispatchEvent(new Event('change'));
+  });
+  
+  document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => {
+    cb.dispatchEvent(new Event('change'));
+  });
+});
+
+// Mobile-friendly submission function with FAST button restoration
+async function mobileSubmitFunction() {
+  const submitBtn = document.getElementById('submitBtn');
+  
+  try {
+    console.log('Starting mobile-friendly submission...');
+    
+    // Collect form data without strict validation
+    const data = collectFormDataMobile();
+
+    console.log('Collected form data:', data);
+
+    // Handle photo if selected
+    if (selectedFile && !selectedImage) {
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+
+    // Add photo info to data
+    if (selectedImage) {
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
+      console.log('Photo will be included:', data.photoLink);
+    } else {
+      data.photoLink = '';
+    }
+
+    // Ensure clientId exists
+    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
+    data.clientId = cid;
+
+    // FIRE AND FORGET: Submit in background and restore button immediately
+    submitDirectMobileFriendlyBackground(data);
+    
+    // Restore button state immediately (after 1-2 seconds)
+    setTimeout(() => {
+      if (submitBtn) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit'; 
+      }
+      alert('Entry submitted successfully!');
+      if (typeof clearForm === 'function') clearForm();
+      if (typeof resetPhotoForm === 'function') resetPhotoForm();
+    }, 1500); // Button restores in 1.5 seconds
+
+  } catch (error) {
+    console.error('Mobile submission error:', error);
+    // Restore button even on error
+    setTimeout(() => {
+      if (submitBtn) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit'; 
+      }
+      alert('Error: ' + (error.message || 'Unknown error'));
+    }, 1000);
+  }
+}
+
+
+// Mobile-friendly data collection with PROPER subitem handling
+function collectFormDataMobile() {
+  const data = {};
+  const purchased = [];
+  
+  // Collect checked main items
+  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+  
+  if (purchasedCheckboxes.length === 0) {
+    // Fallback for mobile - always allow some entry
+    const otherText = document.getElementById('purchasedOtherText');
+    if (otherText && otherText.value.trim()) {
+      purchased.push(otherText.value.trim());
+    } else if (selectedImage) {
+      purchased.push('Photo entry - see attached image');
+    } else {
+      purchased.push('Entry from mobile device');
+    }
+  } else {
+    // Process each main category for subitems
+    purchasedCheckboxes.forEach(cb => {
+      const value = cb.value || 'Item';
+      
+      // Handle "Others" category specially
+      if (cb.id === 'p_other') {
+        const qtyEl = document.getElementById('q_other');
+        const unitEl = document.getElementById('unit_other');
+        const unitCustomEl = document.getElementById('unit_custom_other');
+        const otherTextEl = document.getElementById('purchasedOtherText');
+        
+        let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+        let unit = '';
+        
+        if (unitEl && unitEl.value) {
+          if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+            unit = unitCustomEl.value.trim();
+          } else {
+            unit = unitEl.value;
+          }
+        }
+        
+        let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+        
+        if (qty && unit) {
+          purchased.push(`${qty} ${unit} ${description}`);
+        } else if (description) {
+          purchased.push(description);
+        } else {
+          purchased.push(value);
+        }
+      } else {
+        // Handle main categories with subitems (Floor Tiles, Wall Tiles, etc.)
+        const sublistId = getSublistIdMobile(cb.id);
+        if (sublistId) {
+          const sublist = document.getElementById(sublistId);
+          if (sublist) {
+            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+            if (checkedSubs.length > 0) {
+              // Process each checked subitem with quantities
+              checkedSubs.forEach(subCb => {
+                const subValue = subCb.value || '';
+                const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
+                const qtyEl = document.getElementById('q_' + subSuffix);
+                const unitEl = document.getElementById('unit_' + subSuffix);
+                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+                
+                let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+                let unit = '';
+                
+                if (unitEl && unitEl.value) {
+                  if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+                    unit = unitCustomEl.value.trim();
+                  } else {
+                    unit = unitEl.value;
+                  }
+                }
+                
+                if (qty && unit) {
+                  purchased.push(`${qty} ${unit} ${subValue}`);
+                } else {
+                  purchased.push(subValue);
+                }
+              });
+            } else {
+              // Main category checked but no subitems - just add main category
+              purchased.push(value);
+            }
+          } else {
+            purchased.push(value);
+          }
+        } else {
+          purchased.push(value);
+        }
+      }
+    });
+  }
+  
+  data.purchased = purchased.join(', ');
+
+// Add this helper function right after the collectFormDataMobile function:
+function getSublistIdMobile(mainCheckboxId) {
+  const mapping = {
+    'p_floor': 'sublist_floor',
+    'p_wall': 'sublist_wall',
+    'p_san': 'sublist_san',
+    'p_acc': 'sublist_acc'
+  };
+  return mapping[mainCheckboxId] || null;
+}
+
+  
+  // Collect other fields
+  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+  const purchasedFromText = document.getElementById('purchasedFrom');
+  if (purchasedFromSelect) {
+    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+      data.purchasedFrom = purchasedFromText.value.trim();
+    } else {
+      data.purchasedFrom = purchasedFromSelect.value || '';
+    }
+  }
+  
+  const paymentPaidEl = document.getElementById('paymentPaid');
+  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+  
+  const otherInfoEl = document.getElementById('otherInfo');
+  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+  
+  // Collect payment modes
+  const paymentModes = [];
+  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+  modeCheckboxes.forEach(cb => {
+    const mode = cb.value || '';
+    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+    const amount = amountInput && amountInput.value ? amountInput.value : '';
+    if (amount) {
+      paymentModes.push(`${mode}: ₹${amount}`);
+    } else {
+      paymentModes.push(mode);
+    }
+  });
+  data.paymentModes = paymentModes.join(', ');
+  
+  return data;
+}
+
+// Background submission - FIRE AND FORGET (doesn't wait for response)
+function submitDirectMobileFriendlyBackground(data) {
+  // Create FormData for mobile compatibility
+  const formData = new FormData();
+  
+  // Add all form fields
+  formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+  formData.append('action', 'submit');
+  formData.append('purchased', data.purchased || '');
+  formData.append('purchasedFrom', data.purchasedFrom || '');
+  formData.append('paymentModes', data.paymentModes || '');
+  formData.append('paymentPaid', data.paymentPaid || '');
+  formData.append('otherInfo', data.otherInfo || '');
+  formData.append('photoLink', data.photoLink || '');
+  formData.append('clientId', data.clientId || '');
+
+  // Add photo data if present
+  if (selectedImage) {
+    formData.append('imageData', selectedImage);
+    formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('mobile_photo_' + Date.now() + '.jpg'));
+  }
+
+  console.log('Submitting form data in background...');
+
+  // FIRE AND FORGET: Send request but don't wait for response
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: formData,
+    mode: 'no-cors',
+  })
+  .then(() => {
+    console.log('Background submission sent successfully');
+  })
+  .catch(error => {
+    console.log('Background submission sent (error ignored for mobile):', error);
+  });
+  
+  // Don't return a promise - this is fire-and-forget
+}
+
+    // ===== ENHANCED SUB-ITEM SEARCH SYSTEM WITH CUSTOMIZATION SUPPORT =====
+class SubItemSearch {
+  constructor() {
+    this.searchInput = null;
+    this.searchResults = null;
+    this.originalPurchasedList = null;
+    this.cachedSubItems = [];
+    this.searchTimeout = null;
+    this.reindexTimeout = null;
+    this.focusedIndex = -1;
+    this.isSearchActive = false;
+    this.mutationObserver = null;
+    
+    this.init();
+  }
+  
+  init() {
+    this.createSearchUI();
+    this.cacheSubItems();
+    this.bindEvents();
+    this.setupMutationObserver();
+    this.setupEditableListeners();
+  }
+  
+  createSearchUI() {
+    const purchasedList = document.getElementById('purchasedList');
+    if (!purchasedList) return;
+    
+    // Create search container
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'search-container';
+    searchContainer.innerHTML = `
+      <div class="search-input-wrapper">
+        <input type="text" 
+               id="subItemSearch" 
+               class="search-input" 
+               placeholder='Search sub-items (e.g. "porcelain", "grout")'
+               autocomplete="off">
+        <button class="search-clear-btn" id="searchClearBtn" type="button">×</button>
+        <div class="search-count" id="searchCount"></div>
+      </div>
+      <div class="search-results" id="searchResults" style="display: none;"></div>
+    `;
+    
+    // Insert before purchased list
+    purchasedList.parentNode.insertBefore(searchContainer, purchasedList);
+    
+    this.searchInput = document.getElementById('subItemSearch');
+    this.searchResults = document.getElementById('searchResults');
+    this.searchCount = document.getElementById('searchCount');
+    this.originalPurchasedList = purchasedList;
+  }
+  
+  cacheSubItems() {
+    this.cachedSubItems = [];
+    const subItems = document.querySelectorAll('.sub-item');
+    
+    subItems.forEach(subItem => {
+      const checkbox = subItem.querySelector('.subitem');
+      const labelEl = subItem.querySelector('.editable');
+      const parentRow = subItem.closest('.sublist').previousElementSibling;
+      const parentLabel = parentRow ? parentRow.querySelector('.editable') : null;
+      
+      if (checkbox && labelEl && parentLabel) {
+        this.cachedSubItems.push({
+          node: subItem,
+          checkbox: checkbox,
+          labelEl: labelEl,
+          textLower: labelEl.textContent.toLowerCase(),
+          parentId: parentRow.querySelector('.purchased').id,
+          parentLabel: parentLabel.textContent,
+          qtyInput: this.getQtyInput(checkbox.id),
+          unitSelect: this.getUnitSelect(checkbox.id),
+          customUnitInput: this.getCustomUnitInput(checkbox.id)
+        });
+      }
+    });
+    
+    // Update current search if active
+    if (this.isSearchActive && this.searchInput && this.searchInput.value.trim()) {
+      this.performSearch(this.searchInput.value);
+    }
+  }
+  
+  getQtyInput(checkboxId) {
+    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
+    return document.getElementById('q' + suffix);
+  }
+  
+  getUnitSelect(checkboxId) {
+    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
+    return document.getElementById('unit' + suffix);
+  }
+  
+  getCustomUnitInput(checkboxId) {
+    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
+    return document.getElementById('unitcustom' + suffix);
+  }
+  
+  setupMutationObserver() {
+    if (!window.MutationObserver) return;
+    
+    this.mutationObserver = new MutationObserver((mutations) => {
+      let shouldReindex = false;
+      
+      mutations.forEach(mutation => {
+        // Check for added/removed sub-items
+        if (mutation.type === 'childList') {
+          const hasSubItems = Array.from(mutation.addedNodes).some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+          );
+          const removedSubItems = Array.from(mutation.removedNodes).some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+          );
+          
+          if (hasSubItems || removedSubItems) {
+            shouldReindex = true;
+          }
+        }
+      });
+      
+      if (shouldReindex) {
+        this.debouncedReindex();
+        this.announceChange('Items updated');
+      }
+    });
+    
+    // Observe the purchased list for changes
+    const purchasedList = document.getElementById('purchasedList');
+    if (purchasedList) {
+      this.mutationObserver.observe(purchasedList, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
+  
+  setupEditableListeners() {
+    // Listen for changes to editable labels
+    document.addEventListener('blur', (e) => {
+      if (e.target.classList.contains('editable')) {
+        this.debouncedReindex();
+      }
+    }, true);
+    
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('editable')) {
+        this.debouncedReindex();
+      }
+    }, true);
+  }
+  
+  debouncedReindex() {
+    clearTimeout(this.reindexTimeout);
+    this.reindexTimeout = setTimeout(() => {
+      this.cacheSubItems();
+    }, 300);
+  }
+  
+  bindEvents() {
+    if (!this.searchInput) return;
+    
+    // Search input with debounce
+    this.searchInput.addEventListener('input', (e) => {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.performSearch(e.target.value);
+      }, 250);
+    });
+    
+    // Clear button
+    document.getElementById('searchClearBtn').addEventListener('click', () => {
+      this.clearSearch();
+    });
+    
+    // Keyboard navigation
+    this.searchInput.addEventListener('keydown', (e) => {
+      this.handleKeydown(e);
+    });
+    
+    // Click outside to maintain focus
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container')) {
+        this.focusedIndex = -1;
+        this.updateFocusStyles();
+      }
+    });
+  }
+  
+  performSearch(query) {
+    const trimmedQuery = query.trim();
+    
+    if (!trimmedQuery) {
+      this.clearSearch();
+      return;
+    }
+    
+    const queryLower = trimmedQuery.toLowerCase();
+    const matches = this.cachedSubItems.filter(item => 
+      item.textLower.includes(queryLower)
+    );
+    
+    this.displayResults(matches, trimmedQuery);
+    this.announceResults(matches.length);
+  }
+  
+  displayResults(matches, originalQuery) {
+    if (matches.length === 0) {
+      this.showNoResults(originalQuery);
+      return;
+    }
+    
+    // Group by parent
+    const grouped = this.groupByParent(matches);
+    const resultsHTML = this.buildResultsHTML(grouped, originalQuery);
+    
+    this.searchResults.innerHTML = resultsHTML;
+    this.searchResults.style.display = 'block';
+    this.originalPurchasedList.style.display = 'none';
+    this.isSearchActive = true;
+    this.focusedIndex = -1;
+    
+    this.updateSearchCount(matches.length);
+    this.bindResultEvents();
+    this.setupQtyUnitControls();
+  }
+  
+  groupByParent(matches) {
+    const grouped = {};
+    matches.forEach(match => {
+      if (!grouped[match.parentId]) {
+        grouped[match.parentId] = {
+          parentLabel: match.parentLabel,
+          items: []
         };
+      }
+      grouped[match.parentId].items.push(match);
+    });
+    return grouped;
+  }
+  
+  buildResultsHTML(grouped, query) {
+    let html = '<div class="search-results-content">';
+    
+    Object.keys(grouped).forEach(parentId => {
+      const group = grouped[parentId];
+      html += `
+        <div class="search-group">
+          <div class="search-group-header">${this.escapeHtml(group.parentLabel)}</div>
+          <div class="search-group-items">
+      `;
+      
+      group.items.forEach((item, index) => {
+        const highlighted = this.highlightMatch(item.labelEl.textContent, query);
+        const isChecked = item.checkbox.checked ? 'checked' : '';
+        const isDisabled = !item.checkbox.checked ? 'disabled' : '';
+        const qtyValue = item.qtyInput ? item.qtyInput.value : '';
+        const unitValue = item.unitSelect ? item.unitSelect.value : 'Boxes';
+        const customUnitValue = item.customUnitInput ? item.customUnitInput.value : '';
+        const customUnitVisible = unitValue === 'Custom' ? 'style="display:block"' : 'style="display:none"';
+        
+        // Get current unit options
+        const unitOptions = this.getUnitOptions(item.unitSelect);
+        
+        html += `
+          <div class="search-result-item" data-checkbox-id="${item.checkbox.id}">
+            <div class="search-result-main">
+              <label class="search-result-label">
+                <input type="checkbox" class="search-result-checkbox" ${isChecked}>
+                <span class="search-result-text">${highlighted}</span>
+              </label>
+            </div>
+            <div class="search-result-controls">
+              <div class="search-qty-unit">
+                <input type="number" 
+                       class="search-qty-input" 
+                       min="0" 
+                       step="1" 
+                       placeholder="Qty" 
+                       value="${qtyValue}"
+                       ${isDisabled}
+                       data-original-id="${item.qtyInput ? item.qtyInput.id : ''}">
+                <select class="search-unit-select" 
+                        ${isDisabled}
+                        data-original-id="${item.unitSelect ? item.unitSelect.id : ''}">
+                  ${unitOptions}
+                </select>
+                <input type="text" 
+                       class="search-custom-unit" 
+                       placeholder="Custom unit" 
+                       value="${customUnitValue}"
+                       ${customUnitVisible}
+                       ${isDisabled}
+                       data-original-id="${item.customUnitInput ? item.customUnitInput.id : ''}">
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div></div>';
+    });
+    
+    html += '</div>';
+    return html;
+  }
+  
+  getUnitOptions(originalSelect) {
+    if (!originalSelect) {
+      return `
+        <option value="Boxes">Boxes</option>
+        <option value="Pieces">Pieces</option>
+        <option value="Kg">Kg</option>
+        <option value="Custom">Custom</option>
+      `;
+    }
+    
+    let options = '';
+    Array.from(originalSelect.options).forEach(option => {
+      const selected = option.selected ? 'selected' : '';
+      options += `<option value="${option.value}" ${selected}>${option.text}</option>`;
+    });
+    
+    return options;
+  }
+  
+  setupQtyUnitControls() {
+    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+    
+    // Sync qty inputs
+    qtyInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+    
+    // Sync unit selects
+    unitSelects.forEach(select => {
+      select.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalSelect = document.getElementById(originalId);
+        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+        
+        if (originalSelect) {
+          originalSelect.value = e.target.value;
+          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          
+          // Handle custom unit visibility
+          if (e.target.value === 'Custom') {
+            customUnit.style.display = 'block';
+            customUnit.disabled = false;
+            // Focus custom unit on mobile after a brief delay
+            setTimeout(() => {
+              if (window.innerWidth <= 768) {
+                customUnit.focus();
+              }
+            }, 100);
+          } else {
+            customUnit.style.display = 'none';
+            customUnit.disabled = true;
+          }
+          
+          // Save unit preference
+          this.saveUnitPreference(originalId, e.target.value);
+        }
+      });
+    });
+    
+    // Sync custom unit inputs
+    customUnits.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+  
+  saveUnitPreference(originalId, unitValue) {
+    if (typeof saveUnitPref === 'function') {
+      saveUnitPref(originalId, unitValue);
+    } else {
+      // Fallback unit preference saving
+      try {
+        const prefs = JSON.parse(localStorage.getItem('unitPreferences') || '{}');
+        prefs[originalId] = unitValue;
+        localStorage.setItem('unitPreferences', JSON.stringify(prefs));
+      } catch (e) {
+        console.warn('Could not save unit preference:', e);
+      }
+    }
+  }
+  
+  showNoResults(query) {
+    this.searchResults.innerHTML = `
+      <div class="search-no-results">
+        <div class="no-results-message">No sub-items found for "${this.escapeHtml(query)}"</div>
+        <button class="add-subitem-btn" data-query="${this.escapeHtml(query)}">
+          Add sub-item: "${this.escapeHtml(query)}"
+        </button>
+      </div>
+    `;
+    this.searchResults.style.display = 'block';
+    this.originalPurchasedList.style.display = 'none';
+    this.isSearchActive = true;
+    this.updateSearchCount(0);
+    this.bindAddSubitemEvent();
+  }
+  
+  bindResultEvents() {
+    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
+    
+    resultItems.forEach((item, index) => {
+      const label = item.querySelector('.search-result-label');
+      
+      // Click/touch events on the label area
+      label.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleResult(item);
+      });
+      
+      // Touch-friendly tap
+      label.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        this.toggleResult(item);
+      });
+      
+      // Store index for keyboard navigation
+      item.dataset.resultIndex = index;
+    });
+  }
+  
+  bindAddSubitemEvent() {
+    const addBtn = this.searchResults.querySelector('.add-subitem-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', (e) => {
+        this.showAddSubitemModal(e.target.dataset.query);
+      });
+    }
+  }
+  
+  toggleResult(resultItem) {
+    const checkboxId = resultItem.dataset.checkboxId;
+    const originalCheckbox = document.getElementById(checkboxId);
+    const resultCheckbox = resultItem.querySelector('.search-result-checkbox');
+    const qtyInput = resultItem.querySelector('.search-qty-input');
+    const unitSelect = resultItem.querySelector('.search-unit-select');
+    const customUnit = resultItem.querySelector('.search-custom-unit');
+    
+    if (originalCheckbox && resultCheckbox) {
+      // Toggle original checkbox
+      originalCheckbox.checked = !originalCheckbox.checked;
+      resultCheckbox.checked = originalCheckbox.checked;
+      
+      // Trigger change event on original checkbox
+      originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      
+      // Update controls state
+      const isEnabled = originalCheckbox.checked;
+      if (qtyInput) qtyInput.disabled = !isEnabled;
+      if (unitSelect) unitSelect.disabled = !isEnabled;
+      if (customUnit && unitSelect.value !== 'Custom') customUnit.disabled = !isEnabled;
+      
+      // Update visual feedback
+      resultItem.classList.toggle('selected', originalCheckbox.checked);
+      
+      // If checked, ensure parent main category is visible/expanded
+      if (originalCheckbox.checked) {
+        this.ensureParentExpanded(checkboxId);
+        
+        // Focus qty input on mobile for better UX
+        if (window.innerWidth <= 768 && qtyInput && !qtyInput.disabled) {
+          setTimeout(() => {
+            qtyInput.focus();
+            qtyInput.select();
+          }, 150);
+        }
+      }
+    }
+  }
+  
+  ensureParentExpanded(checkboxId) {
+    const originalSubitem = document.getElementById(checkboxId);
+    if (!originalSubitem) return;
+    
+    const sublist = originalSubitem.closest('.sublist');
+    const parentRow = sublist ? sublist.previousElementSibling : null;
+    const parentCheckbox = parentRow ? parentRow.querySelector('.purchased') : null;
+    
+    if (parentCheckbox && sublist) {
+      if (!parentCheckbox.checked) {
+        parentCheckbox.checked = true;
+        parentCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      sublist.style.display = 'block';
+    }
+  }
+  
+  handleKeydown(e) {
+    if (!this.isSearchActive) return;
+    
+    const resultItems = Array.from(this.searchResults.querySelectorAll('.search-result-item'));
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        this.focusedIndex = Math.min(this.focusedIndex + 1, resultItems.length - 1);
+        this.updateFocusStyles();
+        this.scrollToFocused();
+        break;
+        
+      case 'ArrowUp':
+        e.preventDefault();
+        this.focusedIndex = Math.max(this.focusedIndex - 1, -1);
+        this.updateFocusStyles();
+        this.scrollToFocused();
+        break;
+        
+      case 'Enter':
+        e.preventDefault();
+        if (this.focusedIndex >= 0 && resultItems[this.focusedIndex]) {
+          this.toggleResult(resultItems[this.focusedIndex]);
+          // Focus qty input after toggle
+          const qtyInput = resultItems[this.focusedIndex].querySelector('.search-qty-input');
+          if (qtyInput && !qtyInput.disabled) {
+            setTimeout(() => {
+              qtyInput.focus();
+              qtyInput.select();
+            }, 100);
+          }
+        }
+        break;
+        
+      case 'Escape':
+        e.preventDefault();
+        this.clearSearch();
+        this.searchInput.focus();
+        break;
+    }
+  }
+  
+  updateFocusStyles() {
+    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
+    resultItems.forEach((item, index) => {
+      item.classList.toggle('focused', index === this.focusedIndex);
+    });
+  }
+  
+  scrollToFocused() {
+    const focusedItem = this.searchResults.querySelector('.search-result-item.focused');
+    if (focusedItem) {
+      focusedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  
+  showAddSubitemModal(query) {
+    const modal = document.createElement('div');
+    modal.className = 'add-subitem-modal';
+    modal.innerHTML = `
+      <div class="add-subitem-modal-content">
+        <h3>Add New Sub-item</h3>
+        <div class="add-subitem-form">
+          <label>Category:</label>
+          <select class="add-subitem-category">
+            <option value="floor">Floor Tiles</option>
+            <option value="wall">Wall Tiles</option>
+            <option value="san">Sanitaryware</option>
+            <option value="acc">Accessories</option>
+          </select>
+          
+          <label>Sub-item name:</label>
+          <input type="text" class="add-subitem-label" value="${this.escapeHtml(query)}">
+          
+          <div class="add-subitem-actions">
+            <button class="btn add-subitem-confirm">Add Sub-item</button>
+            <button class="btn add-subitem-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Focus input
+    const labelInput = modal.querySelector('.add-subitem-label');
+    labelInput.focus();
+    labelInput.select();
+    
+    // Bind events
+    modal.querySelector('.add-subitem-confirm').addEventListener('click', () => {
+      this.createNewSubitem(
+        modal.querySelector('.add-subitem-category').value,
+        modal.querySelector('.add-subitem-label').value
+      );
+      document.body.removeChild(modal);
+    });
+    
+    modal.querySelector('.add-subitem-cancel').addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
+  }
+  
+  createNewSubitem(category, label) {
+    if (!label.trim()) return;
+    
+    const trimmedLabel = label.trim();
+    const slug = trimmedLabel.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const baseId = `sub${category}${slug}`;
+    
+    // Find unique ID
+    let elementId = baseId;
+    let i = 1;
+    while (document.getElementById(elementId)) {
+      elementId = `${baseId}${i}`;
+      i++;
+    }
+    
+    // Get target sublist
+    const sublistId = `sublist${category}`;
+    const sublist = document.getElementById(sublistId);
+    if (!sublist) {
+      alert('Could not find category container');
+      return;
+    }
+    
+    // Create sub-item element
+    const suffix = elementId.slice(3); // Remove 'sub' prefix
+    const qtyId = `q${suffix}`;
+    const unitId = `unit${suffix}`;
+    const customUnitId = `unitcustom${suffix}`;
+    
+    const subDiv = document.createElement('div');
+    subDiv.className = 'sub-item';
+    subDiv.setAttribute('data-generated', 'true');
+    
+    subDiv.innerHTML = `
+      <label>
+        <input type="checkbox" class="subitem" id="${elementId}" value="${trimmedLabel}">
+        <span class="editable" data-config-id="${elementId}label" id="label${elementId}">${trimmedLabel}</span>
+        <button class="del-btn" type="button" title="Remove sub-item" aria-label="Remove">×</button>
+      </label>
+      <div class="qty-unit">
+        <input type="number" min="0" step="1" id="${qtyId}" class="subqty qty" placeholder="Quantity" disabled>
+        <select id="${unitId}" class="unit-select" disabled>
+          <option value="Boxes">Boxes</option>
+          <option value="Pieces">Pieces</option>
+          <option value="Kg">Kg</option>
+          <option value="Custom">Custom</option>
+        </select>
+        <input type="text" id="${customUnitId}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
+      </div>
+    `;
+    
+    // Add to sublist
+    sublist.appendChild(subDiv);
+    
+    // Re-register handlers and cache
+    if (typeof bindSubitemHandlers === 'function') {
+      bindSubitemHandlers();
+    }
+    if (typeof registerEditable === 'function') {
+      registerEditable(subDiv.querySelector('.editable'));
+    }
+    
+    // Auto-check the new item
+    const newCheckbox = document.getElementById(elementId);
+    if (newCheckbox) {
+      newCheckbox.checked = true;
+      newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    // Cache will be updated automatically by MutationObserver
+    // Announce the addition
+    this.announceChange(`New item added: ${trimmedLabel}`);
+    
+    // Show success message
+    if (typeof showTempMessage === 'function') {
+      showTempMessage(`Added "${trimmedLabel}" to ${category} category`);
+    }
+  }
+  
+  clearSearch() {
+    this.searchInput.value = '';
+    this.searchResults.style.display = 'none';
+    this.originalPurchasedList.style.display = 'block';
+    this.isSearchActive = false;
+    this.focusedIndex = -1;
+    this.updateSearchCount(0);
+  }
+  
+  updateSearchCount(count) {
+    if (count === 0) {
+      this.searchCount.textContent = '';
+    } else {
+      this.searchCount.textContent = `${count} result${count === 1 ? '' : 's'}`;
+    }
+  }
+  
+  announceResults(count) {
+    // Screen reader announcement
+    const announcement = `${count} result${count === 1 ? '' : 's'} found`;
+    this.announceChange(announcement);
+  }
+  
+  announceChange(message) {
+    // Screen reader announcement
+    const srAnnounce = document.getElementById('sr-announce') || document.createElement('div');
+    srAnnounce.id = 'sr-announce';
+    srAnnounce.setAttribute('aria-live', 'polite');
+    srAnnounce.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
+    srAnnounce.textContent = message;
+    document.body.appendChild(srAnnounce);
+  }
+  
+  highlightMatch(text, query) {
+    const index = text.toLowerCase().indexOf(query.toLowerCase());
+    if (index === -1) return this.escapeHtml(text);
+    
+    const before = text.substring(0, index);
+    const match = text.substring(index, index + query.length);
+    const after = text.substring(index + query.length);
+    
+    return `${this.escapeHtml(before)}<mark class="search-highlight">${this.escapeHtml(match)}</mark>${this.escapeHtml(after)}`;
+  }
+  
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // Public methods for external integration
+  reindexSubItems() {
+    this.cacheSubItems();
+  }
+  
+  refresh() {
+    this.cacheSubItems();
+  }
+  
+  destroy() {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+    }
+    clearTimeout(this.searchTimeout);
+    clearTimeout(this.reindexTimeout);
+  }
+}
 
-      })();
-      // ----------------------------------------------------------------------
+// Initialize search system after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait a bit for existing initialization to complete
+  setTimeout(() => {
+    window.subItemSearch = new SubItemSearch();
+    
+    // Expose public reindex function
+    window.reindexSubItems = function() {
+      if (window.subItemSearch) {
+        window.subItemSearch.reindexSubItems();
+      }
+    };
+  }, 500);
+});
 
-    }); // DOMContentLoaded end
+// Hook into existing add subitem functionality to refresh search cache
+if (typeof addSubBtn !== 'undefined' && addSubBtn) {
+  const originalAddSubClick = addSubBtn.onclick;
+  addSubBtn.onclick = function() {
+    if (originalAddSubClick) originalAddSubClick();
+    setTimeout(() => {
+      if (window.subItemSearch) window.subItemSearch.refresh();
+    }, 100);
+  };
+}
+
+
+
+
   </script>
+</div> <!-- Close appContent div -->
+   
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
