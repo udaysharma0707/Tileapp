@@ -1594,16 +1594,7 @@
           });
         }
         
-        if (cfg.globalUnits) {
-          saveGlobalUnits(cfg.globalUnits);
-          renderUnitList();
-          rebuildAllUnitSelects();
-        }
-if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
-          saveCustomVendors(cfg.purchasedFromCustom.items);
-          rebuildVendorSelect();
-          renderVendorList();
-        }
+       
 
         if (!cfg.structure) return;
 
@@ -2108,6 +2099,7 @@ if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
   </script>
 </body>
 </html>
+
 
 
 
