@@ -1596,7 +1596,7 @@
         
        
 
-        if (!cfg.structure) return;
+    if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
 
 
       
@@ -2099,6 +2099,7 @@
   </script>
 </body>
 </html>
+
 
 
 
