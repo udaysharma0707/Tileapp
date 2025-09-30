@@ -2679,7 +2679,8 @@ function buildConfigObject() {
     customSubItems: [] // NEW: Track custom sub-items
   };
   
-  cfg.title = document.getElementById('appTitle')?.textContent?.textContent?.trim() || '';
+  cfg.title = document.getElementById('appTitle')?.textContent?.trim() || '';
+
   
   // Save all label changes
   Array.from(document.querySelectorAll('.editable')).forEach(el => {
@@ -3023,12 +3024,45 @@ function buildConfigObject() {
     });
   }
   
-  // Re-bind all handlers after applying configuration
-  bindSubitemHandlers();
-  setupMainToSubBindings();
-  document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+   // Re-bind all handlers after applying configuration
+  setTimeout(() => {
+    initializeAppAfterConfig();
+  }, 100);
   
   console.log('Configuration applied successfully');
+}
+
+// Call this after loading configuration to ensure everything works
+function initializeAppAfterConfig() {
+  try {
+    // Re-bind all event handlers
+    bindSubitemHandlers();
+    setupMainToSubBindings();
+    
+    // Bind mode toggles
+    document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+    
+    // Bind gear icon
+    const gearIcon = document.querySelector('.gear');
+    if (gearIcon && !gearIcon.hasAttribute('data-bound')) {
+      gearIcon.addEventListener('click', openCustomizationPanel);
+      gearIcon.setAttribute('data-bound', 'true');
+    }
+    
+    // Re-register all editable elements
+    document.querySelectorAll('.editable').forEach(registerEditable);
+    
+    // Refresh search if active
+    if (window.subItemSearch) {
+      setTimeout(() => {
+        window.subItemSearch.cacheSubItems();
+      }, 100);
+    }
+    
+    console.log('App initialization completed');
+  } catch (error) {
+    console.error('Error during app initialization:', error);
+  }
 }
 
 
@@ -3067,7 +3101,7 @@ function buildConfigObject() {
           return row;
         }
 
-      // Helper function to create custom sub-items from saved config
+      /// Helper function to create custom sub-items from saved config
 function createCustomSubItem(subId, subLabel, parentSublist) {
   const suffix = subId.slice(4); // Remove 'sub' prefix
   const qtyId = `q${subId.slice(3)}`;
@@ -3117,6 +3151,7 @@ function createCustomSubItem(subId, subLabel, parentSublist) {
   unitSel.className = 'unit-select';
   unitSel.disabled = true;
   
+  // Add default units
   const defaultUnits = ['Boxes','Pieces','Kg'];
   defaultUnits.forEach(unit => {
     const o = document.createElement('option');
@@ -3125,6 +3160,7 @@ function createCustomSubItem(subId, subLabel, parentSublist) {
     unitSel.appendChild(o);
   });
   
+  // Add global units
   const globalUnits = loadGlobalUnits();
   globalUnits.forEach(unit => {
     const o = document.createElement('option');
@@ -3132,6 +3168,12 @@ function createCustomSubItem(subId, subLabel, parentSublist) {
     o.textContent = unit;
     unitSel.appendChild(o);
   });
+  
+  // Add Custom option
+  const customOption = document.createElement('option');
+  customOption.value = 'Custom';
+  customOption.textContent = 'Custom';
+  unitSel.appendChild(customOption);
   
   const unitCustom = document.createElement('input');
   unitCustom.type = 'text';
@@ -3153,6 +3195,7 @@ function createCustomSubItem(subId, subLabel, parentSublist) {
   
   console.log('Created custom sub-item:', subLabel, 'with ID:', subId);
 }
+
 
         function ensureSublist(main) {
           let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
@@ -5062,6 +5105,19 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
   };
 }
 
+    // Initialize the app when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, initializing app...');
+  
+  // Load configuration first
+  loadConfigFromServer();
+  
+  // Initialize after a delay
+  setTimeout(() => {
+    initializeAppAfterConfig();
+  }, 200);
+});
+
 
 
 
@@ -5071,6 +5127,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
