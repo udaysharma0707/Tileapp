@@ -2788,7 +2788,7 @@ if (originalMobileSubmitFunction) {
           const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
           const resp = await jsonpCall(url, 15000);
           if (resp && resp.success && resp.config) {
-            applyConfig(resp.config);
+            applyConfigObject(resp.config);
           } else {
             // no config found or error; fallback to localStorage for purchasedFromCustom
             try {
@@ -4772,6 +4772,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
