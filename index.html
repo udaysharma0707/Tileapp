@@ -2814,24 +2814,37 @@ if (originalMobileSubmitFunction) {
 
 
        function applyConfigObject(cfg) {
+       function applyConfigObject(cfg) {
         if (!cfg) return;
 
-        // 1) labels/title
         if (cfg.title) {
-          const t = document.getElementById('appTitle');
-          if (t) t.textContent = cfg.title;
+          const titleEl = document.getElementById('appTitle');
+          if (titleEl) titleEl.textContent = cfg.title;
         }
+
         if (cfg.labels) {
           Object.keys(cfg.labels).forEach(key => {
-            const sel = '[data-config-id="' + key + '"]';
-            const el = document.querySelector(sel) || document.getElementById(key);
+            const el = document.querySelector('[data-config-id="' + key + '"]') || document.getElementById(key);
             if (el) el.textContent = cfg.labels[key];
           });
         }
 
-        // 2) structure (if present) - add/remove mains/subitems and modes
-        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
-          const purchasedList = document.getElementById('purchasedList');
+        if (cfg.globalUnits) {
+          saveGlobalUnits(cfg.globalUnits);
+          renderUnitList();
+          rebuildAllUnitSelects();
+        }
+
+        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
+          saveCustomVendors(cfg.purchasedFromCustom.items);
+          rebuildVendorSelect();
+          renderVendorList();
+        }
+
+        if (!cfg.structure) return;
+
+        // Rebuild structure
+        const purchasedList = document.getElementById('purchasedList');
 
           
         function findItemRowByMainId(mainId) {
@@ -4760,6 +4773,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
