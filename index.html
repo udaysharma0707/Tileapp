@@ -2781,34 +2781,77 @@ if (originalMobileSubmitFunction) {
       });
 
 
-      // apply config object (labels map + structure)
-      function applyConfig(cfg) {
+      
+ // On load: try to fetch saved config and apply
+      (async function tryLoadConfig(){
+        try {
+          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const resp = await jsonpCall(url, 15000);
+          if (resp && resp.success && resp.config) {
+            applyConfig(resp.config);
+          } else {
+            // no config found or error; fallback to localStorage for purchasedFromCustom
+            try {
+              const local = localStorage.getItem('purchasedFromCustom');
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+              }
+            } catch(e){}
+          }
+        } catch (e) {
+          console.warn('Could not load config:', e);
+          // fallback to localStorage as above
+          try {
+            const local = localStorage.getItem('purchasedFromCustom');
+            if (local) {
+              const parsed = JSON.parse(local);
+              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+            }
+          } catch(e){}
+        }
+      })();
+
+
+       function applyConfigObject(cfg) {
         if (!cfg) return;
 
-        // 1) labels/title
         if (cfg.title) {
-          const t = document.getElementById('appTitle');
-          if (t) t.textContent = cfg.title;
+          const titleEl = document.getElementById('appTitle');
+          if (titleEl) titleEl.textContent = cfg.title;
         }
+
         if (cfg.labels) {
           Object.keys(cfg.labels).forEach(key => {
-            const sel = '[data-config-id="' + key + '"]';
-            const el = document.querySelector(sel) || document.getElementById(key);
+            const el = document.querySelector('[data-config-id="' + key + '"]') || document.getElementById(key);
             if (el) el.textContent = cfg.labels[key];
           });
         }
 
-        // 2) structure (if present) - add/remove mains/subitems and modes
-        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
-          const purchasedList = document.getElementById('purchasedList');
+        if (cfg.globalUnits) {
+          saveGlobalUnits(cfg.globalUnits);
+          renderUnitList();
+          rebuildAllUnitSelects();
+        }
 
-          // helper: find row for main id
-          function findItemRowByMainId(mainId) {
-            return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
-              const cb = row.querySelector('input[type="checkbox"]');
-              return cb && cb.id === mainId;
-            });
-          }
+        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
+          saveCustomVendors(cfg.purchasedFromCustom.items);
+          rebuildVendorSelect();
+          renderVendorList();
+        }
+
+        if (!cfg.structure) return;
+
+        // Rebuild structure
+        const purchasedList = document.getElementById('purchasedList');
+
+        function findItemRowByMainId(mainId) {
+          const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
+          return allRows.find(row => {
+            const cb = row.querySelector('input[type="checkbox"]');
+            return cb && cb.id === mainId;
+          });
+        }
 
         function createMainItem(main) {
           const row = document.createElement('div');
@@ -4728,6 +4771,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
