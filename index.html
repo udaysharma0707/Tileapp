@@ -2501,6 +2501,15 @@ if (originalMobileSubmitFunction) {
       setupMainToSubBindings();
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
 
+       // --- NEW: apply purchasedFrom custom data if present ---
+        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
+          applyPurchasedFromConfig(cfg.purchasedFromCustom.items, cfg.purchasedFromCustom.selected || '');
+        }
+      } // end applyConfig
+
+      // expose helper for debugging
+      window.getCurrentCustomization = function(){ return buildConfigObject(); };
+
       // Add subitem functionality
       if (addSubBtn) {
         addSubBtn.addEventListener('click', function() {
@@ -4875,6 +4884,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
