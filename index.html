@@ -2857,7 +2857,7 @@ if (originalMobileSubmitFunction) {
         }
 
         // 2) structure (if present) - add/remove mains/subitems and modes
-        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
+        if (!cfg.structure) return;
          
 
 
@@ -4792,6 +4792,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
