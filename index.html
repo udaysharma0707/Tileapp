@@ -4016,67 +4016,85 @@ class SubItemSearch {
     return document.getElementById('unitcustom' + suffix);
   }
   
-  setupMutationObserver() {
-    if (!window.MutationObserver) return;
+ setupMutationObserver() {
+  if (!window.MutationObserver) return;
+  
+  this.mutationObserver = new MutationObserver((mutations) => {
+    let shouldReindex = false;
     
-    this.mutationObserver = new MutationObserver((mutations) => {
-      let shouldReindex = false;
-      
-      mutations.forEach(mutation => {
-        // Check for added/removed sub-items
-        if (mutation.type === 'childList') {
-          const hasSubItems = Array.from(mutation.addedNodes).some(node => 
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-          );
-          const removedSubItems = Array.from(mutation.removedNodes).some(node => 
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-          );
-          
-          if (hasSubItems || removedSubItems) {
-            shouldReindex = true;
-          }
+    mutations.forEach(mutation => {
+      // Check for added/removed sub-items
+      if (mutation.type === 'childList') {
+        const hasSubItems = Array.from(mutation.addedNodes).some(node => 
+          node.nodeType === Node.ELEMENT_NODE && 
+          (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+        );
+        const removedSubItems = Array.from(mutation.removedNodes).some(node => 
+          node.nodeType === Node.ELEMENT_NODE && 
+          (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+        );
+        
+        if (hasSubItems || removedSubItems) {
+          shouldReindex = true;
         }
-      });
+      }
       
-      if (shouldReindex) {
-        this.debouncedReindex();
-        this.announceChange('Items updated');
+      // Check for text changes in editable elements
+      if (mutation.type === 'childList' || mutation.type === 'characterData') {
+        const target = mutation.target;
+        if (target && (target.classList.contains('editable') || target.closest('.editable'))) {
+          shouldReindex = true;
+        }
       }
     });
     
-    // Observe the purchased list for changes
-    const purchasedList = document.getElementById('purchasedList');
-    if (purchasedList) {
-      this.mutationObserver.observe(purchasedList, {
-        childList: true,
-        subtree: true
-      });
+    if (shouldReindex) {
+      this.debouncedReindex();
+      this.announceChange('Items updated');
     }
+  });
+  
+  // Observe the purchased list for changes with more comprehensive options
+  const purchasedList = document.getElementById('purchasedList');
+  if (purchasedList) {
+    this.mutationObserver.observe(purchasedList, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      characterDataOldValue: true
+    });
   }
   
-  setupEditableListeners() {
-    // Listen for changes to editable labels
-    document.addEventListener('blur', (e) => {
+  // Also observe the entire document for customization changes
+  this.mutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+}
+
+// Enhanced editable listener setup
+setupEditableListeners() {
+  // Listen for changes to editable labels with more event types
+  const events = ['blur', 'input', 'focusout', 'DOMSubtreeModified'];
+  
+  events.forEach(eventType => {
+    document.addEventListener(eventType, (e) => {
       if (e.target.classList.contains('editable')) {
+        console.log('Editable changed:', e.target.textContent);
         this.debouncedReindex();
       }
     }, true);
-    
-    document.addEventListener('input', (e) => {
-      if (e.target.classList.contains('editable')) {
-        this.debouncedReindex();
-      }
-    }, true);
-  }
+  });
   
-  debouncedReindex() {
-    clearTimeout(this.reindexTimeout);
-    this.reindexTimeout = setTimeout(() => {
-      this.cacheSubItems();
-    }, 300);
-  }
+  // Also listen for direct content changes
+  document.addEventListener('keyup', (e) => {
+    if (e.target.classList.contains('editable')) {
+      this.debouncedReindex();
+    }
+  });
+}
+
   
   bindEvents() {
     if (!this.searchInput) return;
@@ -4737,6 +4755,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
