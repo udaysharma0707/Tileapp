@@ -2858,18 +2858,10 @@ if (originalMobileSubmitFunction) {
 
         // 2) structure (if present) - add/remove mains/subitems and modes
         if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
-          const purchasedList = document.getElementById('purchasedList');
-
-          // helper: find row for main id
-          function findItemRowByMainId(mainId) {
-            return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
-              const cb = row.querySelector('input[type="checkbox"]');
-              return cb && cb.id === mainId;
-            });
-          }
+         
 
 
-        if (!cfg.structure) return;
+       
 
         // Rebuild structure
         const purchasedList = document.getElementById('purchasedList');
@@ -4800,6 +4792,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
