@@ -3066,6 +3066,8 @@ function buildConfigObject() {
       // Save server
       saveServerBtn.addEventListener('click', async function() {
         const cfg = buildConfigObject();
+        localStorage.setItem('lastConfig_v1', JSON.stringify(cfg));   // ① cache copy
+
         
         try {
           saveServerBtn.disabled = true;
@@ -3091,12 +3093,16 @@ function buildConfigObject() {
           }
           
         } catch (error) {
-          console.error('Save error:', error);
-          alert('Failed to save configuration: ' + error.message);
-        } finally {
-          saveServerBtn.disabled = false;
-          saveServerBtn.textContent = 'Save (server)';
-        }
+  console.error('Save error', error);
+  alert('Failed to save configuration: ' + error.message);
+  // ② Load from cache when server save fails
+  const cached = localStorage.getItem('lastConfig_v1');
+  if (cached) applyConfigObject(JSON.parse(cached));
+} finally {
+  saveServerBtn.disabled = false;
+  saveServerBtn.textContent = 'Save server';
+}
+
       });
 
       const purchasedFromSelect = document.getElementById('purchasedFromSelect');
@@ -3278,12 +3284,20 @@ function buildConfigObject() {
             console.log('Configuration loaded from server');
           }
         } catch (error) {
-          console.log('Could not load server config (using defaults):', error.message);
-        }
+  console.log('Could not load server config – using local cache', error.message);
+  // ③ Try cache when first page load fails
+  const cached = localStorage.getItem('lastConfig_v1');
+  if (cached) applyConfigObject(JSON.parse(cached));
+}
       }
 
       // Load config when page loads
       loadServerConfig();
+      if (!localStorage.getItem('lastConfig_v1')) {                  // ④ seed cache
+  localStorage.setItem('lastConfig_v1',
+    JSON.stringify(buildConfigObject()));
+}
+
     });
 
     // --- Network Status Management ---
@@ -4804,6 +4818,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
