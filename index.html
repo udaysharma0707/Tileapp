@@ -2884,6 +2884,9 @@ function buildConfigObject() {
             if (el) el.textContent = cfg.labels[key];
           });
         }
+          // 2) structure (if present) - add/remove mains/subitems and modes
+        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
+          const purchasedList = document.getElementById('purchasedList'); }
 
         if (cfg.globalUnits) {
           saveGlobalUnits(cfg.globalUnits);
@@ -4876,6 +4879,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
