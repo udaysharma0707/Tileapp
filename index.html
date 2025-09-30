@@ -2780,35 +2780,6 @@ if (originalMobileSubmitFunction) {
         }
       });
 
-      // On load: try to fetch saved config and apply
-      (async function tryLoadConfig(){
-        try {
-          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
-          const resp = await jsonpCall(url, 15000);
-          if (resp && resp.success && resp.config) {
-            applyConfig(resp.config);
-          } else {
-            // no config found or error; fallback to localStorage for purchasedFromCustom
-            try {
-              const local = localStorage.getItem('purchasedFromCustom');
-              if (local) {
-                const parsed = JSON.parse(local);
-                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
-              }
-            } catch(e){}
-          }
-        } catch (e) {
-          console.warn('Could not load config:', e);
-          // fallback to localStorage as above
-          try {
-            const local = localStorage.getItem('purchasedFromCustom');
-            if (local) {
-              const parsed = JSON.parse(local);
-              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
-            }
-          } catch(e){}
-        }
-      })();
 
       // apply config object (labels map + structure)
       function applyConfig(cfg) {
@@ -4757,6 +4728,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
