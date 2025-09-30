@@ -2670,16 +2670,20 @@ if (originalMobileSubmitFunction) {
         });
       }
 
-      // Config save/load functions
-      function buildConfigObject() {
-        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
+       // ----------------- Config object and save/load -----------------
 
+      // Build config object including structure (main items + subitems + payment modes)
+      function buildConfigObject() {
+        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] } };
+
+        // title + label map
         cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
         Array.from(document.querySelectorAll('.editable')).forEach(el => {
           const key = el.getAttribute('data-config-id') || el.id || null;
           if (key) cfg.labels[key] = el.textContent.trim();
         });
 
+        // main items + subitems structure
         const purchasedList = document.getElementById('purchasedList');
         if (purchasedList) {
           const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
@@ -2689,6 +2693,7 @@ if (originalMobileSubmitFunction) {
             const mainId = cb.id;
             const labelEl = row.querySelector('[data-config-id="' + mainId + '_label"]') || row.querySelector('#label_' + mainId) || row.querySelector('.editable');
             const labelText = labelEl ? (labelEl.textContent || "").trim() : (cb.value || "");
+            // detect sublist id (convention or sibling)
             let sublistId = null;
             const suffixParts = mainId.split('_');
             const suffix = suffixParts.length > 1 ? suffixParts.slice(1).join('_') : mainId;
@@ -2718,6 +2723,7 @@ if (originalMobileSubmitFunction) {
           });
         }
 
+        // payment modes structure
         const modesContainer = document.getElementById('modes');
         if (modesContainer) {
           const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
@@ -2734,6 +2740,7 @@ if (originalMobileSubmitFunction) {
           });
         }
 
+        // --- NEW: Purchased-from custom vendors capture ---
         try {
           const sel = document.getElementById('purchasedFromSelect');
           const txt = document.getElementById('purchasedFrom');
@@ -2747,51 +2754,96 @@ if (originalMobileSubmitFunction) {
           }
           const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
           cfg.purchasedFromCustom = { items: items, selected: selectedValue };
-        } catch(e){}
+        } catch(e){ /* ignore */ }
 
         return cfg;
       }
-     
 
-      function applyConfigObject(cfg) {
+      // Save server: send config including structure via JSONP action=saveConfig
+      saveServerBtn.addEventListener('click', async function(){
+        // finish any inline editing first
+        endEditingSession();
+        const cfg = buildConfigObject();
+        const cfgStr = JSON.stringify(cfg);
+        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
+        try {
+          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
+          const resp = await jsonpCall(url, 20000);
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+          if (resp && resp.success) {
+            alert('Customization saved on server.');
+            setCustomizeMode(false);
+            // also persist locally (so dropdown updates instantly survive reloads before server sync)
+            try { localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom || {})); } catch(e){}
+          } else {
+            console.error('save resp', resp);
+            alert('Save failed. Server returned error. Check console.');
+          }
+        } catch (err) {
+          console.error('save err', err);
+          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+        }
+      });
+
+      // On load: try to fetch saved config and apply
+      (async function tryLoadConfig(){
+        try {
+          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const resp = await jsonpCall(url, 15000);
+          if (resp && resp.success && resp.config) {
+            applyConfig(resp.config);
+          } else {
+            // no config found or error; fallback to localStorage for purchasedFromCustom
+            try {
+              const local = localStorage.getItem('purchasedFromCustom');
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+              }
+            } catch(e){}
+          }
+        } catch (e) {
+          console.warn('Could not load config:', e);
+          // fallback to localStorage as above
+          try {
+            const local = localStorage.getItem('purchasedFromCustom');
+            if (local) {
+              const parsed = JSON.parse(local);
+              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+            }
+          } catch(e){}
+        }
+      })();
+
+      // apply config object (labels map + structure)
+      function applyConfig(cfg) {
         if (!cfg) return;
 
+        // 1) labels/title
         if (cfg.title) {
-          const titleEl = document.getElementById('appTitle');
-          if (titleEl) titleEl.textContent = cfg.title;
+          const t = document.getElementById('appTitle');
+          if (t) t.textContent = cfg.title;
         }
-
         if (cfg.labels) {
           Object.keys(cfg.labels).forEach(key => {
-            const el = document.querySelector('[data-config-id="' + key + '"]') || document.getElementById(key);
+            const sel = '[data-config-id="' + key + '"]';
+            const el = document.querySelector(sel) || document.getElementById(key);
             if (el) el.textContent = cfg.labels[key];
           });
         }
 
-        if (cfg.globalUnits) {
-          saveGlobalUnits(cfg.globalUnits);
-          renderUnitList();
-          rebuildAllUnitSelects();
-        }
+        // 2) structure (if present) - add/remove mains/subitems and modes
+        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
+          const purchasedList = document.getElementById('purchasedList');
 
-        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
-          saveCustomVendors(cfg.purchasedFromCustom.items);
-          rebuildVendorSelect();
-          renderVendorList();
-        }
-
-        if (!cfg.structure) return;
-
-        // Rebuild structure
-        const purchasedList = document.getElementById('purchasedList');
-
-        function findItemRowByMainId(mainId) {
-          const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
-          return allRows.find(row => {
-            const cb = row.querySelector('input[type="checkbox"]');
-            return cb && cb.id === mainId;
-          });
-        }
+          // helper: find row for main id
+          function findItemRowByMainId(mainId) {
+            return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
+              const cb = row.querySelector('input[type="checkbox"]');
+              return cb && cb.id === mainId;
+            });
+          }
 
         function createMainItem(main) {
           const row = document.createElement('div');
@@ -4745,6 +4797,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
