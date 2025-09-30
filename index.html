@@ -2670,401 +2670,128 @@ if (originalMobileSubmitFunction) {
         });
       }
 
-function buildConfigObject() {
-  const cfg = { 
-    title: '', 
-    labels: {}, 
-    structure: { mainItems: [], modes: [] }, 
-    globalUnits: loadGlobalUnits(),
-    customSubItems: [] // NEW: Track custom sub-items
-  };
-  
-  cfg.title = document.getElementById('appTitle')?.textContent?.trim() || '';
+      // Config save/load functions
+      function buildConfigObject() {
+        const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
 
-  
-  // Save all label changes
-  Array.from(document.querySelectorAll('.editable')).forEach(el => {
-    const key = el.getAttribute('data-config-id') || el.id || null;
-    if (key) {
-      cfg.labels[key] = el.textContent.trim();
-    }
-  });
-  
-  // Save main items structure
-  const purchasedList = document.getElementById('purchasedList');
-  if (purchasedList) {
-    const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
-    itemRows.forEach(row => {
-      const cb = row.querySelector('input[type="checkbox"]');
-      if (!cb || !cb.id) return;
-      
-      const mainId = cb.id;
-      const labelEl = row.querySelector(`[data-config-id="${mainId}label"]`) || 
-                     row.querySelector(`#label${mainId}`) || 
-                     row.querySelector('.editable');
-      const labelText = labelEl ? labelEl.textContent.trim() : cb.value;
-      
-      let sublistId = null;
-      const suffixParts = mainId.split('');
-      const suffix = suffixParts.length > 1 ? suffixParts.slice(1).join('') : mainId;
-      const candidateId = `sublist${suffix}`;
-      if (document.getElementById(candidateId)) {
-        sublistId = candidateId;
-      } else {
-        const next = row.nextElementSibling;
-        if (next && next.classList && next.classList.contains('sublist')) {
-          sublistId = next.id || null;
-        }
-      }
-      
-      const mainObj = { id: mainId, label: labelText, sublistId: sublistId, subitems: [] };
-      
-      // Collect sub-items (including custom ones)
-      if (mainObj.sublistId) {
-        const sl = document.getElementById(mainObj.sublistId);
-        if (sl) {
-          const subs = Array.from(sl.querySelectorAll('.sub-item'));
-          subs.forEach(si => {
-            const subCb = si.querySelector('input[type="checkbox"].subitem') || 
-                         si.querySelector('input[type="checkbox"]');
-            if (!subCb || !subCb.id) return;
-            
-            const subId = subCb.id;
-            const lab = si.querySelector(`[data-config-id="${subId}label"]`) || 
-                       si.querySelector(`#label${subId}`) || 
-                       si.querySelector('.editable');
-            const subLabel = lab ? lab.textContent.trim() : subCb.value;
-            
-            const subItem = { id: subId, label: subLabel };
-            
-            // Mark as custom if it has data-generated attribute
-            if (si.hasAttribute('data-generated') || si.dataset.generated === 'true') {
-              subItem.isCustom = true;
-              cfg.customSubItems.push({
-                id: subId,
-                label: subLabel,
-                parentId: mainId,
-                parentSublistId: mainObj.sublistId
-              });
+        cfg.title = (document.getElementById('appTitle')||{textContent:''}).textContent.trim();
+        Array.from(document.querySelectorAll('.editable')).forEach(el => {
+          const key = el.getAttribute('data-config-id') || el.id || null;
+          if (key) cfg.labels[key] = el.textContent.trim();
+        });
+
+        const purchasedList = document.getElementById('purchasedList');
+        if (purchasedList) {
+          const itemRows = Array.from(purchasedList.querySelectorAll('.item-row'));
+          itemRows.forEach(row => {
+            const cb = row.querySelector('input[type="checkbox"]');
+            if (!cb || !cb.id) return;
+            const mainId = cb.id;
+            const labelEl = row.querySelector('[data-config-id="' + mainId + '_label"]') || row.querySelector('#label_' + mainId) || row.querySelector('.editable');
+            const labelText = labelEl ? (labelEl.textContent || "").trim() : (cb.value || "");
+            let sublistId = null;
+            const suffixParts = mainId.split('_');
+            const suffix = suffixParts.length > 1 ? suffixParts.slice(1).join('_') : mainId;
+            const candidateId = 'sublist_' + suffix;
+            if (document.getElementById(candidateId)) sublistId = candidateId;
+            else {
+              const next = row.nextElementSibling;
+              if (next && next.classList && next.classList.contains('sublist')) sublistId = next.id || null;
             }
-            
-            mainObj.subitems.push(subItem);
+
+            const mainObj = { id: mainId, label: labelText, sublistId: sublistId, subitems: [] };
+            if (mainObj.sublistId) {
+              const sl = document.getElementById(mainObj.sublistId);
+              if (sl) {
+                const subs = Array.from(sl.querySelectorAll('.sub-item'));
+                subs.forEach(si => {
+                  const subCb = si.querySelector('input[type="checkbox"].subitem') || si.querySelector('input[type="checkbox"]');
+                  if (!subCb || !subCb.id) return;
+                  const subId = subCb.id;
+                  const lab = si.querySelector('[data-config-id="' + subId + '_label"]') || si.querySelector('#label_' + subId) || si.querySelector('.editable');
+                  const subLabel = lab ? (lab.textContent || "").trim() : (subCb.value || "");
+                  mainObj.subitems.push({ id: subId, label: subLabel });
+                });
+              }
+            }
+            cfg.structure.mainItems.push(mainObj);
           });
         }
-      }
-      
-      cfg.structure.mainItems.push(mainObj);
-    });
-  }
-  
-  // Save payment modes structure
-  const modesContainer = document.getElementById('modes');
-  if (modesContainer) {
-    const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
-    modeRows.forEach(mr => {
-      const cb = mr.querySelector('input[type="checkbox"], input[type="radio"]');
-      if (!cb) return;
-      
-      const id = cb.id || `mode${Math.random().toString(36).slice(2,8)}`;
-      const lab = mr.querySelector(`[data-config-id="${id}label"]`) || 
-                  mr.querySelector(`#label${id}`) || 
-                  mr.querySelector('.editable');
-      const labelText = lab ? lab.textContent.trim() : cb.value;
-      const amt = mr.querySelector('input[type="number"].mode-amount');
-      const amountInputId = amt ? amt.id : null;
-      const amountAttrName = amt ? amt.getAttribute('data-mode-amount') : null;
-      
-      cfg.structure.modes.push({
-        id: id, 
-        label: labelText, 
-        amountInputId: amountInputId, 
-        amountAttrName: amountAttrName
-      });
-    });
-  }
-  
-  // Save custom vendor info
-  try {
-    const sel = document.getElementById('purchasedFromSelect');
-    const txt = document.getElementById('purchasedFrom');
-    const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
-    const items = [];
-    if (sel && sel.options) {
-      for (let i=0; i<sel.options.length; i++) {
-        const o = sel.options[i];
-        if (fixed.indexOf(o.value) === -1) {
-          items.push(o.value);
+
+        const modesContainer = document.getElementById('modes');
+        if (modesContainer) {
+          const modeRows = Array.from(modesContainer.querySelectorAll('.mode-row'));
+          modeRows.forEach(mr => {
+            const cb = mr.querySelector('input[type="checkbox"], input[type="radio"]');
+            if (!cb) return;
+            const id = cb.id || ('mode_' + Math.random().toString(36).slice(2,8));
+            const lab = mr.querySelector('[data-config-id="' + id + '_label"]') || mr.querySelector('#label_' + id) || mr.querySelector('.editable');
+            const labelText = lab ? (lab.textContent || "").trim() : (cb.value || "");
+            const amt = mr.querySelector('input[type="number"].mode-amount');
+            const amountInputId = amt ? (amt.id || null) : null;
+            const amountAttrName = amt ? (amt.getAttribute('data-mode-amount') || "") : "";
+            cfg.structure.modes.push({ id: id, label: labelText, amountInputId: amountInputId, amountAttrName: amountAttrName });
+          });
         }
-      }
-    }
-    const selectedValue = sel ? (sel.value === 'Other' ? (txt ? txt.value : '') : sel.value) : '';
-    cfg.purchasedFromCustom = { items: items, selected: selectedValue };
-  } catch(e) {}
-  
-  return cfg;
-}
 
-
-     function applyConfigObject(cfg) {
-  if (!cfg) return;
-  
-  console.log('Applying configuration:', cfg);
-  
-  // Apply title
-  if (cfg.title) {
-    const titleEl = document.getElementById('appTitle');
-    if (titleEl) titleEl.textContent = cfg.title;
-  }
-  
-  // Apply label changes
-  if (cfg.labels) {
-    Object.keys(cfg.labels).forEach(key => {
-      const el = document.querySelector(`[data-config-id="${key}"]`) || document.getElementById(key);
-      if (el) {
-        el.textContent = cfg.labels[key];
-      }
-    });
-  }
-  
-  // Apply global units
-  if (cfg.globalUnits) {
-    saveGlobalUnits(cfg.globalUnits);
-    renderUnitList();
-    rebuildAllUnitSelects();
-  }
-  
-  // Apply custom vendors
-  if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
-    saveCustomVendors(cfg.purchasedFromCustom.items);
-    rebuildVendorSelect();
-    renderVendorList();
-  }
-  
-  if (!cfg.structure) return;
-  
-  // Apply custom sub-items FIRST
-  if (cfg.customSubItems) {
-    console.log('Restoring custom sub-items:', cfg.customSubItems);
-    cfg.customSubItems.forEach(customSub => {
-      const parentSublist = document.getElementById(customSub.parentSublistId);
-      const existingSubitem = document.getElementById(customSub.id);
-      
-      if (parentSublist && !existingSubitem) {
-        console.log('Creating custom sub-item:', customSub.label);
-        createCustomSubItem(customSub.id, customSub.label, parentSublist);
-      }
-    });
-    
-    // Re-bind handlers after adding custom sub-items
-    bindSubitemHandlers();
-    setupMainToSubBindings();
-    
-    // Refresh search index
-    if (window.subItemSearch) {
-      window.subItemSearch.cacheSubItems();
-    }
-  }
-  
-  // Apply main items structure
-  if (cfg.structure.mainItems) {
-    cfg.structure.mainItems.forEach(main => {
-      const existing = findItemRowByMainId(main.id);
-      if (!existing) {
-        createMainItem(main);
-      }
-      
-      const sl = ensureSublist(main);
-      if (main.subitems) {
-        main.subitems.forEach(sub => {
-          const existingSubitem = document.getElementById(sub.id);
-          if (!existingSubitem && !sub.isCustom) {
-            // Only create non-custom sub-items here (custom ones were created above)
-            const suffix = sub.id.slice(4);
-            const qtyId = `q${sub.id.slice(3)}`;
-            
-            const subDiv = document.createElement('div');
-            subDiv.className = 'sub-item';
-            if (sub.isCustom) {
-              subDiv.setAttribute('data-generated', 'true');
+        try {
+          const sel = document.getElementById('purchasedFromSelect');
+          const txt = document.getElementById('purchasedFrom');
+          const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
+          const items = [];
+          if (sel && sel.options) {
+            for (let i=0;i<sel.options.length;i++){
+              const o = sel.options[i];
+              if (fixed.indexOf(o.value) === -1) items.push(o.value);
             }
-            
-            const labelEl = document.createElement('label');
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.className = 'subitem';
-            cb.id = sub.id;
-            cb.value = sub.label;
-            
-            const span = document.createElement('span');
-            span.className = 'editable';
-            span.setAttribute('data-config-id', `${sub.id}label`);
-            span.id = `label${sub.id}`;
-            span.textContent = sub.label;
-            
-            const delBtn = document.createElement('button');
-            delBtn.className = 'del-btn';
-            delBtn.type = 'button';
-            delBtn.title = 'Remove sub-item';
-            delBtn.setAttribute('aria-label', 'Remove');
-            delBtn.textContent = '×';
-            
-            labelEl.appendChild(cb);
-            labelEl.appendChild(span);
-            labelEl.appendChild(delBtn);
-            
-            const qtyUnitDiv = document.createElement('div');
-            qtyUnitDiv.className = 'qty-unit';
-            
-            const qty = document.createElement('input');
-            qty.type = 'number';
-            qty.min = 0;
-            qty.step = 1;
-            qty.placeholder = 'Quantity';
-            qty.className = 'subqty qty';
-            qty.id = qtyId;
-            qty.disabled = true;
-            
-            const unitSel = document.createElement('select');
-            unitSel.id = `unit${suffix}`;
-            unitSel.className = 'unit-select';
-            unitSel.disabled = true;
-            
-            const defaultUnits = ['Boxes','Pieces','Kg'];
-            defaultUnits.forEach(unit => {
-              const o = document.createElement('option');
-              o.value = unit;
-              o.textContent = unit;
-              unitSel.appendChild(o);
-            });
-            
-            const globalUnits = loadGlobalUnits();
-            globalUnits.forEach(unit => {
-              const o = document.createElement('option');
-              o.value = unit;
-              o.textContent = unit;
-              unitSel.appendChild(o);
-            });
-            
-            const unitCustom = document.createElement('input');
-            unitCustom.type = 'text';
-            unitCustom.id = `unitcustom${suffix}`;
-            unitCustom.className = 'unit-custom';
-            unitCustom.placeholder = 'Custom unit';
-            unitCustom.style.display = 'none';
-            unitCustom.disabled = true;
-            
-            qtyUnitDiv.appendChild(qty);
-            qtyUnitDiv.appendChild(unitSel);
-            qtyUnitDiv.appendChild(unitCustom);
-            
-            subDiv.appendChild(labelEl);
-            subDiv.appendChild(qtyUnitDiv);
-            
-            sl.appendChild(subDiv);
-            registerEditable(span);
           }
-        });
+          const selectedValue = (sel && sel.value === 'Other') ? (txt ? txt.value : '') : (sel ? sel.value : '');
+          cfg.purchasedFromCustom = { items: items, selected: selectedValue };
+        } catch(e){}
+
+        return cfg;
       }
-    });
-  }
-  
-  // Apply payment modes
-  if (cfg.structure.modes) {
-    const modesContainer = document.getElementById('modes');
-    cfg.structure.modes.forEach(mode => {
-      const existing = document.getElementById(mode.id);
-      if (existing) return;
-      
-      const modeDiv = document.createElement('div');
-      modeDiv.className = 'mode-row';
-      modeDiv.setAttribute('data-generated', 'true');
-      
-      const labelEl = document.createElement('label');
-      labelEl.className = 'mode-label';
-      
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.name = 'modeOfPayment';
-      cb.value = mode.label;
-      cb.id = mode.id;
-      
-      const span = document.createElement('span');
-      span.className = 'editable';
-      span.setAttribute('data-config-id', `${mode.id}label`);
-      span.id = `label${mode.id}`;
-      span.textContent = mode.label;
-      
-      const delBtn = document.createElement('button');
-      delBtn.className = 'del-btn';
-      delBtn.type = 'button';
-      delBtn.title = 'Remove mode';
-      delBtn.setAttribute('aria-label', 'Remove');
-      delBtn.textContent = '×';
-      
-      labelEl.appendChild(cb);
-      labelEl.appendChild(span);
-      labelEl.appendChild(delBtn);
-      
-      const amt = document.createElement('input');
-      amt.type = 'number';
-      amt.min = 0;
-      amt.step = 0.01;
-      amt.placeholder = `${mode.label} Rs.`;
-      amt.className = 'mode-amount';
-      amt.id = mode.amountInputId || `amt${mode.id}`;
-      amt.disabled = true;
-      amt.setAttribute('data-mode-amount', mode.amountAttrName || mode.label);
-      
-      modeDiv.appendChild(labelEl);
-      modeDiv.appendChild(amt);
-      
-      modesContainer.appendChild(modeDiv);
-      registerEditable(span);
-      bindModeToggle(cb);
-    });
-  }
-  
-   // Re-bind all handlers after applying configuration
-  setTimeout(() => {
-    initializeAppAfterConfig();
-  }, 100);
-  
-  console.log('Configuration applied successfully');
-}
+     
 
-// Call this after loading configuration to ensure everything works
-function initializeAppAfterConfig() {
-  try {
-    // Re-bind all event handlers
-    bindSubitemHandlers();
-    setupMainToSubBindings();
-    
-    // Bind mode toggles
-    document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
-    
-    // Bind gear icon
-    const gearIcon = document.querySelector('.gear');
-    if (gearIcon && !gearIcon.hasAttribute('data-bound')) {
-      gearIcon.addEventListener('click', openCustomizationPanel);
-      gearIcon.setAttribute('data-bound', 'true');
-    }
-    
-    // Re-register all editable elements
-    document.querySelectorAll('.editable').forEach(registerEditable);
-    
-    // Refresh search if active
-    if (window.subItemSearch) {
-      setTimeout(() => {
-        window.subItemSearch.cacheSubItems();
-      }, 100);
-    }
-    
-    console.log('App initialization completed');
-  } catch (error) {
-    console.error('Error during app initialization:', error);
-  }
-}
+      function applyConfigObject(cfg) {
+        if (!cfg) return;
 
+        if (cfg.title) {
+          const titleEl = document.getElementById('appTitle');
+          if (titleEl) titleEl.textContent = cfg.title;
+        }
+
+        if (cfg.labels) {
+          Object.keys(cfg.labels).forEach(key => {
+            const el = document.querySelector('[data-config-id="' + key + '"]') || document.getElementById(key);
+            if (el) el.textContent = cfg.labels[key];
+          });
+        }
+
+        if (cfg.globalUnits) {
+          saveGlobalUnits(cfg.globalUnits);
+          renderUnitList();
+          rebuildAllUnitSelects();
+        }
+
+        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
+          saveCustomVendors(cfg.purchasedFromCustom.items);
+          rebuildVendorSelect();
+          renderVendorList();
+        }
+
+        if (!cfg.structure) return;
+
+        // Rebuild structure
+        const purchasedList = document.getElementById('purchasedList');
+
+        function findItemRowByMainId(mainId) {
+          const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
+          return allRows.find(row => {
+            const cb = row.querySelector('input[type="checkbox"]');
+            return cb && cb.id === mainId;
+          });
+        }
 
         function createMainItem(main) {
           const row = document.createElement('div');
@@ -3100,102 +2827,6 @@ function initializeAppAfterConfig() {
           registerEditable(span);
           return row;
         }
-
-      /// Helper function to create custom sub-items from saved config
-function createCustomSubItem(subId, subLabel, parentSublist) {
-  const suffix = subId.slice(4); // Remove 'sub' prefix
-  const qtyId = `q${subId.slice(3)}`;
-  
-  const subDiv = document.createElement('div');
-  subDiv.className = 'sub-item';
-  subDiv.setAttribute('data-generated', 'true'); // Mark as custom
-  
-  const labelEl = document.createElement('label');
-  const cb = document.createElement('input');
-  cb.type = 'checkbox';
-  cb.className = 'subitem';
-  cb.id = subId;
-  cb.value = subLabel;
-  
-  const span = document.createElement('span');
-  span.className = 'editable';
-  span.setAttribute('data-config-id', `${subId}label`);
-  span.id = `label${subId}`;
-  span.textContent = subLabel;
-  
-  const delBtn = document.createElement('button');
-  delBtn.className = 'del-btn';
-  delBtn.type = 'button';
-  delBtn.title = 'Remove sub-item';
-  delBtn.setAttribute('aria-label', 'Remove');
-  delBtn.textContent = '×';
-  
-  labelEl.appendChild(cb);
-  labelEl.appendChild(span);
-  labelEl.appendChild(delBtn);
-  
-  const qtyUnitDiv = document.createElement('div');
-  qtyUnitDiv.className = 'qty-unit';
-  
-  const qty = document.createElement('input');
-  qty.type = 'number';
-  qty.min = 0;
-  qty.step = 1;
-  qty.placeholder = 'Quantity';
-  qty.className = 'subqty qty';
-  qty.id = qtyId;
-  qty.disabled = true;
-  
-  const unitSel = document.createElement('select');
-  unitSel.id = `unit${suffix}`;
-  unitSel.className = 'unit-select';
-  unitSel.disabled = true;
-  
-  // Add default units
-  const defaultUnits = ['Boxes','Pieces','Kg'];
-  defaultUnits.forEach(unit => {
-    const o = document.createElement('option');
-    o.value = unit;
-    o.textContent = unit;
-    unitSel.appendChild(o);
-  });
-  
-  // Add global units
-  const globalUnits = loadGlobalUnits();
-  globalUnits.forEach(unit => {
-    const o = document.createElement('option');
-    o.value = unit;
-    o.textContent = unit;
-    unitSel.appendChild(o);
-  });
-  
-  // Add Custom option
-  const customOption = document.createElement('option');
-  customOption.value = 'Custom';
-  customOption.textContent = 'Custom';
-  unitSel.appendChild(customOption);
-  
-  const unitCustom = document.createElement('input');
-  unitCustom.type = 'text';
-  unitCustom.id = `unitcustom${suffix}`;
-  unitCustom.className = 'unit-custom';
-  unitCustom.placeholder = 'Custom unit';
-  unitCustom.style.display = 'none';
-  unitCustom.disabled = true;
-  
-  qtyUnitDiv.appendChild(qty);
-  qtyUnitDiv.appendChild(unitSel);
-  qtyUnitDiv.appendChild(unitCustom);
-  
-  subDiv.appendChild(labelEl);
-  subDiv.appendChild(qtyUnitDiv);
-  
-  parentSublist.appendChild(subDiv);
-  registerEditable(span);
-  
-  console.log('Created custom sub-item:', subLabel, 'with ID:', subId);
-}
-
 
         function ensureSublist(main) {
           let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
@@ -5105,19 +4736,6 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
   };
 }
 
-    // Initialize the app when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded, initializing app...');
-  
-  // Load configuration first
-  loadConfigFromServer();
-  
-  // Initialize after a delay
-  setTimeout(() => {
-    initializeAppAfterConfig();
-  }, 200);
-});
-
 
 
 
@@ -5127,6 +4745,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
