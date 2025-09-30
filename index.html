@@ -341,7 +341,7 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* ===== SEARCH SYSTEM STYLES ===== */
+    /* ===== ENHANCED SEARCH SYSTEM STYLES ===== */
 .search-container {
   margin: 15px 0;
   border: 2px solid #e3f2fd;
@@ -432,12 +432,17 @@
 }
 
 .search-result-item {
+  display: flex;
+  align-items: center;
   padding: 0;
   margin: 0;
   cursor: pointer;
-  min-height: 44px; /* Mobile-friendly touch target */
-  display: flex;
-  align-items: center;
+  min-height: 56px; /* Mobile-friendly touch target */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
 }
 
 .search-result-item:hover {
@@ -453,6 +458,11 @@
   background: #e8f5e8;
 }
 
+.search-result-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .search-result-label {
   display: flex;
   align-items: center;
@@ -461,19 +471,78 @@
   width: 100%;
   margin: 0;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 32px;
   box-sizing: border-box;
 }
 
 .search-result-checkbox {
   transform: scale(1.3);
   margin: 0;
+  flex-shrink: 0;
 }
 
 .search-result-text {
   flex: 1;
   font-size: 15px;
   line-height: 1.4;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.search-result-controls {
+  flex-shrink: 0;
+  padding: 8px 16px 8px 8px;
+}
+
+.search-qty-unit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.search-qty-input {
+  width: 70px;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.search-qty-input:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.search-unit-select {
+  width: 85px;
+  padding: 8px 4px;
+  font-size: 13px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.search-unit-select:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.search-custom-unit {
+  width: 90px;
+  padding: 8px;
+  font-size: 13px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.search-custom-unit:disabled {
+  background: #f5f5f5;
+  color: #999;
 }
 
 .search-highlight {
@@ -578,8 +647,8 @@
   overflow: hidden !important;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 620px) {
+/* Mobile responsiveness - FOCUS ON MOBILE FRIENDLY */
+@media (max-width: 768px) {
   .search-container {
     margin: 10px 0;
     padding: 12px;
@@ -591,17 +660,70 @@
   }
   
   .search-result-item {
-    min-height: 48px; /* Larger for mobile */
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+  }
+  
+  .search-result-main {
+    width: 100%;
   }
   
   .search-result-label {
-    padding: 14px 12px;
-    min-height: 48px;
+    padding: 14px 12px 10px 12px;
+    min-height: 44px;
+  }
+  
+  .search-result-controls {
+    padding: 0 12px 14px 12px;
+    width: 100%;
+  }
+  
+  .search-qty-unit {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  
+  .search-qty-input {
+    width: 80px;
+    padding: 10px;
+    font-size: 16px; /* Prevent zoom */
+  }
+  
+  .search-unit-select {
+    width: 100px;
+    padding: 10px 8px;
+    font-size: 16px; /* Prevent zoom */
+  }
+  
+  .search-custom-unit {
+    width: 120px;
+    padding: 10px;
+    font-size: 16px; /* Prevent zoom */
   }
   
   .add-subitem-modal-content {
     margin: 20px;
     width: calc(100% - 40px);
+  }
+  
+  /* Larger touch targets for mobile */
+  .search-result-checkbox {
+    transform: scale(1.5);
+  }
+}
+
+@media (max-width: 480px) {
+  .search-qty-unit {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .search-qty-input,
+  .search-unit-select,
+  .search-custom-unit {
+    width: 100%;
   }
 }
 
@@ -3768,7 +3890,7 @@ function submitDirectMobileFriendlyBackground(data) {
   // Don't return a promise - this is fire-and-forget
 }
 
-    // ===== SUB-ITEM SEARCH SYSTEM =====
+    // ===== ENHANCED SUB-ITEM SEARCH SYSTEM WITH CUSTOMIZATION SUPPORT =====
 class SubItemSearch {
   constructor() {
     this.searchInput = null;
@@ -3776,8 +3898,10 @@ class SubItemSearch {
     this.originalPurchasedList = null;
     this.cachedSubItems = [];
     this.searchTimeout = null;
+    this.reindexTimeout = null;
     this.focusedIndex = -1;
     this.isSearchActive = false;
+    this.mutationObserver = null;
     
     this.init();
   }
@@ -3786,6 +3910,8 @@ class SubItemSearch {
     this.createSearchUI();
     this.cacheSubItems();
     this.bindEvents();
+    this.setupMutationObserver();
+    this.setupEditableListeners();
   }
   
   createSearchUI() {
@@ -3836,10 +3962,16 @@ class SubItemSearch {
           parentId: parentRow.querySelector('.purchased').id,
           parentLabel: parentLabel.textContent,
           qtyInput: this.getQtyInput(checkbox.id),
-          unitSelect: this.getUnitSelect(checkbox.id)
+          unitSelect: this.getUnitSelect(checkbox.id),
+          customUnitInput: this.getCustomUnitInput(checkbox.id)
         });
       }
     });
+    
+    // Update current search if active
+    if (this.isSearchActive && this.searchInput && this.searchInput.value.trim()) {
+      this.performSearch(this.searchInput.value);
+    }
   }
   
   getQtyInput(checkboxId) {
@@ -3850,6 +3982,73 @@ class SubItemSearch {
   getUnitSelect(checkboxId) {
     const suffix = checkboxId.slice(4); // Remove 'sub' prefix
     return document.getElementById('unit' + suffix);
+  }
+  
+  getCustomUnitInput(checkboxId) {
+    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
+    return document.getElementById('unitcustom' + suffix);
+  }
+  
+  setupMutationObserver() {
+    if (!window.MutationObserver) return;
+    
+    this.mutationObserver = new MutationObserver((mutations) => {
+      let shouldReindex = false;
+      
+      mutations.forEach(mutation => {
+        // Check for added/removed sub-items
+        if (mutation.type === 'childList') {
+          const hasSubItems = Array.from(mutation.addedNodes).some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+          );
+          const removedSubItems = Array.from(mutation.removedNodes).some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+          );
+          
+          if (hasSubItems || removedSubItems) {
+            shouldReindex = true;
+          }
+        }
+      });
+      
+      if (shouldReindex) {
+        this.debouncedReindex();
+        this.announceChange('Items updated');
+      }
+    });
+    
+    // Observe the purchased list for changes
+    const purchasedList = document.getElementById('purchasedList');
+    if (purchasedList) {
+      this.mutationObserver.observe(purchasedList, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
+  
+  setupEditableListeners() {
+    // Listen for changes to editable labels
+    document.addEventListener('blur', (e) => {
+      if (e.target.classList.contains('editable')) {
+        this.debouncedReindex();
+      }
+    }, true);
+    
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('editable')) {
+        this.debouncedReindex();
+      }
+    }, true);
+  }
+  
+  debouncedReindex() {
+    clearTimeout(this.reindexTimeout);
+    this.reindexTimeout = setTimeout(() => {
+      this.cacheSubItems();
+    }, 300);
   }
   
   bindEvents() {
@@ -3917,6 +4116,7 @@ class SubItemSearch {
     
     this.updateSearchCount(matches.length);
     this.bindResultEvents();
+    this.setupQtyUnitControls();
   }
   
   groupByParent(matches) {
@@ -3947,13 +4147,47 @@ class SubItemSearch {
       group.items.forEach((item, index) => {
         const highlighted = this.highlightMatch(item.labelEl.textContent, query);
         const isChecked = item.checkbox.checked ? 'checked' : '';
+        const isDisabled = !item.checkbox.checked ? 'disabled' : '';
+        const qtyValue = item.qtyInput ? item.qtyInput.value : '';
+        const unitValue = item.unitSelect ? item.unitSelect.value : 'Boxes';
+        const customUnitValue = item.customUnitInput ? item.customUnitInput.value : '';
+        const customUnitVisible = unitValue === 'Custom' ? 'style="display:block"' : 'style="display:none"';
+        
+        // Get current unit options
+        const unitOptions = this.getUnitOptions(item.unitSelect);
         
         html += `
           <div class="search-result-item" data-checkbox-id="${item.checkbox.id}">
-            <label class="search-result-label">
-              <input type="checkbox" class="search-result-checkbox" ${isChecked}>
-              <span class="search-result-text">${highlighted}</span>
-            </label>
+            <div class="search-result-main">
+              <label class="search-result-label">
+                <input type="checkbox" class="search-result-checkbox" ${isChecked}>
+                <span class="search-result-text">${highlighted}</span>
+              </label>
+            </div>
+            <div class="search-result-controls">
+              <div class="search-qty-unit">
+                <input type="number" 
+                       class="search-qty-input" 
+                       min="0" 
+                       step="1" 
+                       placeholder="Qty" 
+                       value="${qtyValue}"
+                       ${isDisabled}
+                       data-original-id="${item.qtyInput ? item.qtyInput.id : ''}">
+                <select class="search-unit-select" 
+                        ${isDisabled}
+                        data-original-id="${item.unitSelect ? item.unitSelect.id : ''}">
+                  ${unitOptions}
+                </select>
+                <input type="text" 
+                       class="search-custom-unit" 
+                       placeholder="Custom unit" 
+                       value="${customUnitValue}"
+                       ${customUnitVisible}
+                       ${isDisabled}
+                       data-original-id="${item.customUnitInput ? item.customUnitInput.id : ''}">
+              </div>
+            </div>
           </div>
         `;
       });
@@ -3963,6 +4197,120 @@ class SubItemSearch {
     
     html += '</div>';
     return html;
+  }
+  
+  getUnitOptions(originalSelect) {
+    if (!originalSelect) {
+      return `
+        <option value="Boxes">Boxes</option>
+        <option value="Pieces">Pieces</option>
+        <option value="Kg">Kg</option>
+        <option value="Custom">Custom</option>
+      `;
+    }
+    
+    let options = '';
+    Array.from(originalSelect.options).forEach(option => {
+      const selected = option.selected ? 'selected' : '';
+      options += `<option value="${option.value}" ${selected}>${option.text}</option>`;
+    });
+    
+    return options;
+  }
+  
+  setupQtyUnitControls() {
+    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+    
+    // Sync qty inputs
+    qtyInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+    
+    // Sync unit selects
+    unitSelects.forEach(select => {
+      select.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalSelect = document.getElementById(originalId);
+        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+        
+        if (originalSelect) {
+          originalSelect.value = e.target.value;
+          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          
+          // Handle custom unit visibility
+          if (e.target.value === 'Custom') {
+            customUnit.style.display = 'block';
+            customUnit.disabled = false;
+            // Focus custom unit on mobile after a brief delay
+            setTimeout(() => {
+              if (window.innerWidth <= 768) {
+                customUnit.focus();
+              }
+            }, 100);
+          } else {
+            customUnit.style.display = 'none';
+            customUnit.disabled = true;
+          }
+          
+          // Save unit preference
+          this.saveUnitPreference(originalId, e.target.value);
+        }
+      });
+    });
+    
+    // Sync custom unit inputs
+    customUnits.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+  
+  saveUnitPreference(originalId, unitValue) {
+    if (typeof saveUnitPref === 'function') {
+      saveUnitPref(originalId, unitValue);
+    } else {
+      // Fallback unit preference saving
+      try {
+        const prefs = JSON.parse(localStorage.getItem('unitPreferences') || '{}');
+        prefs[originalId] = unitValue;
+        localStorage.setItem('unitPreferences', JSON.stringify(prefs));
+      } catch (e) {
+        console.warn('Could not save unit preference:', e);
+      }
+    }
   }
   
   showNoResults(query) {
@@ -3985,14 +4333,16 @@ class SubItemSearch {
     const resultItems = this.searchResults.querySelectorAll('.search-result-item');
     
     resultItems.forEach((item, index) => {
-      // Click/touch events
-      item.addEventListener('click', (e) => {
+      const label = item.querySelector('.search-result-label');
+      
+      // Click/touch events on the label area
+      label.addEventListener('click', (e) => {
         e.preventDefault();
         this.toggleResult(item);
       });
       
       // Touch-friendly tap
-      item.addEventListener('touchend', (e) => {
+      label.addEventListener('touchend', (e) => {
         e.preventDefault();
         this.toggleResult(item);
       });
@@ -4015,6 +4365,9 @@ class SubItemSearch {
     const checkboxId = resultItem.dataset.checkboxId;
     const originalCheckbox = document.getElementById(checkboxId);
     const resultCheckbox = resultItem.querySelector('.search-result-checkbox');
+    const qtyInput = resultItem.querySelector('.search-qty-input');
+    const unitSelect = resultItem.querySelector('.search-unit-select');
+    const customUnit = resultItem.querySelector('.search-custom-unit');
     
     if (originalCheckbox && resultCheckbox) {
       // Toggle original checkbox
@@ -4024,12 +4377,26 @@ class SubItemSearch {
       // Trigger change event on original checkbox
       originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
       
+      // Update controls state
+      const isEnabled = originalCheckbox.checked;
+      if (qtyInput) qtyInput.disabled = !isEnabled;
+      if (unitSelect) unitSelect.disabled = !isEnabled;
+      if (customUnit && unitSelect.value !== 'Custom') customUnit.disabled = !isEnabled;
+      
       // Update visual feedback
       resultItem.classList.toggle('selected', originalCheckbox.checked);
       
       // If checked, ensure parent main category is visible/expanded
       if (originalCheckbox.checked) {
         this.ensureParentExpanded(checkboxId);
+        
+        // Focus qty input on mobile for better UX
+        if (window.innerWidth <= 768 && qtyInput && !qtyInput.disabled) {
+          setTimeout(() => {
+            qtyInput.focus();
+            qtyInput.select();
+          }, 150);
+        }
       }
     }
   }
@@ -4075,6 +4442,14 @@ class SubItemSearch {
         e.preventDefault();
         if (this.focusedIndex >= 0 && resultItems[this.focusedIndex]) {
           this.toggleResult(resultItems[this.focusedIndex]);
+          // Focus qty input after toggle
+          const qtyInput = resultItems[this.focusedIndex].querySelector('.search-qty-input');
+          if (qtyInput && !qtyInput.disabled) {
+            setTimeout(() => {
+              qtyInput.focus();
+              qtyInput.select();
+            }, 100);
+          }
         }
         break;
         
@@ -4112,7 +4487,7 @@ class SubItemSearch {
             <option value="floor">Floor Tiles</option>
             <option value="wall">Wall Tiles</option>
             <option value="san">Sanitaryware</option>
-            <option value="acc">extraparts</option>
+            <option value="acc">Accessories</option>
           </select>
           
           <label>Sub-item name:</label>
@@ -4180,6 +4555,8 @@ class SubItemSearch {
     // Create sub-item element
     const suffix = elementId.slice(3); // Remove 'sub' prefix
     const qtyId = `q${suffix}`;
+    const unitId = `unit${suffix}`;
+    const customUnitId = `unitcustom${suffix}`;
     
     const subDiv = document.createElement('div');
     subDiv.className = 'sub-item';
@@ -4193,12 +4570,13 @@ class SubItemSearch {
       </label>
       <div class="qty-unit">
         <input type="number" min="0" step="1" id="${qtyId}" class="subqty qty" placeholder="Quantity" disabled>
-        <select id="unit${suffix}" class="unit-select" disabled>
+        <select id="${unitId}" class="unit-select" disabled>
           <option value="Boxes">Boxes</option>
           <option value="Pieces">Pieces</option>
           <option value="Kg">Kg</option>
+          <option value="Custom">Custom</option>
         </select>
-        <input type="text" id="unitcustom${suffix}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
+        <input type="text" id="${customUnitId}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
       </div>
     `;
     
@@ -4220,9 +4598,9 @@ class SubItemSearch {
       newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
     
-    // Refresh cache and search
-    this.cacheSubItems();
-    this.performSearch(this.searchInput.value);
+    // Cache will be updated automatically by MutationObserver
+    // Announce the addition
+    this.announceChange(`New item added: ${trimmedLabel}`);
     
     // Show success message
     if (typeof showTempMessage === 'function') {
@@ -4250,11 +4628,16 @@ class SubItemSearch {
   announceResults(count) {
     // Screen reader announcement
     const announcement = `${count} result${count === 1 ? '' : 's'} found`;
+    this.announceChange(announcement);
+  }
+  
+  announceChange(message) {
+    // Screen reader announcement
     const srAnnounce = document.getElementById('sr-announce') || document.createElement('div');
     srAnnounce.id = 'sr-announce';
     srAnnounce.setAttribute('aria-live', 'polite');
     srAnnounce.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
-    srAnnounce.textContent = announcement;
+    srAnnounce.textContent = message;
     document.body.appendChild(srAnnounce);
   }
   
@@ -4275,12 +4658,21 @@ class SubItemSearch {
     return div.innerHTML;
   }
   
-  // Public method to refresh cache when items are added/removed
+  // Public methods for external integration
+  reindexSubItems() {
+    this.cacheSubItems();
+  }
+  
   refresh() {
     this.cacheSubItems();
-    if (this.isSearchActive && this.searchInput.value.trim()) {
-      this.performSearch(this.searchInput.value);
+  }
+  
+  destroy() {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
     }
+    clearTimeout(this.searchTimeout);
+    clearTimeout(this.reindexTimeout);
   }
 }
 
@@ -4289,6 +4681,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // Wait a bit for existing initialization to complete
   setTimeout(() => {
     window.subItemSearch = new SubItemSearch();
+    
+    // Expose public reindex function
+    window.reindexSubItems = function() {
+      if (window.subItemSearch) {
+        window.subItemSearch.reindexSubItems();
+      }
+    };
   }, 500);
 });
 
@@ -4311,6 +4710,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
