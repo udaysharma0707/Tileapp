@@ -489,14 +489,14 @@
   flex-shrink: 0;
 }
 
-/* SLIGHTLY WIDER QUANTITY INPUT */
+/* LARGER QUANTITY INPUT - MORE COMFORTABLE */
 .search-qty-input {
-  width: 50px !important; /* Increased from 40px */
-  height: 26px;
-  padding: 2px 4px; /* Slightly more padding */
-  font-size: 11px;
+  width: 65px !important; /* Increased from 50px */
+  height: 28px; /* Increased height */
+  padding: 3px 5px; /* More padding */
+  font-size: 12px; /* Larger font */
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: 4px;
   text-align: center;
   box-sizing: border-box;
   background: white;
@@ -510,25 +510,25 @@
 .search-qty-input:focus {
   outline: none;
   border-color: #2196F3;
-  box-shadow: 0 0 3px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
 }
 
-/* UNIT SELECT - KEEP SAME SIZE */
+/* UNIT SELECT - PROPORTIONAL SIZE */
 .search-unit-select {
-  width: 60px !important; /* Slightly increased too */
-  height: 26px;
-  padding: 1px 3px; /* Slightly more padding */
-  font-size: 10px;
+  width: 70px !important; /* Increased from 60px */
+  height: 28px; /* Match qty input height */
+  padding: 2px 4px;
+  font-size: 11px;
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: 4px;
   background: white;
   box-sizing: border-box;
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 2px center;
+  background-position: right 3px center;
   background-size: 12px;
-  padding-right: 18px; /* More space for dropdown arrow */
+  padding-right: 20px;
 }
 
 .search-unit-select:disabled {
@@ -539,17 +539,17 @@
 .search-unit-select:focus {
   outline: none;
   border-color: #2196F3;
-  box-shadow: 0 0 3px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
 }
 
-/* TINY CUSTOM UNIT INPUT */
+/* CUSTOM UNIT INPUT */
 .search-custom-unit {
-  width: 60px !important;
-  height: 26px;
-  padding: 2px 3px;
-  font-size: 10px;
+  width: 75px !important; /* Increased from 60px */
+  height: 28px; /* Match other inputs */
+  padding: 3px 5px;
+  font-size: 11px;
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: 4px;
   box-sizing: border-box;
   background: white;
 }
@@ -562,8 +562,9 @@
 .search-custom-unit:focus {
   outline: none;
   border-color: #2196F3;
-  box-shadow: 0 0 3px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
 }
+
 
 .search-highlight {
   background: #ffeb3b;
@@ -672,13 +673,13 @@
   overflow: hidden !important;
 }
 
-/* DESKTOP VERSION - SLIGHTLY LARGER */
+/* DESKTOP VERSION - EVEN LARGER */
 @media (min-width: 769px) {
   .search-qty-input {
-    width: 55px !important; /* Desktop: 55px */
-    height: 28px;
-    font-size: 12px;
-    padding: 2px 5px;
+    width: 75px !important; /* Desktop: 75px */
+    height: 30px;
+    font-size: 13px;
+    padding: 4px 6px;
   }
   
   .search-result-text {
@@ -691,26 +692,26 @@
     font-size: 12px;
   }
   
-   .search-unit-select {
-    width: 65px !important; /* Desktop: 65px */
-    height: 28px;
-    font-size: 11px;
-    padding: 1px 4px;
-    padding-right: 20px;
+  .search-unit-select {
+    width: 80px !important; /* Desktop: 80px */
+    height: 30px;
+    font-size: 12px;
+    padding: 3px 5px;
+    padding-right: 22px;
   }
-}
-  
-  .search-custom-unit {
-    width: 65px !important;
-    height: 28px;
-    font-size: 11px;
+  search-custom-unit {
+    width: 85px !important; /* Desktop: 85px */
+    height: 30px;
+    font-size: 12px;
+    padding: 4px 6px;
   }
 }
 
-/* MOBILE - ULTRA COMPACT */
+/* MOBILE - COMFORTABLE SIZE */
 @media (max-width: 768px) {
-  .search-input {
-    font-size: 16px; /* Prevent zoom on iOS */
+  .search-qty-input {
+    min-height: 32px; /* Touch-friendly */
+    font-size: 14px; /* Prevent zoom on iOS */
   }
   
   .search-result-item {
@@ -748,12 +749,14 @@
     width: 35px !important; /* Even smaller on tiny screens */
   }
   
-  .search-unit-select {
-    width: 50px !important;
+ .search-unit-select {
+    min-height: 32px;
+    font-size: 14px;
   }
   
   .search-custom-unit {
-    width: 55px !important;
+    min-height: 32px;
+    font-size: 14px;
   }
 }
 
@@ -3944,6 +3947,7 @@ class SubItemSearch {
     this.bindEvents();
     this.setupMutationObserver();
     this.setupEditableListeners();
+    this.preventSearchInterference();
   }
   
   createSearchUI() {
@@ -4106,11 +4110,8 @@ setupEditableListeners() {
     document.addEventListener(eventType, (e) => {
       if (e.target.classList.contains('editable')) {
         console.log('Editable changed via', eventType, ':', e.target.textContent);
-        // Immediate reindex for text changes
-        clearTimeout(this.reindexTimeout);
-        this.reindexTimeout = setTimeout(() => {
-          this.cacheSubItems();
-        }, 100); // Faster response for editable changes
+  
+        this.debouncedReindex();  // ← REPLACE WITH THIS SINGLE LINE
       }
     }, true);
   });
@@ -4299,85 +4300,125 @@ setupEditableListeners() {
     return options;
   }
   
-  setupQtyUnitControls() {
-    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+setupQtyUnitControls() {
+  const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+  const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+  const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+  
+  // IMPROVED QTY INPUT SYNC - PREVENT VALUE CLEARING
+  qtyInputs.forEach(input => {
+    // Prevent conflicting event listeners
+    input.removeEventListener('input', this._qtyInputHandler);
+    input.removeEventListener('change', this._qtyChangeHandler);
     
-    // Sync qty inputs
-    qtyInputs.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
+    // Store handlers for proper cleanup
+    this._qtyInputHandler = (e) => {
+      const originalId = e.target.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        // Don't trigger events immediately to prevent conflicts
+      }
+    };
+    
+    this._qtyChangeHandler = (e) => {
+      const originalId = e.target.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        // Only trigger change event, not input
+        setTimeout(() => {
           originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
+        }, 10);
+      }
+    };
+    
+    // Use proper event binding with debouncing
+    input.addEventListener('input', this._qtyInputHandler);
+    input.addEventListener('change', this._qtyChangeHandler);
+    
+    // Prevent value clearing on focus/blur
+    input.addEventListener('focus', (e) => {
+      e.target.dataset.lastValue = e.target.value;
     });
     
-    // Sync unit selects
-    unitSelects.forEach(select => {
-      select.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalSelect = document.getElementById(originalId);
-        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+    input.addEventListener('blur', (e) => {
+      const originalId = e.target.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput && e.target.value !== '') {
+        originalInput.value = e.target.value;
+        originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  });
+  
+  // IMPROVED UNIT SELECT SYNC
+  unitSelects.forEach(select => {
+    select.removeEventListener('change', this._unitChangeHandler);
+    
+    this._unitChangeHandler = (e) => {
+      const originalId = e.target.dataset.originalId;
+      const originalSelect = document.getElementById(originalId);
+      const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+      
+      if (originalSelect) {
+        originalSelect.value = e.target.value;
         
-        if (originalSelect) {
-          originalSelect.value = e.target.value;
+        // Handle custom unit visibility
+        if (e.target.value === 'Custom') {
+          customUnit.style.display = 'block';
+          customUnit.disabled = false;
+          // Focus custom unit on mobile after a brief delay
+          setTimeout(() => {
+            if (window.innerWidth <= 768) {
+              customUnit.focus();
+            }
+          }, 100);
+        } else {
+          customUnit.style.display = 'none';
+          customUnit.disabled = true;
+        }
+        
+        // Trigger change event and save preference
+        setTimeout(() => {
           originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
-          
-          // Handle custom unit visibility
-          if (e.target.value === 'Custom') {
-            customUnit.style.display = 'block';
-            customUnit.disabled = false;
-            // Focus custom unit on mobile after a brief delay
-            setTimeout(() => {
-              if (window.innerWidth <= 768) {
-                customUnit.focus();
-              }
-            }, 100);
-          } else {
-            customUnit.style.display = 'none';
-            customUnit.disabled = true;
-          }
-          
-          // Save unit preference
           this.saveUnitPreference(originalId, e.target.value);
-        }
-      });
-    });
+        }, 10);
+      }
+    };
     
-    // Sync custom unit inputs
-    customUnits.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
+    select.addEventListener('change', this._unitChangeHandler);
+  });
+  
+  // IMPROVED CUSTOM UNIT SYNC
+  customUnits.forEach(input => {
+    input.removeEventListener('input', this._customUnitInputHandler);
+    input.removeEventListener('change', this._customUnitChangeHandler);
+    
+    this._customUnitInputHandler = (e) => {
+      const originalId = e.target.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+      }
+    };
+    
+    this._customUnitChangeHandler = (e) => {
+      const originalId = e.target.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        setTimeout(() => {
           originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    });
-  }
+        }, 10);
+      }
+    };
+    
+    input.addEventListener('input', this._customUnitInputHandler);
+    input.addEventListener('change', this._customUnitChangeHandler);
+  });
+}
+
   
   saveUnitPreference(originalId, unitValue) {
     if (typeof saveUnitPref === 'function') {
@@ -4747,6 +4788,50 @@ setupEditableListeners() {
   refresh() {
     this.cacheSubItems();
   }
+  debouncedReindex() {                    // ← PASTE HERE
+    // Don't reindex if user is editing controls
+    if (this.isEditingControls) {
+      return;
+    }
+    
+    clearTimeout(this.reindexTimeout);
+    this.reindexTimeout = setTimeout(() => {
+      this.cacheSubItems();
+    }, 300);
+  }
+  
+}  
+
+
+
+  
+  // ADD THIS METHOD HERE ↓
+
+preventSearchInterference() {
+  // Prevent search refresh when user is typing in qty/unit controls
+  this.searchResults.addEventListener('focus', (e) => {
+    if (e.target.classList.contains('search-qty-input') || 
+        e.target.classList.contains('search-unit-select') || 
+        e.target.classList.contains('search-custom-unit')) {
+      // Pause automatic search refreshes
+      clearTimeout(this.reindexTimeout);
+      this.isEditingControls = true;
+    }
+  }, true);
+  
+  this.searchResults.addEventListener('blur', (e) => {
+    if (e.target.classList.contains('search-qty-input') || 
+        e.target.classList.contains('search-unit-select') || 
+        e.target.classList.contains('search-custom-unit')) {
+      // Resume automatic search refreshes after a delay
+      setTimeout(() => {
+        this.isEditingControls = false;
+      }, 500);
+    }
+  }, true);
+}
+
+
   
   destroy() {
     if (this.mutationObserver) {
@@ -4791,6 +4876,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
