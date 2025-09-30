@@ -3947,7 +3947,6 @@ class SubItemSearch {
     this.bindEvents();
     this.setupMutationObserver();
     this.setupEditableListeners();
-    this.preventSearchInterference();
   }
   
   createSearchUI() {
@@ -4025,113 +4024,67 @@ class SubItemSearch {
     return document.getElementById('unitcustom' + suffix);
   }
   
-setupMutationObserver() {
-  if (!window.MutationObserver) return;
-  
-  this.mutationObserver = new MutationObserver((mutations) => {
-    let shouldReindex = false;
+  setupMutationObserver() {
+    if (!window.MutationObserver) return;
     
-    mutations.forEach(mutation => {
-      // Check for added/removed sub-items
-      if (mutation.type === 'childList') {
-        const hasSubItems = Array.from(mutation.addedNodes).some(node => 
-          node.nodeType === Node.ELEMENT_NODE && 
-          (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-        );
-        const removedSubItems = Array.from(mutation.removedNodes).some(node => 
-          node.nodeType === Node.ELEMENT_NODE && 
-          (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-        );
-        
-        if (hasSubItems || removedSubItems) {
-          shouldReindex = true;
-          console.log('Sub-items added/removed detected');
-        }
-      }
+    this.mutationObserver = new MutationObserver((mutations) => {
+      let shouldReindex = false;
       
-      // Check for text changes in editable elements
-      if (mutation.type === 'childList' || mutation.type === 'characterData') {
-        const target = mutation.target;
-        if (target && (
-          target.classList.contains('editable') || 
-          target.closest('.editable') ||
-          (target.parentNode && target.parentNode.classList.contains('editable'))
-        )) {
-          shouldReindex = true;
-          console.log('Editable text changed detected');
+      mutations.forEach(mutation => {
+        // Check for added/removed sub-items
+        if (mutation.type === 'childList') {
+          const hasSubItems = Array.from(mutation.addedNodes).some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+          );
+          const removedSubItems = Array.from(mutation.removedNodes).some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
+          );
+          
+          if (hasSubItems || removedSubItems) {
+            shouldReindex = true;
+          }
         }
-      }
+      });
       
-      // Check for attribute changes on editable elements
-      if (mutation.type === 'attributes' && mutation.target.classList.contains('editable')) {
-        shouldReindex = true;
-        console.log('Editable attributes changed');
-      }
-    });
-    
-    if (shouldReindex) {
-      console.log('Triggering reindex due to mutations');
-      // Immediate reindex for customization changes
-      clearTimeout(this.reindexTimeout);
-      this.reindexTimeout = setTimeout(() => {
-        this.cacheSubItems();
+      if (shouldReindex) {
+        this.debouncedReindex();
         this.announceChange('Items updated');
-      }, 150);
-    }
-  });
-  
-  // Observe the purchased list and entire document
-  const targets = [
-    document.getElementById('purchasedList'),
-    document.body
-  ].filter(Boolean);
-  
-  targets.forEach(target => {
-    this.mutationObserver.observe(target, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-      characterDataOldValue: true,
-      attributes: true,
-      attributeOldValue: true,
-      attributeFilter: ['class', 'id', 'data-config-id']
+      }
     });
-  });
+    
+    // Observe the purchased list for changes
+    const purchasedList = document.getElementById('purchasedList');
+    if (purchasedList) {
+      this.mutationObserver.observe(purchasedList, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
   
-  console.log('Enhanced MutationObserver set up for', targets.length, 'targets');
-}
-
-
-setupEditableListeners() {
-  // Enhanced listening for ALL types of editable changes
-  const events = ['blur', 'input', 'focusout', 'keyup', 'paste', 'cut'];
-  
-  events.forEach(eventType => {
-    document.addEventListener(eventType, (e) => {
+  setupEditableListeners() {
+    // Listen for changes to editable labels
+    document.addEventListener('blur', (e) => {
       if (e.target.classList.contains('editable')) {
-        console.log('Editable changed via', eventType, ':', e.target.textContent);
-  
-        this.debouncedReindex();  // ← REPLACE WITH THIS SINGLE LINE
+        this.debouncedReindex();
       }
     }, true);
-  });
+    
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('editable')) {
+        this.debouncedReindex();
+      }
+    }, true);
+  }
   
-  // Catch contenteditable changes that might be missed
-  document.addEventListener('DOMSubtreeModified', (e) => {
-    if (e.target.classList && e.target.classList.contains('editable')) {
-      this.debouncedReindex();
-    }
-  });
-  
-  // Periodic check for missed changes (fallback)
-  setInterval(() => {
-    if (this.isSearchActive && this.searchInput && this.searchInput.value.trim()) {
+  debouncedReindex() {
+    clearTimeout(this.reindexTimeout);
+    this.reindexTimeout = setTimeout(() => {
       this.cacheSubItems();
-    }
-  }, 2000); // Check every 2 seconds when search is active
-}
-
-
+    }, 300);
+  }
   
   bindEvents() {
     if (!this.searchInput) return;
@@ -4300,125 +4253,85 @@ setupEditableListeners() {
     return options;
   }
   
-setupQtyUnitControls() {
-  const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-  const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-  const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
-  
-  // IMPROVED QTY INPUT SYNC - PREVENT VALUE CLEARING
-  qtyInputs.forEach(input => {
-    // Prevent conflicting event listeners
-    input.removeEventListener('input', this._qtyInputHandler);
-    input.removeEventListener('change', this._qtyChangeHandler);
+  setupQtyUnitControls() {
+    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
     
-    // Store handlers for proper cleanup
-    this._qtyInputHandler = (e) => {
-      const originalId = e.target.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        // Don't trigger events immediately to prevent conflicts
-      }
-    };
-    
-    this._qtyChangeHandler = (e) => {
-      const originalId = e.target.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        // Only trigger change event, not input
-        setTimeout(() => {
-          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }, 10);
-      }
-    };
-    
-    // Use proper event binding with debouncing
-    input.addEventListener('input', this._qtyInputHandler);
-    input.addEventListener('change', this._qtyChangeHandler);
-    
-    // Prevent value clearing on focus/blur
-    input.addEventListener('focus', (e) => {
-      e.target.dataset.lastValue = e.target.value;
-    });
-    
-    input.addEventListener('blur', (e) => {
-      const originalId = e.target.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput && e.target.value !== '') {
-        originalInput.value = e.target.value;
-        originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    });
-  });
-  
-  // IMPROVED UNIT SELECT SYNC
-  unitSelects.forEach(select => {
-    select.removeEventListener('change', this._unitChangeHandler);
-    
-    this._unitChangeHandler = (e) => {
-      const originalId = e.target.dataset.originalId;
-      const originalSelect = document.getElementById(originalId);
-      const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
-      
-      if (originalSelect) {
-        originalSelect.value = e.target.value;
-        
-        // Handle custom unit visibility
-        if (e.target.value === 'Custom') {
-          customUnit.style.display = 'block';
-          customUnit.disabled = false;
-          // Focus custom unit on mobile after a brief delay
-          setTimeout(() => {
-            if (window.innerWidth <= 768) {
-              customUnit.focus();
-            }
-          }, 100);
-        } else {
-          customUnit.style.display = 'none';
-          customUnit.disabled = true;
+    // Sync qty inputs
+    qtyInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        
-        // Trigger change event and save preference
-        setTimeout(() => {
-          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
-          this.saveUnitPreference(originalId, e.target.value);
-        }, 10);
-      }
-    };
-    
-    select.addEventListener('change', this._unitChangeHandler);
-  });
-  
-  // IMPROVED CUSTOM UNIT SYNC
-  customUnits.forEach(input => {
-    input.removeEventListener('input', this._customUnitInputHandler);
-    input.removeEventListener('change', this._customUnitChangeHandler);
-    
-    this._customUnitInputHandler = (e) => {
-      const originalId = e.target.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-      }
-    };
-    
-    this._customUnitChangeHandler = (e) => {
-      const originalId = e.target.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        setTimeout(() => {
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
           originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }, 10);
-      }
-    };
+        }
+      });
+    });
     
-    input.addEventListener('input', this._customUnitInputHandler);
-    input.addEventListener('change', this._customUnitChangeHandler);
-  });
-}
-
+    // Sync unit selects
+    unitSelects.forEach(select => {
+      select.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalSelect = document.getElementById(originalId);
+        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+        
+        if (originalSelect) {
+          originalSelect.value = e.target.value;
+          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          
+          // Handle custom unit visibility
+          if (e.target.value === 'Custom') {
+            customUnit.style.display = 'block';
+            customUnit.disabled = false;
+            // Focus custom unit on mobile after a brief delay
+            setTimeout(() => {
+              if (window.innerWidth <= 768) {
+                customUnit.focus();
+              }
+            }, 100);
+          } else {
+            customUnit.style.display = 'none';
+            customUnit.disabled = true;
+          }
+          
+          // Save unit preference
+          this.saveUnitPreference(originalId, e.target.value);
+        }
+      });
+    });
+    
+    // Sync custom unit inputs
+    customUnits.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
   
   saveUnitPreference(originalId, unitValue) {
     if (typeof saveUnitPref === 'function') {
@@ -4788,50 +4701,6 @@ setupQtyUnitControls() {
   refresh() {
     this.cacheSubItems();
   }
-  debouncedReindex() {                    // ← PASTE HERE
-    // Don't reindex if user is editing controls
-    if (this.isEditingControls) {
-      return;
-    }
-    
-    clearTimeout(this.reindexTimeout);
-    this.reindexTimeout = setTimeout(() => {
-      this.cacheSubItems();
-    }, 300);
-  }
-  
-}  
-
-
-
-  
-  // ADD THIS METHOD HERE ↓
-
-preventSearchInterference() {
-  // Prevent search refresh when user is typing in qty/unit controls
-  this.searchResults.addEventListener('focus', (e) => {
-    if (e.target.classList.contains('search-qty-input') || 
-        e.target.classList.contains('search-unit-select') || 
-        e.target.classList.contains('search-custom-unit')) {
-      // Pause automatic search refreshes
-      clearTimeout(this.reindexTimeout);
-      this.isEditingControls = true;
-    }
-  }, true);
-  
-  this.searchResults.addEventListener('blur', (e) => {
-    if (e.target.classList.contains('search-qty-input') || 
-        e.target.classList.contains('search-unit-select') || 
-        e.target.classList.contains('search-custom-unit')) {
-      // Resume automatic search refreshes after a delay
-      setTimeout(() => {
-        this.isEditingControls = false;
-      }, 500);
-    }
-  }, true);
-}
-
-
   
   destroy() {
     if (this.mutationObserver) {
@@ -4870,12 +4739,14 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 
 
+
   </script>
 </div> <!-- Close appContent div -->
    
 
 </body>
 </html>
+
 
 
 
