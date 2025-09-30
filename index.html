@@ -1644,243 +1644,182 @@
           registerEditable(span);
           return row;
         }
-          // ensure sublist for main
-          function ensureSublist(main) {
-            let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
-            let sl = document.getElementById(sublistId);
-            if (!sl) {
-              sl = document.createElement('div');
-              sl.className = 'sublist';
-              sl.id = sublistId;
-              const row = findItemRowByMainId(main.id) || createMainItem(main);
-              row.insertAdjacentElement('afterend', sl);
-            }
-            return sl;
+          
+        function ensureSublist(main) {
+          let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
+          let sl = document.getElementById(sublistId);
+          if (!sl) {
+            sl = document.createElement('div');
+            sl.className = 'sublist';
+            sl.id = sublistId;
+            const row = findItemRowByMainId(main.id) || createMainItem(main);
+            row.insertAdjacentElement('afterend', sl);
           }
+          return sl;
+        }
 
-          // create sub-item (with qty+unit)
-          function createSubItem(sub, sublist) {
-            const si = document.createElement('div');
-            si.className = 'sub-item';
-            const label = document.createElement('label');
+        if (cfg.structure.mainItems) {
+          cfg.structure.mainItems.forEach(main => {
+            const existing = findItemRowByMainId(main.id);
+            if (!existing) {
+              createMainItem(main);
+            }
+
+            const sl = ensureSublist(main);
+
+            if (main.subitems) {
+              main.subitems.forEach(sub => {
+                const existingSubitem = document.getElementById(sub.id);
+                if (!existingSubitem) {
+                  const suffix = sub.id.slice(4);
+                  const qtyId = 'q' + sub.id.slice(3);
+
+                  const subDiv = document.createElement('div');
+                  subDiv.className = 'sub-item';
+                  subDiv.setAttribute('data-generated', 'true');
+
+                  const labelEl = document.createElement('label');
+                  const cb = document.createElement('input');
+                  cb.type = 'checkbox';
+                  cb.className = 'subitem';
+                  cb.id = sub.id;
+                  cb.value = sub.label || sub.id;
+
+                  const span = document.createElement('span');
+                  span.className = 'editable';
+                  span.setAttribute('data-config-id', sub.id + '_label');
+                  span.id = 'label_' + sub.id;
+                  span.textContent = sub.label || sub.id;
+
+                  const delBtn = document.createElement('button');
+                  delBtn.className = 'del-btn';
+                  delBtn.type = 'button';
+                  delBtn.title = 'Remove sub-item';
+                  delBtn.setAttribute('aria-label', 'Remove');
+                  delBtn.textContent = 'âŒ';
+
+                  labelEl.appendChild(cb);
+                  labelEl.appendChild(span);
+                  labelEl.appendChild(delBtn);
+
+                  const qtyUnitDiv = document.createElement('div');
+                  qtyUnitDiv.className = 'qty-unit';
+
+                  const qty = document.createElement('input');
+                  qty.type = 'number';
+                  qty.min = '0';
+                  qty.step = '1';
+                  qty.placeholder = 'Quantity';
+                  qty.className = 'subqty qty';
+                  qty.id = qtyId;
+                  qty.disabled = true;
+
+                  const unitSel = document.createElement('select');
+                  unitSel.id = 'unit_' + suffix;
+                  unitSel.className = 'unit-select';
+                  unitSel.disabled = true;
+                  
+                  const defaultUnits = ['Boxes','Pieces','Kg'];
+                  defaultUnits.forEach(unit => {
+                    const o = document.createElement('option'); 
+                    o.value = unit; 
+                    o.textContent = unit; 
+                    unitSel.appendChild(o);
+                  });
+                  
+                  const globalUnits = loadGlobalUnits();
+                  globalUnits.forEach(unit => {
+                    const o = document.createElement('option'); 
+                    o.value = unit; 
+                    o.textContent = unit; 
+                    unitSel.appendChild(o);
+                  });
+
+                  const unitCustom = document.createElement('input');
+                  unitCustom.type = 'text';
+                  unitCustom.id = 'unit_custom_' + suffix;
+                  unitCustom.className = 'unit-custom';
+                  unitCustom.placeholder = 'Custom unit';
+                  unitCustom.style.display = 'none';
+                  unitCustom.disabled = true;
+
+                  qtyUnitDiv.appendChild(qty);
+                  qtyUnitDiv.appendChild(unitSel);
+                  qtyUnitDiv.appendChild(unitCustom);
+
+                  subDiv.appendChild(labelEl);
+                  subDiv.appendChild(qtyUnitDiv);
+
+                  sl.appendChild(subDiv);
+
+                  registerEditable(span);
+                }
+              });
+            }
+          });
+        }
+
+        if (cfg.structure.modes) {
+          const modesContainer = document.getElementById('modes');
+          cfg.structure.modes.forEach(mode => {
+            const existing = document.getElementById(mode.id);
+            if (existing) return;
+
+            const modeDiv = document.createElement('div');
+            modeDiv.className = 'mode-row';
+            modeDiv.setAttribute('data-generated', 'true');
+
+            const labelEl = document.createElement('label');
+            labelEl.className = 'mode-label';
 
             const cb = document.createElement('input');
             cb.type = 'checkbox';
-            cb.className = 'subitem';
-            cb.id = sub.id;
-            cb.value = sub.label || sub.id;
+            cb.name = 'modeOfPayment';
+            cb.value = mode.label || mode.id;
+            cb.id = mode.id;
 
             const span = document.createElement('span');
             span.className = 'editable';
-            span.setAttribute('data-config-id', sub.id + '_label');
-            span.id = 'label_' + sub.id;
-            span.textContent = sub.label || sub.id;
+            span.setAttribute('data-config-id', mode.id + '_label');
+            span.id = 'label_' + mode.id;
+            span.textContent = mode.label || mode.id;
 
             const delBtn = document.createElement('button');
-            delBtn.type = 'button';
             delBtn.className = 'del-btn';
-            delBtn.textContent = 'âœ•';
-            delBtn.title = 'Remove sub-item';
+            delBtn.type = 'button';
+            delBtn.title = 'Remove mode';
+            delBtn.setAttribute('aria-label', 'Remove');
+            delBtn.textContent = 'âŒ';
 
-            label.appendChild(cb);
-            label.appendChild(span);
-            label.appendChild(delBtn);
+            labelEl.appendChild(cb);
+            labelEl.appendChild(span);
+            labelEl.appendChild(delBtn);
 
-            // build qty-unit group to match static elements
-            const suffix = sub.id.slice(4);
-            const qty = document.createElement('input');
-            qty.type = 'number';
-            qty.min = '0';
-            qty.step = '1';
-            qty.className = 'subqty qty';
-            qty.id = 'q' + sub.id.slice(3);
-            qty.placeholder = 'Quantity';
-            qty.disabled = true;
+            const amt = document.createElement('input');
+            amt.type = 'number';
+            amt.min = '0';
+            amt.step = '0.01';
+            amt.placeholder = (mode.label || mode.id) + ' Rs.';
+            amt.className = 'mode-amount';
+            amt.id = mode.amountInputId || ('amt_' + mode.id);
+            amt.disabled = true;
+            amt.setAttribute('data-mode-amount', mode.amountAttrName || mode.label || mode.id);
 
-            const unitSel = document.createElement('select');
-            unitSel.id = 'unit_' + suffix;
-            unitSel.className = 'unit-select';
-            ['Boxes','Pieces','Kg'].forEach(opt => {
-              const o = document.createElement('option'); o.value = opt; o.textContent = opt; unitSel.appendChild(o);
-            });
-            unitSel.disabled = true;
+            modeDiv.appendChild(labelEl);
+            modeDiv.appendChild(amt);
 
-            const unitCustom = document.createElement('input');
-            unitCustom.type = 'text';
-            unitCustom.id = 'unit_custom_' + suffix;
-            unitCustom.className = 'unit-custom';
-            unitCustom.placeholder = 'Custom unit';
-            unitCustom.style.display = 'none';
-            unitCustom.disabled = true;
-
-            const lockLabel = document.createElement('label');
-            lockLabel.className = 'unit-lock';
-            lockLabel.title = 'Lock unit for this item';
-            const lockCb = document.createElement('input');
-            lockCb.type = 'checkbox';
-            lockCb.id = 'lock_' + suffix;
-            lockCb.disabled = true;
-            lockLabel.appendChild(lockCb);
-            lockLabel.appendChild(document.createTextNode(' lock'));
-
-            const qtyUnitDiv = document.createElement('div');
-            qtyUnitDiv.className = 'qty-unit';
-            qtyUnitDiv.appendChild(qty);
-            qtyUnitDiv.appendChild(unitSel);
-            qtyUnitDiv.appendChild(unitCustom);
-            qtyUnitDiv.appendChild(lockLabel);
-
-            si.appendChild(label);
-            si.appendChild(qtyUnitDiv);
-            sublist.appendChild(si);
+            modesContainer.appendChild(modeDiv);
 
             registerEditable(span);
-            bindSubitemHandlers();
-            return si;
-          }
-
-          const configuredMainIds = new Set(cfg.structure.mainItems.map(m => m.id));
-          // add/update mains & subitems
-          cfg.structure.mainItems.forEach(main => {
-            let row = findItemRowByMainId(main.id);
-            if (!row) {
-              row = createMainItem(main);
-            } else {
-              const lab = row.querySelector('[data-config-id="' + main.id + '_label"]') || row.querySelector('#label_' + main.id);
-              if (lab) lab.textContent = main.label || lab.textContent;
-            }
-
-            // subitems handling
-            if (main.subitems && main.subitems.length > 0) {
-              const sl = ensureSublist(main);
-              sl.innerHTML = '';
-              main.subitems.forEach(sub => createSubItem(sub, sl));
-              const cbMain = row.querySelector('input[type="checkbox"]');
-              if (cbMain) sl.style.display = cbMain.checked ? 'block' : 'none';
-            } else {
-              if (main.sublistId) {
-                const slEl = document.getElementById(main.sublistId);
-                if (slEl) slEl.remove();
-              } else {
-                const r = findItemRowByMainId(main.id);
-                if (r && r.nextElementSibling && r.nextElementSibling.classList.contains('sublist')) {
-                  r.nextElementSibling.remove();
-                }
-              }
-            }
+            bindModeToggle(cb);
           });
+        }
 
-          // remove mains not present in config (except p_other)
-          const keepIds = new Set([...configuredMainIds, 'p_other']);
-          Array.from(purchasedList.querySelectorAll('.item-row')).forEach(row => {
-            const cb = row.querySelector('input[type="checkbox"]');
-            if (!cb || !cb.id) return;
-            if (!keepIds.has(cb.id)) {
-              const next = row.nextElementSibling;
-              row.remove();
-              if (next && next.classList && next.classList.contains('sublist')) next.remove();
-            }
-          });
-
-          // payment modes rebuild
-          if (cfg.structure.modes && cfg.structure.modes.length > 0) {
-            const modesContainer = document.getElementById('modes');
-            if (modesContainer) {
-              modesContainer.innerHTML = '';
-              cfg.structure.modes.forEach(m => {
-                const mr = document.createElement('div');
-                mr.className = 'mode-row';
-                mr.setAttribute('data-generated','true');
-
-                const labWrap = document.createElement('label');
-                labWrap.className = 'mode-label';
-
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.name = 'modeOfPayment';
-                cb.id = m.id;
-                cb.value = m.label || m.id;
-
-                const span = document.createElement('span');
-                span.className = 'editable';
-                span.setAttribute('data-config-id', m.id + '_label');
-                span.id = 'label_' + m.id;
-                span.textContent = m.label || m.id;
-
-                const delBtn = document.createElement('button');
-                delBtn.type = 'button';
-                delBtn.className = 'del-btn';
-                delBtn.textContent = 'âœ•';
-                delBtn.title = 'Remove mode';
-
-                labWrap.appendChild(cb);
-                labWrap.appendChild(span);
-                labWrap.appendChild(delBtn);
-
-                const amt = document.createElement('input');
-                amt.type = 'number';
-                amt.min = '0';
-                amt.step = '0.01';
-                amt.className = 'mode-amount';
-                if (m.amountInputId) amt.id = m.amountInputId;
-                if (m.amountAttrName) amt.setAttribute('data-mode-amount', m.amountAttrName);
-                amt.disabled = true;
-
-                mr.appendChild(labWrap);
-                mr.appendChild(amt);
-                modesContainer.appendChild(mr);
-
-                registerEditable(span);
-                bindModeToggle(cb);
-              });
-            }
-          }
-        } // end structure handling
-
-        // after apply, rebind interactive handlers & remove buttons as needed
+        // Re-bind handlers after structural changes
         bindSubitemHandlers();
         setupMainToSubBindings();
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
-
-        // --- NEW: apply purchasedFrom custom data if present ---
-        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
-          applyPurchasedFromConfig(cfg.purchasedFromCustom.items, cfg.purchasedFromCustom.selected || '');
-        }
-      } // end applyConfig
-
-      // expose helper for debugging
-      window.getCurrentCustomization = function(){ return buildConfigObject(); };
-
-      // ----------------- delegation: small delete button inside labels (existing del-btn) --------------
-      document.body.addEventListener('click', function(ev) {
-        const btn = ev.target && ev.target.classList && ev.target.classList.contains('del-btn') ? ev.target : null;
-        if (!btn) return;
-        // ensure in customize mode
-        if (!container.classList.contains('customize-mode')) {
-          alert('Enter Customize mode to remove items.');
-          return;
-        }
-        const subItem = btn.closest('.sub-item');
-        const modeRow = btn.closest('.mode-row');
-        if (subItem) {
-          const labelSpan = subItem.querySelector('.editable');
-          const labelText = labelSpan ? labelSpan.textContent.trim() : '';
-          if (!confirm('Remove sub-item "' + labelText + '"? This will delete it from the form.')) return;
-          try { subItem.parentNode.removeChild(subItem); } catch(e) { console.warn('remove failed', e); }
-          bindSubitemHandlers();
-          return;
-        }
-        if (modeRow) {
-          const labelSpan = modeRow.querySelector('.editable');
-          const labelText = labelSpan ? labelSpan.textContent.trim() : '';
-          if (!confirm('Remove payment mode "' + labelText + '"? This will delete it from the form.')) return;
-          try { modeRow.parentNode.removeChild(modeRow); } catch(e) { console.warn('remove failed', e); }
-          return;
-        }
-      });
-
-      // initial: hide custom panel if not customizing
-      customPanel.style.display = 'none';
+      }
 
       // ----------------- NEW: Purchased From select + custom manager ----------------
       (function setupPurchasedFromManager() {
@@ -2098,6 +2037,7 @@
   </script>
 </body>
 </html>
+
 
 
 
