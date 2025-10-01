@@ -2632,85 +2632,20 @@ document.addEventListener('DOMContentLoaded', function(){ try { initCustomizatio
 
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
 
-    // Robust Add-Sub handler: initAddSubItemHandler()
-// Replaces the previous addSubBtn click-handler to ensure subitems are added under the selected main by ID.
-function initAddSubItemHandler() {
-  const addBtn = document.getElementById('addSubBtn');
-  const categorySelect = document.getElementById('addCategorySelect');
-  const newSubInput = document.getElementById('addSubLabelInput') || document.getElementById('newSubLabel') || document.querySelector('.new-sub-label');
-
-  if (!addBtn) { console.warn('Add-Sub button not found'); return; }
-  if (!categorySelect) { console.warn('Add-Sub category select not found'); return; }
-  if (!newSubInput) { console.warn('Add-Sub label input not found'); return; }
-
-  // remove existing onclick/handlers to avoid duplicates
-  try { addBtn.onclick = null; addBtn.removeEventListener('click', addBtn._addSubHandler || (()=>{})); } catch(e){}
-
-  addBtn._addSubHandler = function() {
-    const rawLabel = (newSubInput && newSubInput.value) ? newSubInput.value.trim() : '';
-    if (!rawLabel) { alert('Enter a label for the new sub-item.'); newSubInput.focus(); return; }
-
-    // Build/obtain the config object (fallback to buildConfigObject)
-    const cfg = (window.currentCfg && typeof window.currentCfg === 'object') ? window.currentCfg : (typeof buildConfigObject === 'function' ? buildConfigObject() : { structure: { mainItems: [] } });
-    if (!cfg.structure) cfg.structure = {};
-    if (!Array.isArray(cfg.structure.mainItems)) cfg.structure.mainItems = [];
-
-    // find target main by option value (we expect option.value === main.id)
-    const selectedVal = categorySelect.value;
-    let targetMain = cfg.structure.mainItems.find(m => (m.id || '') === selectedVal);
-
-    // fallback: try to match by label (case-insensitive)
-    if (!targetMain) {
-      targetMain = cfg.structure.mainItems.find(m => ((m.label || '').toString().toLowerCase() === (selectedVal || '').toString().toLowerCase()));
-    }
-
-    if (!targetMain) {
-      // If no main matched, show error instead of silently adding to the first main
-      alert('Please select a valid main category from the dropdown. If the category does not appear, re-open Customize or reload the page.');
-      return;
-    }
-
-    // create a safe unique sub-id namespaced under the main id
-    const slugBase = rawLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'sub';
-    let candidateId = targetMain.id + '_' + slugBase;
-    let suffix = 1;
-    function existsId(id) {
-      return cfg.structure.mainItems.some(m => Array.isArray(m.subitems) && m.subitems.some(s => s.id === id));
-    }
-    while (document.getElementById(candidateId) || existsId(candidateId)) {
-      candidateId = targetMain.id + '_' + slugBase + '_' + (suffix++);
-    }
-
-    const newSub = { id: candidateId, label: rawLabel };
-
-    if (!Array.isArray(targetMain.subitems)) targetMain.subitems = [];
-    targetMain.subitems.push(newSub);
-
-    // persist current config in global var and re-render using your applyConfigObject / applyConfig
-    window.currentCfg = cfg;
-    try {
-      if (typeof applyConfigObject === 'function') {
-        applyConfigObject(cfg);
-      } else if (typeof applyConfig === 'function') {
-        applyConfig(cfg);
-      } else {
-        // minimal fallback: update category select (so new main/sub appear for next ops)
-        if (typeof rebuildAddCategorySelect === 'function') rebuildAddCategorySelect();
-      }
-      newSubInput.value = '';
-      newSubInput.focus();
-      if (typeof rebuildAddCategorySelect === 'function') rebuildAddCategorySelect();
-    } catch (e) {
-      console.error('Failed to re-render after adding subitem:', e);
-      alert('Added subitem to the configuration but the form could not be redrawn. Check console.');
-    }
-  };
-
-  addBtn.addEventListener('click', addBtn._addSubHandler);
-}
-
-// initialize now if DOM is ready (safe no-op if already initialized)
-try { initAddSubItemHandler(); } catch(e) { console.error('initAddSubItemHandler init failed', e); }
+    // Add subitem functionality
+      if (addSubBtn) {
+        addSubBtn.addEventListener('click', function() {
+          const cat = addCategorySelect && addCategorySelect.value ? addCategorySelect.value : 'floor';
+          const rawLabel = (addSubLabelInput && addSubLabelInput.value) ? addSubLabelInput.value.trim() : '';
+          if (!rawLabel) { alert('Enter a label for the new sub-item.'); return; }
+          const slug = rawLabel.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+          let baseId = (cat === 'mode') ? 'mode_' + (slug || Date.now()) : 'sub_' + cat + (slug ? '_' + slug : '');
+          let candidate = baseId;
+          let i = 1;
+          while (document.getElementById(candidate)) {
+            candidate = baseId + '_' + i;
+            i++;
+          }
 
           const elementId = candidate;
 
@@ -5033,6 +4968,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
