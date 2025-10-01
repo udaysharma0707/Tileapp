@@ -2753,7 +2753,7 @@ if (originalMobileSubmitFunction) {
         return cfg;
       }
 
-     // Save server: send config including structure via JSONP action=saveConfig
+// Save server: send config including structure via JSONP action=saveConfig
       saveServerBtn.addEventListener('click', async function(){
         // finish any inline editing first
         endEditingSession();
@@ -2780,9 +2780,7 @@ if (originalMobileSubmitFunction) {
         }
       });
 
-
-      
- // On load: try to fetch saved config and apply
+      // On load: try to fetch saved config and apply
       (async function tryLoadConfig(){
         try {
           const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
@@ -2813,7 +2811,28 @@ if (originalMobileSubmitFunction) {
       })();
 
 
-       function applyConfigObject(cfg) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+     
+
+      function applyConfigObject(cfg) {
         if (!cfg) return;
 
         if (cfg.title) {
@@ -2845,7 +2864,6 @@ if (originalMobileSubmitFunction) {
         // Rebuild structure
         const purchasedList = document.getElementById('purchasedList');
 
-          
         function findItemRowByMainId(mainId) {
           const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
           return allRows.find(row => {
@@ -3065,7 +3083,41 @@ if (originalMobileSubmitFunction) {
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
       }
 
-     
+      // Save server
+      saveServerBtn.addEventListener('click', async function() {
+        const cfg = buildConfigObject();
+        
+        try {
+          saveServerBtn.disabled = true;
+          saveServerBtn.textContent = 'Saving...';
+          
+          const submitData = {
+            action: 'saveConfig',
+            token: SERVER_TOKEN,
+            config: JSON.stringify(cfg)
+          };
+          
+          const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
+            encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
+          ).join('&');
+          
+          const response = await jsonpCall(url, 30000);
+          
+          if (response && response.success) {
+            alert('Configuration saved successfully!');
+            setCustomizeMode(false);
+          } else {
+            throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
+          }
+          
+        } catch (error) {
+          console.error('Save error:', error);
+          alert('Failed to save configuration: ' + error.message);
+        } finally {
+          saveServerBtn.disabled = false;
+          saveServerBtn.textContent = 'Save (server)';
+        }
+      });
 
       const purchasedFromSelect = document.getElementById('purchasedFromSelect');
       const purchasedFromText = document.getElementById('purchasedFrom');
@@ -3288,14 +3340,7 @@ async function submitMainForm(e) {
 
   try {
     // 1) Collect form data first
-  // Sync search inputs before collecting data
-if (window.subItemSearch && window.subItemSearch.isSearchActive) {
-  window.subItemSearch.syncAllSearchInputsToOriginals();
-}
-
-// 1) Collect form data first
-const data = collectFormData ? collectFormData() : {};
-
+    const data = collectFormData ? collectFormData() : {};
     console.log('Collected form data:', data);
 
     // 2) Handle photo if selected
@@ -3719,14 +3764,8 @@ async function mobileSubmitFunction() {
   try {
     console.log('Starting mobile-friendly submission...');
     
-  // Sync search inputs before collecting data
-if (window.subItemSearch && window.subItemSearch.isSearchActive) {
-  window.subItemSearch.syncAllSearchInputsToOriginals();
-}
-
-// Collect form data without strict validation
-const data = collectFormDataMobile();
-
+    // Collect form data without strict validation
+    const data = collectFormDataMobile();
 
     console.log('Collected form data:', data);
 
@@ -3780,14 +3819,8 @@ const data = collectFormDataMobile();
 
 // Mobile-friendly data collection with PROPER subitem handling
 function collectFormDataMobile() {
-  // Sync search inputs before collecting data
-  if (window.subItemSearch && window.subItemSearch.isSearchActive) {
-    window.subItemSearch.syncAllSearchInputsToOriginals();
-  }
-  
   const data = {};
   const purchased = [];
-
   
   // Collect checked main items
   const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
@@ -4298,81 +4331,42 @@ class SubItemSearch {
     return options;
   }
   
- setupQtyUnitControls() {
-  const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-  const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-  const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
-  
-  // Sync qty inputs - IMMEDIATE sync without delay
-  qtyInputs.forEach(input => {
-    input.addEventListener('input', (e) => {
-      const originalId = e.target.getAttribute('data-original-id');
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        // Force immediate sync without bubbling to prevent conflicts
-        originalInput.dispatchEvent(new Event('input', { bubbles: false }));
-      }
-    });
+  setupQtyUnitControls() {
+    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
     
-    input.addEventListener('blur', (e) => {
-      const originalId = e.target.getAttribute('data-original-id');
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        originalInput.dispatchEvent(new Event('change', { bubbles: false }));
-      }
-    });
-  });
-  
-  // Sync unit selects - IMMEDIATE sync
-  unitSelects.forEach(select => {
-    select.addEventListener('change', (e) => {
-      const originalId = e.target.getAttribute('data-original-id');
-      const originalSelect = document.getElementById(originalId);
-      const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
-      
-      if (originalSelect) {
-        originalSelect.value = e.target.value;
-        originalSelect.dispatchEvent(new Event('change', { bubbles: false }));
-        
-        // Handle custom unit visibility
-        if (e.target.value === 'Custom') {
-          customUnit.style.display = 'block';
-          customUnit.disabled = false;
-        } else {
-          customUnit.style.display = 'none';
-          customUnit.disabled = true;
+    // Sync qty inputs
+    qtyInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        
-        // Save unit preference
-        this.saveUnitPreference(originalId, e.target.value);
-      }
-    });
-  });
-  
-  // Sync custom unit inputs - IMMEDIATE sync
-  customUnits.forEach(input => {
-    input.addEventListener('input', (e) => {
-      const originalId = e.target.getAttribute('data-original-id');
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        originalInput.dispatchEvent(new Event('input', { bubbles: false }));
-      }
+      });
+      
+      input.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalInput = document.getElementById(originalId);
+        if (originalInput) {
+          originalInput.value = e.target.value;
+          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
     });
     
-    input.addEventListener('blur', (e) => {
-      const originalId = e.target.getAttribute('data-original-id');
-      const originalInput = document.getElementById(originalId);
-      if (originalInput) {
-        originalInput.value = e.target.value;
-        originalInput.dispatchEvent(new Event('change', { bubbles: false }));
-      }
-    });
-  });
-}
-
+    // Sync unit selects
+    unitSelects.forEach(select => {
+      select.addEventListener('change', (e) => {
+        const originalId = e.target.dataset.originalId;
+        const originalSelect = document.getElementById(originalId);
+        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+        
+        if (originalSelect) {
+          originalSelect.value = e.target.value;
+          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
           
           // Handle custom unit visibility
           if (e.target.value === 'Custom') {
@@ -4431,42 +4425,6 @@ class SubItemSearch {
       }
     }
   }
-
- syncAllSearchInputsToOriginals() {
-  const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-  const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-  const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
-
-  qtyInputs.forEach(input => {
-    const originalId = input.getAttribute('data-original-id'); // Changed from dataset.originalId
-    const originalInput = document.getElementById(originalId);
-    if (originalInput && input.value) {
-      originalInput.value = input.value;
-      originalInput.dispatchEvent(new Event('change', {bubbles: true}));
-    }
-  });
-
-  unitSelects.forEach(select => {
-    const originalId = select.getAttribute('data-original-id'); // Changed from dataset.originalId
-    const originalSelect = document.getElementById(originalId);
-    if (originalSelect && select.value) {
-      originalSelect.value = select.value;
-      originalSelect.dispatchEvent(new Event('change', {bubbles: true}));
-    }
-  });
-
-  customUnits.forEach(customInput => {
-    const originalId = customInput.getAttribute('data-original-id'); // Changed from dataset.originalId
-    const originalInput = document.getElementById(originalId);
-    if (originalInput && customInput.value) {
-      originalInput.value = customInput.value;
-      originalInput.dispatchEvent(new Event('change', {bubbles: true}));
-    }
-  });
-}
-
-
-
   
   showNoResults(query) {
     this.searchResults.innerHTML = `
@@ -4866,18 +4824,6 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
