@@ -3288,7 +3288,14 @@ async function submitMainForm(e) {
 
   try {
     // 1) Collect form data first
-    const data = collectFormData ? collectFormData() : {};
+  // Sync search inputs before collecting data
+if (window.subItemSearch && window.subItemSearch.isSearchActive) {
+  window.subItemSearch.syncAllSearchInputsToOriginals();
+}
+
+// 1) Collect form data first
+const data = collectFormData ? collectFormData() : {};
+
     console.log('Collected form data:', data);
 
     // 2) Handle photo if selected
@@ -3712,8 +3719,14 @@ async function mobileSubmitFunction() {
   try {
     console.log('Starting mobile-friendly submission...');
     
-    // Collect form data without strict validation
-    const data = collectFormDataMobile();
+  // Sync search inputs before collecting data
+if (window.subItemSearch && window.subItemSearch.isSearchActive) {
+  window.subItemSearch.syncAllSearchInputsToOriginals();
+}
+
+// Collect form data without strict validation
+const data = collectFormDataMobile();
+
 
     console.log('Collected form data:', data);
 
@@ -3767,8 +3780,14 @@ async function mobileSubmitFunction() {
 
 // Mobile-friendly data collection with PROPER subitem handling
 function collectFormDataMobile() {
+  // Sync search inputs before collecting data
+  if (window.subItemSearch && window.subItemSearch.isSearchActive) {
+    window.subItemSearch.syncAllSearchInputsToOriginals();
+  }
+  
   const data = {};
   const purchased = [];
+
   
   // Collect checked main items
   const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
@@ -4373,6 +4392,41 @@ class SubItemSearch {
       }
     }
   }
+
+  syncAllSearchInputsToOriginals() {
+    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+
+    qtyInputs.forEach(input => {
+      const originalId = input.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput && input.value) {
+        originalInput.value = input.value;
+        originalInput.dispatchEvent(new Event('change', {bubbles: true}));
+      }
+    });
+
+    unitSelects.forEach(select => {
+      const originalId = select.dataset.originalId;
+      const originalSelect = document.getElementById(originalId);
+      if (originalSelect && select.value) {
+        originalSelect.value = select.value;
+        originalSelect.dispatchEvent(new Event('change', {bubbles: true}));
+      }
+    });
+
+    customUnits.forEach(customInput => {
+      const originalId = customInput.dataset.originalId;
+      const originalInput = document.getElementById(originalId);
+      if (originalInput && customInput.value) {
+        originalInput.value = customInput.value;
+        originalInput.dispatchEvent(new Event('change', {bubbles: true}));
+      }
+    });
+  }
+
+
   
   showNoResults(query) {
     this.searchResults.innerHTML = `
@@ -4772,6 +4826,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
