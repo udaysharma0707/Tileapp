@@ -1432,109 +1432,13 @@
 
   <script>
 
-    /*
-  Debug + protection shim
-  - Logs any attempted POST/XHR/fetch to your Apps Script URL
-  - Prevents the POST from going through (so CORB won't happen)
-  - Prevents accidental <form> submits
-  Paste this near the top of index.html (before app.js)
-*/
-
-(function(){
-  const SCRIPT_HOST = 'https://script.google.com/macros/s/'; // base prefix to watch for
-  const BLOCKED_HOST_FULL = 'https://script.google.com/macros/s/AKfycbx...'; // optional: not necessary
-
-  // Small helper to test if a url targets Apps Script
-  function isAppsScriptUrl(url) {
-    try {
-      if (!url) return false;
-      return url.indexOf('https://script.google.com/macros/s/') === 0;
-    } catch(e){ return false; }
-  }
-
-  // 1) Intercept fetch
-  if (window.fetch) {
-    const _origFetch = window.fetch;
-    window.fetch = function(resource, init){
-      try {
-        const url = (typeof resource === 'string') ? resource : (resource && resource.url) || '';
-        const method = (init && init.method) ? init.method.toUpperCase() : 'GET';
-        if (isAppsScriptUrl(url) && method !== 'GET') {
-          console.warn('Blocked fetch POST to Apps Script URL:', method, url, init);
-          // show user friendly message in UI if function available
-          try { if (window.showMessage) showMessage('Blocked unsafe POST to server (debug mode)'); } catch(e){}
-          // return a rejected Promise to simulate failure for caller
-          return Promise.reject(new Error('Blocked POST to Apps Script (debug protection)'));
-        }
-      } catch(e){}
-      return _origFetch.apply(this, arguments);
-    };
-  }
-
-  // 2) Intercept XMLHttpRequest
-  (function(){
-    const XHR = window.XMLHttpRequest;
-    if (!XHR) return;
-    function MyXHR(){
-      const xhr = new XHR();
-      const _open = xhr.open;
-      xhr.open = function(method, url) {
-        try {
-          if (isAppsScriptUrl(url) && (method || '').toUpperCase() !== 'GET') {
-            console.warn('Blocked XHR open() POST to Apps Script:', method, url);
-            // make the xhr unusable by throwing on send
-            xhr.__block_send = true;
-          }
-        } catch(e){}
-        return _open.apply(this, arguments);
-      };
-      const _send = xhr.send;
-      xhr.send = function(body) {
-        if (xhr.__block_send) {
-          try { console.warn('Prevented XHR.send() to Apps Script'); } catch(e){}
-          // emulate network error callback if desired
-          if (typeof xhr.onerror === 'function') {
-            try { xhr.onerror(new Error('Blocked POST to Apps Script')); } catch(e){}
-          }
-          return; // drop the request
-        }
-        return _send.apply(this, arguments);
-      };
-      return xhr;
-    }
-    window.XMLHttpRequest = MyXHR;
-  })();
-
-  // 3) Catch plain form submits (prevent default)
-  document.addEventListener('submit', function(ev){
-    try {
-      const form = ev.target;
-      if (!form) return;
-      const action = form.getAttribute && form.getAttribute('action');
-      if (isAppsScriptUrl(action)) {
-        console.warn('Prevented form submit to Apps Script:', action);
-        ev.preventDefault();
-        ev.stopPropagation();
-        showMessage && showMessage('Blocked form upload to server (debug mode). Use the Submit button.');
-      }
-      // also block any form submit anywhere to be safe
-      ev.preventDefault();
-      ev.stopPropagation();
-    } catch(e){}
-  }, true);
-
-  // 4) Console hint to user
-  console.info('DEBUG PROTECTION: fetch/XHR/form POSTs to Apps Script are being logged/blocked. Remove this shim once you fix callers.');
-
-})();
-
     // --- Config / server endpoint detection ---
-    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbxtbEZOMF-c6kmcGli1BX18G_kFoJJ6m3j21n2y5fk1HlQ8a7dAQfwV9IPMrZDH1U7Mgg/exec";
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzsgCfa3JRyU19XaV1Z8pq8uQK1n-cz2UMqaVPKfoSYjspG4DZsdmOrp7qnNeJ8mMJqnQ/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
 
     // Replace with your Google Apps Script Web App URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtbEZOMF-c6kmcGli1BX18G_kFoJJ6m3j21n2y5fk1HlQ8a7dAQfwV9IPMrZDH1U7Mgg/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzsgCfa3JRyU19XaV1Z8pq8uQK1n-cz2UMqaVPKfoSYjspG4DZsdmOrp7qnNeJ8mMJqnQ/exec';
 
     let selectedFile = null;
     let selectedImage = null;
@@ -4927,6 +4831,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
