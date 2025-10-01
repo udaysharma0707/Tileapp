@@ -4087,20 +4087,28 @@ class SubItemSearch {
     }
   }
   
-  getQtyInput(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('q' + suffix);
-  }
-  
-  getUnitSelect(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('unit' + suffix);
-  }
-  
-  getCustomUnitInput(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('unitcustom' + suffix);
-  }
+ // Replace existing methods in class SubItemSearch with these:
+
+getSuffixFromCheckboxId(checkboxId) {
+  // supports ids like "sub_san_wash" or "subsan_wash" etc.
+  return checkboxId.replace(/^sub_?/, '');
+}
+
+getQtyInput(checkboxId) {
+  const suffix = this.getSuffixFromCheckboxId(checkboxId);
+  return document.getElementById('q_' + suffix);
+}
+
+getUnitSelect(checkboxId) {
+  const suffix = this.getSuffixFromCheckboxId(checkboxId);
+  return document.getElementById('unit_' + suffix);
+}
+
+getCustomUnitInput(checkboxId) {
+  const suffix = this.getSuffixFromCheckboxId(checkboxId);
+  return document.getElementById('unit_custom_' + suffix);
+}
+
   
   setupMutationObserver() {
     if (!window.MutationObserver) return;
@@ -4824,6 +4832,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
