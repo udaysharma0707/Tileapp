@@ -2362,6 +2362,8 @@ document.addEventListener('DOMContentLoaded', function(){ try { initCustomizatio
             }
           } catch(e){}
           itemRow.remove();
+          // refresh add-category select so removed mains disappear from dropdown
+          if (typeof rebuildAddCategorySelect === 'function') rebuildAddCategorySelect();
         } else if (modeRow) {
           if (!confirm('Remove this payment mode? This cannot be undone.')) return;
           modeRow.remove();
@@ -2633,15 +2635,53 @@ document.addEventListener('DOMContentLoaded', function(){ try { initCustomizatio
       // Run initial binds
       bindSubitemHandlers();
       setupMainToSubBindings();
+      rebuildAddCategorySelect();   // <-- add this line
 
               // Refresh Add-Sub dropdown and handler so newly added mains are available
         if (typeof rebuildAddCategorySelect === 'function') rebuildAddCategorySelect();
         if (typeof initAddSubItemHandler === 'function') initAddSubItemHandler();
-
-
-        
-
+      
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+
+// Rebuild the "Add Sub-item" category select so it includes all current main items
+function rebuildAddCategorySelect() {
+  const sel = document.getElementById('addCategorySelect');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '';
+  // Add the payment mode option first
+  const optMode = document.createElement('option');
+  optMode.value = 'mode';
+  optMode.textContent = 'Mode of payment';
+  sel.appendChild(optMode);
+
+  // Add mains found in the form (item-row)
+  Array.from(document.querySelectorAll('.item-row')).forEach(row => {
+    const cb = row.querySelector('input[type="checkbox"].purchased, input[type="checkbox"]');
+    if (!cb || !cb.id) return;
+    const parts = cb.id.split('_');
+    const suffix = (parts.length > 1) ? parts.slice(1).join('_') : cb.id;
+    const labelEl = row.querySelector('.editable');
+    const label = labelEl ? (labelEl.textContent || '').trim() : (cb.value || suffix);
+    const opt = document.createElement('option');
+    opt.value = suffix;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+
+  // restore if possible
+  const all = Array.from(sel.options).map(o => o.value);
+  if (all.includes(current)) sel.value = current;
+}
+
+
+
+
+
+
+
+
+      
 
     // Add subitem functionality
       if (addSubBtn) {
@@ -4905,24 +4945,39 @@ getCustomUnitInput(checkboxId) {
     }
   }
   
+    // --- replace showAddSubitemModal + createNewSubitem in SubItemSearch class ---
   showAddSubitemModal(query) {
     const modal = document.createElement('div');
     modal.className = 'add-subitem-modal';
+
+    // Build dynamic category options (reads existing main item rows)
+    const mains = Array.from(document.querySelectorAll('.item-row')).map(row => {
+      const cb = row.querySelector('input[type="checkbox"].purchased, input[type="checkbox"]');
+      if (!cb || !cb.id) return null;
+      const parts = cb.id.split('_');
+      const suffix = (parts.length > 1) ? parts.slice(1).join('_') : cb.id;
+      const labelEl = row.querySelector('.editable');
+      const label = labelEl ? (labelEl.textContent || '').trim() : (cb.value || suffix);
+      return { suffix, label };
+    }).filter(Boolean);
+
+    let optionsHtml = `<option value="mode">Mode of payment</option>`;
+    mains.forEach(m => {
+      optionsHtml += `<option value="${this.escapeHtml(m.suffix)}">${this.escapeHtml(m.label)}</option>`;
+    });
+
     modal.innerHTML = `
       <div class="add-subitem-modal-content">
         <h3>Add New Sub-item</h3>
         <div class="add-subitem-form">
           <label>Category:</label>
           <select class="add-subitem-category">
-            <option value="floor">Floor Tiles</option>
-            <option value="wall">Wall Tiles</option>
-            <option value="san">Sanitaryware</option>
-            <option value="acc">Accessories</option>
+            ${optionsHtml}
           </select>
-          
+
           <label>Sub-item name:</label>
-          <input type="text" class="add-subitem-label" value="${this.escapeHtml(query)}">
-          
+          <input type="text" class="add-subitem-label" value="${this.escapeHtml(query || '')}">
+
           <div class="add-subitem-actions">
             <button class="btn add-subitem-confirm">Add Sub-item</button>
             <button class="btn add-subitem-cancel">Cancel</button>
@@ -4930,27 +4985,25 @@ getCustomUnitInput(checkboxId) {
         </div>
       </div>
     `;
-    
     document.body.appendChild(modal);
-    
+
     // Focus input
     const labelInput = modal.querySelector('.add-subitem-label');
     labelInput.focus();
     labelInput.select();
-    
+
     // Bind events
     modal.querySelector('.add-subitem-confirm').addEventListener('click', () => {
-      this.createNewSubitem(
-        modal.querySelector('.add-subitem-category').value,
-        modal.querySelector('.add-subitem-label').value
-      );
+      const category = modal.querySelector('.add-subitem-category').value;
+      const label = modal.querySelector('.add-subitem-label').value;
+      this.createNewSubitem(category, label);
       document.body.removeChild(modal);
     });
-    
+
     modal.querySelector('.add-subitem-cancel').addEventListener('click', () => {
       document.body.removeChild(modal);
     });
-    
+
     // Close on outside click
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
@@ -4958,45 +5011,105 @@ getCustomUnitInput(checkboxId) {
       }
     });
   }
-  
+
   createNewSubitem(category, label) {
-    if (!label.trim()) return;
-    
+    if (!label || !label.trim()) return;
     const trimmedLabel = label.trim();
-    const slug = trimmedLabel.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const baseId = `sub${category}${slug}`;
-    
-    // Find unique ID
+    // slug: replace non-alphanum with `_` (keeps naming consistent)
+    const slug = trimmedLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    // For payment modes handle separately
+    let baseId;
+    if (category === 'mode') {
+      baseId = 'mode_' + (slug || Date.now().toString(36));
+    } else {
+      baseId = 'sub_' + category + (slug ? '_' + slug : '');
+    }
+
+    // ensure unique id
     let elementId = baseId;
     let i = 1;
     while (document.getElementById(elementId)) {
-      elementId = `${baseId}${i}`;
-      i++;
+      elementId = baseId + '_' + (i++);
     }
-    
-    // Get target sublist
-    const sublistId = `sublist${category}`;
+
+    // target sublist id must match the rest of the app naming convention:
+    const sublistId = (category === 'mode') ? 'modes' : ('sublist_' + category);
     const sublist = document.getElementById(sublistId);
     if (!sublist) {
-      alert('Could not find category container');
+      alert('Could not find category container for: ' + category);
       return;
     }
-    
-    // Create sub-item element
-    const suffix = elementId.slice(3); // Remove 'sub' prefix
-    const qtyId = `q${suffix}`;
-    const unitId = `unit${suffix}`;
-    const customUnitId = `unitcustom${suffix}`;
-    
+
+    if (category === 'mode') {
+      // Create a new mode-row (same structure your global handler uses)
+      const modeDiv = document.createElement('div');
+      modeDiv.className = 'mode-row';
+      modeDiv.setAttribute('data-generated', 'true');
+
+      const labelEl = document.createElement('label');
+      labelEl.className = 'mode-label';
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.name = 'modeOfPayment';
+      cb.value = trimmedLabel;
+      cb.id = elementId;
+
+      const span = document.createElement('span');
+      span.className = 'editable';
+      const cfgId = elementId + '_label';
+      span.setAttribute('data-config-id', cfgId);
+      span.id = 'label_' + elementId;
+      span.textContent = trimmedLabel;
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del-btn';
+      delBtn.type = 'button';
+      delBtn.title = 'Remove mode';
+      delBtn.setAttribute('aria-label', 'Remove');
+      delBtn.textContent = '❌';
+
+      labelEl.appendChild(cb);
+      labelEl.appendChild(span);
+      labelEl.appendChild(delBtn);
+
+      const amt = document.createElement('input');
+      amt.type = 'number';
+      amt.min = '0';
+      amt.step = '0.01';
+      amt.placeholder = trimmedLabel + ' Rs.';
+      amt.className = 'mode-amount';
+      amt.id = 'amt_' + elementId;
+      amt.disabled = true;
+      amt.setAttribute('data-mode-amount', trimmedLabel);
+
+      modeDiv.appendChild(labelEl);
+      modeDiv.appendChild(amt);
+
+      sublist.appendChild(modeDiv);
+
+      if (typeof registerEditable === 'function') registerEditable(span);
+      bindModeToggle(cb);
+      bindSubitemHandlers();
+      if (typeof showTempMessage === 'function') showTempMessage('Added payment mode: ' + trimmedLabel);
+      return;
+    }
+
+    // For normal sub-items use the same naming conventions used elsewhere
+    const suffix = elementId.slice(4); // remove 'sub_'
+    const qtyId = 'q_' + suffix;
+    const unitId = 'unit_' + suffix;
+    const customUnitId = 'unit_custom_' + suffix;
+
     const subDiv = document.createElement('div');
     subDiv.className = 'sub-item';
     subDiv.setAttribute('data-generated', 'true');
-    
+
     subDiv.innerHTML = `
       <label>
-        <input type="checkbox" class="subitem" id="${elementId}" value="${trimmedLabel}">
-        <span class="editable" data-config-id="${elementId}label" id="label${elementId}">${trimmedLabel}</span>
-        <button class="del-btn" type="button" title="Remove sub-item" aria-label="Remove">×</button>
+        <input type="checkbox" class="subitem" id="${elementId}" value="${this.escapeHtml(trimmedLabel)}">
+        <span class="editable" data-config-id="${elementId}_label" id="label_${elementId}">${this.escapeHtml(trimmedLabel)}</span>
+        <button class="del-btn" type="button" title="Remove sub-item" aria-label="Remove">❌</button>
       </label>
       <div class="qty-unit">
         <input type="number" min="0" step="1" id="${qtyId}" class="subqty qty" placeholder="Quantity" disabled>
@@ -5009,34 +5122,25 @@ getCustomUnitInput(checkboxId) {
         <input type="text" id="${customUnitId}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
       </div>
     `;
-    
-    // Add to sublist
+
     sublist.appendChild(subDiv);
-    
-    // Re-register handlers and cache
-    if (typeof bindSubitemHandlers === 'function') {
-      bindSubitemHandlers();
-    }
-    if (typeof registerEditable === 'function') {
-      registerEditable(subDiv.querySelector('.editable'));
-    }
-    
-    // Auto-check the new item
+
+    // rebind handlers and enable inline-editing for new label
+    if (typeof bindSubitemHandlers === 'function') bindSubitemHandlers();
+    const editableSpan = subDiv.querySelector('.editable');
+    if (editableSpan && typeof registerEditable === 'function') registerEditable(editableSpan);
+
+    // auto-check the new checkbox (nice UX)
     const newCheckbox = document.getElementById(elementId);
     if (newCheckbox) {
       newCheckbox.checked = true;
       newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    
-    // Cache will be updated automatically by MutationObserver
-    // Announce the addition
-    this.announceChange(`New item added: ${trimmedLabel}`);
-    
-    // Show success message
-    if (typeof showTempMessage === 'function') {
-      showTempMessage(`Added "${trimmedLabel}" to ${category} category`);
-    }
+
+    if (typeof showTempMessage === 'function') showTempMessage(`Added "${trimmedLabel}" to category ${category}`);
   }
+  // --- end replacement ---
+
   
   clearSearch() {
     this.searchInput.value = '';
@@ -5141,6 +5245,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
