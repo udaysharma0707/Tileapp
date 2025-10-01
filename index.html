@@ -983,6 +983,19 @@
         </div>
       </div>
 
+      <!-- Add Main Item control - put inside your customization panel -->
+<div id="custom-main-add" class="customize-row" style="margin-top:12px;">
+  <label for="newMainLabel" style="display:block; font-weight:600; margin-bottom:6px;">
+    Add new Main item
+  </label>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <input id="newMainLabel" type="text" placeholder="e.g. Electrical" style="flex:1; padding:6px;" />
+    <button id="addMainBtn" type="button" style="padding:6px 10px;">Add</button>
+  </div>
+  <div id="addMainStatus" style="font-size:12px; color:#666; margin-top:6px;"></div>
+</div>
+
+
       <!-- Add / Remove sub-item controls -->
       <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
         <strong>Add / Remove Sub-items</strong>
@@ -1995,6 +2008,119 @@ if (originalMobileSubmitFunction) {
       renderUnitList();
       rebuildAllUnitSelects();
 
+
+      /* ------------------ Add Main Item (Customization) ------------------ */
+/* Paste this block immediately after the existing `rebuildAllUnitSelects();` line
+   in the section where units and customization buttons are initialized. */
+
+function sanitizeIdFragment(text) {
+  return text.toString().trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 40);
+}
+
+function getCurrentConfigOrBuild() {
+  if (window.currentCfg && typeof window.currentCfg === 'object') return window.currentCfg;
+  try { return buildConfigObject(); } catch(e) { return { structure: { mainItems: [] } }; }
+}
+
+function ensureMainItemsArray(cfg) {
+  if (!cfg) cfg = {};
+  if (!cfg.structure) cfg.structure = {};
+  if (!Array.isArray(cfg.structure.mainItems)) cfg.structure.mainItems = [];
+  return cfg;
+}
+
+function addMainToConfig(label) {
+  if (!label || !label.trim()) return { error: 'Empty label' };
+  const cfg = getCurrentConfigOrBuild();
+  ensureMainItemsArray(cfg);
+
+  const base = sanitizeIdFragment(label) || 'main';
+  let suffix = base;
+  let i = 1;
+  while (cfg.structure.mainItems.some(m => (m.id || '').toString() === suffix || (m.label || '').toString().toLowerCase() === label.toLowerCase())) {
+    suffix = base + '_' + (i++);
+  }
+
+  const newMain = { id: suffix, label: label.trim(), subitems: [] };
+  cfg.structure.mainItems.push(newMain);
+  window.currentCfg = cfg;
+  return { ok: true, cfg: cfg, newMain: newMain };
+}
+
+function rebuildAddCategorySelect() {
+  const sel = document.getElementById('addCategorySelect');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '';
+  const cfg = getCurrentConfigOrBuild();
+  const mains = (cfg && cfg.structure && Array.isArray(cfg.structure.mainItems)) ? cfg.structure.mainItems : [];
+  mains.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.label || m.id;
+    sel.appendChild(opt);
+  });
+  // Always keep Mode of payment as an option at the end
+  const optMode = document.createElement('option');
+  optMode.value = 'mode';
+  optMode.textContent = 'Mode of payment';
+  sel.appendChild(optMode);
+  // try to restore previous selection
+  try { sel.value = prev; } catch(e) {}
+}
+
+function initCustomizationMainAdder() {
+  const input = document.getElementById('newMainLabel');
+  const btn = document.getElementById('addMainBtn');
+  const status = document.getElementById('addMainStatus');
+  if (!input || !btn) return;
+
+  // populate the Add-Sub dropdown from current cfg
+  rebuildAddCategorySelect();
+
+  btn.removeEventListener('click', btn._mainClickHandler || (()=>{}));
+  btn._mainClickHandler = function() {
+    const label = input.value.trim();
+    status.textContent = '';
+    if (!label) { status.textContent = 'Please enter a name for the main item.'; return input.focus(); }
+
+    const res = addMainToConfig(label);
+    if (res.error) { status.textContent = 'Error: ' + res.error; return; }
+
+    // Re-render the form using your applyConfigObject so the main checkbox and empty sublist appear
+    try {
+      if (typeof applyConfigObject === 'function') {
+        applyConfigObject(res.cfg);
+      } else if (typeof applyConfig === 'function') {
+        applyConfig(res.cfg);
+      }
+      status.textContent = 'Added "' + label + '". Now add sub-items under it.';
+      input.value = '';
+      input.focus();
+      // update Add-Sub dropdown to include the new main
+      rebuildAddCategorySelect();
+    } catch (e) {
+      console.error('applyConfig apply failed after adding main:', e);
+      status.textContent = 'Added locally but failed to redraw. See console.';
+    }
+  };
+  btn.addEventListener('click', btn._mainClickHandler);
+
+  input.removeEventListener('keydown', input._mainKeyHandler || (()=>{}));
+  input._mainKeyHandler = function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); btn.click(); } };
+  input.addEventListener('keydown', input._mainKeyHandler);
+}
+/* ---------------- end Add Main Item block -------------------- */
+
+/* Ensure initializer runs on load. If applyConfigObject rebuilds the DOM it will call this again (see below). */
+document.addEventListener('DOMContentLoaded', function(){ try { initCustomizationMainAdder(); } catch(e) { console.error(e); } });
+
+
       // Add Unit button event listener
       if (addUnitBtn && newUnitInput) {
         addUnitBtn.addEventListener('click', function() {
@@ -2834,6 +2960,8 @@ if (originalMobileSubmitFunction) {
 
       function applyConfigObject(cfg) {
         if (!cfg) return;
+        window.currentCfg = cfg;
+
 
         if (cfg.title) {
           const titleEl = document.getElementById('appTitle');
@@ -3078,6 +3206,8 @@ if (originalMobileSubmitFunction) {
         }
 
         // Re-bind handlers after structural changes
+        initCustomizationMainAdder();
+
         bindSubitemHandlers();
         setupMainToSubBindings();
         document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
@@ -4832,6 +4962,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
