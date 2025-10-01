@@ -2632,9 +2632,7 @@ document.addEventListener('DOMContentLoaded', function(){ try { initCustomizatio
       bindSubitemHandlers();
       setupMainToSubBindings();
 
-              // Refresh Add-Sub dropdown and handler so newly added mains are available
-        if (typeof rebuildAddCategorySelect === 'function') rebuildAddCategorySelect();
-        if (typeof initAddSubItemHandler === 'function') initAddSubItemHandler();
+        
 
       document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
 
@@ -5039,6 +5037,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
