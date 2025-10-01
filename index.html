@@ -2691,7 +2691,7 @@ function rebuildAddCategorySelect() {
   mains.forEach(cb => {
     if (!cb.id) return;
     let val = cb.id;
-    if (val.startsWith('p_')) val = val.slice(2); // e.g., p_floor -> floor
+    if (val.startsWith('p_')) val = val.slice(1); // e.g., p_floor -> floor
     const labelEl = cb.closest('.item-row') ? cb.closest('.item-row').querySelector('.editable') : null;
     const txt = labelEl ? (labelEl.textContent || cb.value || val) : (cb.value || val);
     const opt = document.createElement('option');
@@ -2716,13 +2716,19 @@ function rebuildAddCategorySelect() {
 
 
       
+if (addSubBtn) {
+  addSubBtn.addEventListener('click', function() {
+    const cat = addCategorySelect ? addCategorySelect.value : 'floor';
+    const rawLabel = addSubLabelInput ? addSubLabelInput.value : '';
+    
+    if (!rawLabel || !rawLabel.trim()) {
+      alert('Enter a label for the new sub-item.');
+      addSubLabelInput.focus();
+      return;
+    }
+    
+    const trimmedLabel = rawLabel.trim();
 
-    // Add subitem functionality
-      if (addSubBtn) {
-        addSubBtn.addEventListener('click', function() {
-          const cat = addCategorySelect && addCategorySelect.value ? addCategorySelect.value : 'floor';
-          const rawLabel = (addSubLabelInput && addSubLabelInput.value) ? addSubLabelInput.value.trim() : '';
-          if (!rawLabel) { alert('Enter a label for the new sub-item.'); return; }
           const slug = rawLabel.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
           let baseId = (cat === 'mode') ? 'mode_' + (slug || Date.now()) : 'sub_' + cat + (slug ? '_' + slug : '');
           let candidate = baseId;
@@ -5311,6 +5317,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
