@@ -4393,38 +4393,39 @@ class SubItemSearch {
     }
   }
 
-  syncAllSearchInputsToOriginals() {
-    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+ syncAllSearchInputsToOriginals() {
+  const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+  const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+  const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
 
-    qtyInputs.forEach(input => {
-      const originalId = input.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput && input.value) {
-        originalInput.value = input.value;
-        originalInput.dispatchEvent(new Event('change', {bubbles: true}));
-      }
-    });
+  qtyInputs.forEach(input => {
+    const originalId = input.getAttribute('data-original-id'); // Changed from dataset.originalId
+    const originalInput = document.getElementById(originalId);
+    if (originalInput && input.value) {
+      originalInput.value = input.value;
+      originalInput.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+  });
 
-    unitSelects.forEach(select => {
-      const originalId = select.dataset.originalId;
-      const originalSelect = document.getElementById(originalId);
-      if (originalSelect && select.value) {
-        originalSelect.value = select.value;
-        originalSelect.dispatchEvent(new Event('change', {bubbles: true}));
-      }
-    });
+  unitSelects.forEach(select => {
+    const originalId = select.getAttribute('data-original-id'); // Changed from dataset.originalId
+    const originalSelect = document.getElementById(originalId);
+    if (originalSelect && select.value) {
+      originalSelect.value = select.value;
+      originalSelect.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+  });
 
-    customUnits.forEach(customInput => {
-      const originalId = customInput.dataset.originalId;
-      const originalInput = document.getElementById(originalId);
-      if (originalInput && customInput.value) {
-        originalInput.value = customInput.value;
-        originalInput.dispatchEvent(new Event('change', {bubbles: true}));
-      }
-    });
-  }
+  customUnits.forEach(customInput => {
+    const originalId = customInput.getAttribute('data-original-id'); // Changed from dataset.originalId
+    const originalInput = document.getElementById(originalId);
+    if (originalInput && customInput.value) {
+      originalInput.value = customInput.value;
+      originalInput.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+  });
+}
+
 
 
   
@@ -4826,6 +4827,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
