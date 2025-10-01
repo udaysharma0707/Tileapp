@@ -4298,42 +4298,81 @@ class SubItemSearch {
     return options;
   }
   
-  setupQtyUnitControls() {
-    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
-    
-    // Sync qty inputs
-    qtyInputs.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
+ setupQtyUnitControls() {
+  const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
+  const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
+  const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
+  
+  // Sync qty inputs - IMMEDIATE sync without delay
+  qtyInputs.forEach(input => {
+    input.addEventListener('input', (e) => {
+      const originalId = e.target.getAttribute('data-original-id');
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        // Force immediate sync without bubbling to prevent conflicts
+        originalInput.dispatchEvent(new Event('input', { bubbles: false }));
+      }
     });
     
-    // Sync unit selects
-    unitSelects.forEach(select => {
-      select.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalSelect = document.getElementById(originalId);
-        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+    input.addEventListener('blur', (e) => {
+      const originalId = e.target.getAttribute('data-original-id');
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        originalInput.dispatchEvent(new Event('change', { bubbles: false }));
+      }
+    });
+  });
+  
+  // Sync unit selects - IMMEDIATE sync
+  unitSelects.forEach(select => {
+    select.addEventListener('change', (e) => {
+      const originalId = e.target.getAttribute('data-original-id');
+      const originalSelect = document.getElementById(originalId);
+      const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
+      
+      if (originalSelect) {
+        originalSelect.value = e.target.value;
+        originalSelect.dispatchEvent(new Event('change', { bubbles: false }));
         
-        if (originalSelect) {
-          originalSelect.value = e.target.value;
-          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        // Handle custom unit visibility
+        if (e.target.value === 'Custom') {
+          customUnit.style.display = 'block';
+          customUnit.disabled = false;
+        } else {
+          customUnit.style.display = 'none';
+          customUnit.disabled = true;
+        }
+        
+        // Save unit preference
+        this.saveUnitPreference(originalId, e.target.value);
+      }
+    });
+  });
+  
+  // Sync custom unit inputs - IMMEDIATE sync
+  customUnits.forEach(input => {
+    input.addEventListener('input', (e) => {
+      const originalId = e.target.getAttribute('data-original-id');
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        originalInput.dispatchEvent(new Event('input', { bubbles: false }));
+      }
+    });
+    
+    input.addEventListener('blur', (e) => {
+      const originalId = e.target.getAttribute('data-original-id');
+      const originalInput = document.getElementById(originalId);
+      if (originalInput) {
+        originalInput.value = e.target.value;
+        originalInput.dispatchEvent(new Event('change', { bubbles: false }));
+      }
+    });
+  });
+}
+
           
           // Handle custom unit visibility
           if (e.target.value === 'Custom') {
@@ -4827,6 +4866,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
