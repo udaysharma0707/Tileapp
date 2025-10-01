@@ -29,11 +29,14 @@ window.addEventListener('offline', ()=>{ updateStatus(); });
 
 
 // JSONP helper (returns Promise) - reused for form submits and config load/save
+// NOTE: updated to ensure token is present. Signature unchanged: jsonpRequest(url, timeoutMs)
 function jsonpRequest(url, timeoutMs) {
   timeoutMs = timeoutMs || JSONP_TIMEOUT_MS;
   return new Promise(function(resolve, reject) {
     var cbName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
     var timer = null;
+
+    // global callback
     window[cbName] = function(data) {
       try { resolve(data); } finally {
         // cleanup
@@ -43,23 +46,40 @@ function jsonpRequest(url, timeoutMs) {
         if (timer) clearTimeout(timer);
       }
     };
-    url = url.replace(/(&|\?)?callback=[^&]*/i, "");
+
+    // Remove any existing callback param from the URL
+    url = url.replace(/([?&])callback=[^&]*(&?)/i, function(m, p1, p2){
+      // if trailing &, keep it; else remove leftover '?' or '&' properly later
+      return p2 ? p1 : '';
+    });
+
+    // Ensure token present - if not in URL, append token param using SHARED_TOKEN
+    if (!/([?&])token=[^&]*/i.test(url)) {
+      // if URL already has ?, append &, else append ?
+      url += (url.indexOf('?') === -1 ? '?' : '&') + 'token=' + encodeURIComponent(SHARED_TOKEN);
+    }
+
+    // build final URL with callback
     var full = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + encodeURIComponent(cbName);
+
     var script = document.createElement('script');
     script.id = cbName;
     script.src = full;
     script.async = true;
+
     script.onerror = function() {
       try { delete window[cbName]; } catch(e){}
       if (script.parentNode) script.parentNode.removeChild(script);
       if (timer) clearTimeout(timer);
       reject(new Error('JSONP script load error'));
     };
+
     timer = setTimeout(function(){
       try { delete window[cbName]; } catch(e){}
       if (script.parentNode) script.parentNode.removeChild(script);
       reject(new Error('JSONP timeout'));
     }, timeoutMs);
+
     document.body.appendChild(script);
   });
 }
@@ -908,15 +928,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 }); // DOMContentLoaded end
-
-
-
-
-
-
-
-
-
-
-
-
