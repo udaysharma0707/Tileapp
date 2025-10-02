@@ -341,436 +341,6 @@
       100% { transform: rotate(360deg); }
     }
 
-  /* ===== ULTRA-COMPACT SEARCH SYSTEM (TINY MOBILE CONTROLS) ===== */
-.search-container {
-  margin: 10px 0;
-  border: 2px solid #e3f2fd;
-  border-radius: 8px;
-  padding: 10px;
-  background: #f8f9ff;
-}
-
-.search-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 8px 30px 8px 10px;
-  font-size: 14px;
-  border: 2px solid #2196F3;
-  border-radius: 6px;
-  background: white;
-  box-sizing: border-box;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #1976D2;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-.search-clear-btn {
-  position: absolute;
-  right: 8px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: #999;
-  cursor: pointer;
-  padding: 2px;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-clear-btn:hover {
-  color: #666;
-  background: #f0f0f0;
-  border-radius: 50%;
-}
-
-.search-count {
-  font-size: 12px;
-  color: #666;
-  font-weight: 500;
-  min-width: 60px;
-  white-space: nowrap;
-}
-
-.search-results {
-  background: white;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-}
-
-.search-group {
-  border-bottom: 1px solid #eee;
-}
-
-.search-group:last-child {
-  border-bottom: none;
-}
-
-.search-group-header {
-  background: #f5f5f5;
-  padding: 6px 10px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-}
-
-.search-group-items {
-  padding: 2px 0;
-}
-
-/* SINGLE LINE LAYOUT FOR SUB-ITEMS */
-.search-result-item {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  margin: 0;
-  cursor: pointer;
-  min-height: 36px; /* Reduced for compactness */
-  border-bottom: 1px solid #f8f8f8;
-  gap: 8px; /* Space between elements */
-}
-
-.search-result-item:last-child {
-  border-bottom: none;
-}
-
-.search-result-item:hover {
-  background: #f0f8ff;
-}
-
-.search-result-item.focused {
-  background: #e3f2fd;
-  box-shadow: inset 2px 0 0 #2196F3;
-}
-
-.search-result-item.selected {
-  background: #e8f5e8;
-}
-
-/* CHECKBOX AREA */
-.search-result-checkbox {
-  transform: scale(1.6);
-  margin: 1;
-  flex-shrink: 0;
-}
-
-/* TEXT AREA - TAKES AVAILABLE SPACE */
-.search-result-text {
-  flex: 1;
-  font-size: 13px;
-  line-height: 1.2;
-  min-width: 0;
-  word-break: break-word;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-right: 6px;
-}
-
-/* TINY QTY + UNIT CONTROLS IN ONE LINE */
-.search-qty-unit {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-}
-
-/* LARGER QUANTITY INPUT - MORE COMFORTABLE */
-.search-qty-input {
-  width: 100px !important; /* Increased from 50px */
-  height: 28px; /* Increased height */
-  padding: 3px 5px; /* More padding */
-  font-size: 12px; /* Larger font */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  text-align: center;
-  box-sizing: border-box;
-  background: white;
-}
-
-.search-qty-input:disabled {
-  background: #f8f8f8;
-  color: #aaa;
-}
-
-.search-qty-input:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-/* UNIT SELECT - PROPORTIONAL SIZE */
-.search-unit-select {
-  width: 70px !important; /* Increased from 60px */
-  height: 28px; /* Match qty input height */
-  padding: 2px 4px;
-  font-size: 11px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
-  box-sizing: border-box;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 3px center;
-  background-size: 12px;
-  padding-right: 20px;
-}
-
-.search-unit-select:disabled {
-  background-color: #f8f8f8;
-  color: #aaa;
-}
-
-.search-unit-select:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-/* CUSTOM UNIT INPUT */
-.search-custom-unit {
-  width: 100px !important; /* Increased from 60px */
-  height: 28px; /* Match other inputs */
-  padding: 3px 5px;
-  font-size: 11px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  background: white;
-}
-
-.search-custom-unit:disabled {
-  background: #f8f8f8;
-  color: #aaa;
-}
-
-.search-custom-unit:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-
-.search-highlight {
-  background: #ffeb3b;
-  padding: 1px 2px;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.search-no-results {
-  padding: 24px 12px;
-  text-align: center;
-}
-
-.no-results-message {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
-}
-
-.add-subitem-btn {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  min-height: 36px;
-}
-
-.add-subitem-btn:hover {
-  background: #45a049;
-}
-
-.add-subitem-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10001;
-}
-
-.add-subitem-modal-content {
-  background: white;
-  padding: 16px;
-  border-radius: 6px;
-  width: 90%;
-  max-width: 320px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-}
-
-.add-subitem-modal h3 {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 16px;
-}
-
-.add-subitem-form label {
-  display: block;
-  margin: 10px 0 3px 0;
-  font-weight: 600;
-  font-size: 12px;
-}
-
-.add-subitem-category,
-.add-subitem-label {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-
-.add-subitem-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.add-subitem-confirm {
-  background: #4CAF50 !important;
-  flex: 1;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-.add-subitem-cancel {
-  background: #999 !important;
-  flex: 1;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-/* Screen reader announcements */
-#sr-announce {
-  position: absolute !important;
-  left: -10000px !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-}
-
-/* DESKTOP VERSION - EVEN LARGER */
-@media (min-width: 769px) {
-  .search-qty-input {
-    width: 100px !important; /* Desktop: 75px */
-    height: 30px;
-    font-size: 13px;
-    padding: 4px 6px;
-  }
-  
-  .search-result-text {
-    font-size: 14px;
-  }
-  
-  .search-qty-input {
-    width: 85px !important;
-    height: 28px;
-    font-size: 12px;
-  }
-  
-  .search-unit-select {
-    width: 100px !important; /* Desktop: 80px */
-    height: 30px;
-    font-size: 12px;
-    padding: 3px 5px;
-    padding-right: 22px;
-  }
-  search-custom-unit {
-    width: 110px !important; /* Desktop: 85px */
-    height: 30px;
-    font-size: 12px;
-    padding: 4px 6px;
-  }
-}
-
-/* MOBILE - COMFORTABLE SIZE */
-@media (max-width: 768px) {
-  .search-qty-input {
-    min-height: 32px; /* Touch-friendly */
-    font-size: 14px; /* Prevent zoom on iOS */
-  }
-  
-  .search-result-item {
-    min-height: 36px;
-    padding: 3px 6px;
-  }
-  
-  .search-result-text {
-    font-size: 13px;
-  }
-  
-  .search-checkbox {
-    transform: scale(1.2); /* Slightly larger for touch */
-  }
-  
-  /* Keep tiny inputs but ensure they're tappable */
-  .search-qty-input,
-  .search-unit-select,
-  .search-custom-unit {
-    min-height: 26px; /* Ensure touch-friendly */
-  }
-}
-
-/* VERY SMALL SCREENS - KEEP SINGLE LINE */
-@media (max-width: 480px) {
-  .search-result-item {
-    gap: 4px; /* Tighter spacing */
-  }
-  
-  .search-result-text {
-    font-size: 12px;
-  }
-  
-  .search-qty-input {
-    width: 60px !important; /* Even smaller on tiny screens */
-  }
-  
- .search-unit-select {
-    min-height: 32px;
-    font-size: 14px;
-  }
-  
-  .search-custom-unit {
-    min-height: 32px;
-    font-size: 14px;
-  }
-}
-
-/* HIGH CONTRAST MODE */
-@media (prefers-contrast: high) {
-  .search-highlight {
-    background: #000;
-    color: #fff;
-  }
-}
-
-
-
-
     /* quantity + unit inline controls */
     .qty-unit {
       display:flex;
@@ -946,14 +516,14 @@
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
       <span id="appTitle">Tile Purchase Entry</span>   
-      <span class="gear" id="gearBtn" title="Customize form">âš™ï¸</span>
+      <span class="gear" id="gearBtn" title="Customize form">Ã¢Å¡â„¢Ã¯Â¸Â</span>
     </h1>
 
     <div class="custom-mode-badge">Customize mode</div>
 
     <!-- Customize panel (hidden by default) -->
     <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
-      <button class="close-x" id="panelCloseX" title="Close (Esc)">âŒ</button>
+      <button class="close-x" id="panelCloseX" title="Close (Esc)">Ã¢ÂÅ’</button>
       <strong>Customize form text</strong>
       <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
       <div class="panel-row">
@@ -986,14 +556,14 @@
       <!-- Add / Remove sub-item controls -->
       <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
         <strong>Add / Remove Sub-items</strong>
-        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red âŒ next to each sub-item label to remove it.</div>
+        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red Ã¢ÂÅ’ next to each sub-item label to remove it.</div>
 
         <div class="panel-row" style="margin-top:8px; align-items:center;">
           <select id="addCategorySelect" style="width:40%; padding:8px; font-size:14px;">
             <option value="floor">Floor Tiles</option>
             <option value="wall">Wall Tiles</option>
             <option value="san">Sanitaryware</option>
-            <option value="acc">extraparts</option>
+            <option value="acc">Accessories</option>
             <option value="mode">Mode of payment</option>
           </select>
           <input id="addSubLabelInput" type="text" placeholder="New sub-item label (e.g. 'Large format tiles')" style="flex:1; margin-left:8px;">
@@ -1007,10 +577,10 @@
 
     <!-- Photo Upload Section -->
     <div class="photo-section">
-      <h2>ðŸ“· Photo Upload (Optional)</h2>
+      <h2>Ã°Å¸â€œÂ¸ Photo Upload (Optional)</h2>
       
       <div class="upload-area" id="uploadArea">
-          <div class="upload-icon">ðŸ“·</div>
+          <div class="upload-icon">Ã°Å¸â€œÂ·</div>
           <div class="upload-text">
               Click to select a photo or drag & drop here
           </div>
@@ -1054,7 +624,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="Quantity" disabled>
@@ -1069,7 +639,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="Quantity" disabled>
@@ -1084,7 +654,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="Quantity" disabled>
@@ -1099,7 +669,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="Quantity" disabled>
@@ -1114,7 +684,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="Quantity" disabled>
@@ -1139,7 +709,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="Quantity" disabled>
@@ -1154,7 +724,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="Quantity" disabled>
@@ -1169,7 +739,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="Quantity" disabled>
@@ -1194,7 +764,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="Quantity" disabled>
@@ -1209,7 +779,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="Quantity" disabled>
@@ -1224,7 +794,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="Quantity" disabled>
@@ -1238,18 +808,18 @@
         </div>
       </div>
 
-      <!-- extraparts -->
+      <!-- ACCESSORIES -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_acc" value="extraparts">
-          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">extraparts</span>
+          <input type="checkbox" class="purchased" id="p_acc" value="Accessories">
+          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">Accessories</span>
         </label>
       </div>
       <div class="sublist" id="sublist_acc">
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="Quantity" disabled>
@@ -1264,7 +834,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="Quantity" disabled>
@@ -1279,7 +849,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="Quantity" disabled>
@@ -1294,7 +864,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="Quantity" disabled>
@@ -1309,7 +879,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="Quantity" disabled>
@@ -1324,7 +894,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">âŒ</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="Quantity" disabled>
@@ -1355,7 +925,7 @@
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
-        <input id="purchasedOtherText" type="text" placeholder="If Others â€” specify (e.g. 'Grout, Adhesive')">
+        <input id="purchasedOtherText" type="text" placeholder="If Others Ã¢â‚¬â€œ specify (e.g. 'Grout, Adhesive')">
       </div>
     </div>
 
@@ -1369,7 +939,7 @@
         <option value="Customised">Customised</option>
         <option value="Other">Other</option>
       </select>
-      <input id="purchasedFrom" type="text" placeholder="If Other â€” specify vendor name" style="flex:1; display:none;">
+      <input id="purchasedFrom" type="text" placeholder="If Other Ã¢â‚¬â€œ specify vendor name" style="flex:1; display:none;">
     </div>
 
     <!-- custom vendor manager -->
@@ -1388,26 +958,26 @@
     <div class="checkbox-row" id="modes">
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> <span class="editable" data-config-id="mode_cash_label" id="label_mode_cash">Cash</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âŒ</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">Ã¢ÂÅ’</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled data-mode-amount="Cash">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> <span class="editable" data-config-id="mode_online_label" id="label_mode_online">Online</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âŒ</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">Ã¢ÂÅ’</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled data-mode-amount="Online">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> <span class="editable" data-config-id="mode_credit_label" id="label_mode_credit">Credit</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">âŒ</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">Ã¢ÂÅ’</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled data-mode-amount="Credit">
       </div>
     </div>
 
     <!-- Total -->
-    <label class="q-label">Payment paid (â‚¹)</label>
+    <label class="q-label">Payment paid (Ã¢â€šÂ¹)</label>
     <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount (optional)" >
 
     <label class="q-label">Any other information</label>
@@ -2161,7 +1731,7 @@ if (originalMobileSubmitFunction) {
         b.type = 'button';
         b.className = 'remove-checkbox';
         b.title = 'Remove this item';
-        b.textContent = 'âŒ';
+        b.textContent = 'Ã¢ÂÅ’';
         b.style.marginLeft = '8px';
         b.style.background = '#ff6b6b';
         b.style.color = '#fff';
@@ -2543,7 +2113,7 @@ if (originalMobileSubmitFunction) {
             delBtn.type = 'button';
             delBtn.title = 'Remove mode';
             delBtn.setAttribute('aria-label','Remove');
-            delBtn.textContent = 'âŒ';
+            delBtn.textContent = 'Ã¢ÂÅ’';
 
             labelEl.appendChild(cb);
             labelEl.appendChild(span);
@@ -2601,7 +2171,7 @@ if (originalMobileSubmitFunction) {
           delBtn.type = 'button';
           delBtn.title = 'Remove sub-item';
           delBtn.setAttribute('aria-label','Remove');
-          delBtn.textContent = 'âŒ';
+          delBtn.textContent = 'Ã¢ÂÅ’';
 
           labelEl.appendChild(cb);
           labelEl.appendChild(span);
@@ -2880,7 +2450,7 @@ if (originalMobileSubmitFunction) {
                   delBtn.type = 'button';
                   delBtn.title = 'Remove sub-item';
                   delBtn.setAttribute('aria-label', 'Remove');
-                  delBtn.textContent = 'âŒ';
+                  delBtn.textContent = 'Ã¢ÂÅ’';
 
                   labelEl.appendChild(cb);
                   labelEl.appendChild(span);
@@ -2973,7 +2543,7 @@ if (originalMobileSubmitFunction) {
             delBtn.type = 'button';
             delBtn.title = 'Remove mode';
             delBtn.setAttribute('aria-label', 'Remove');
-            delBtn.textContent = 'âŒ';
+            delBtn.textContent = 'Ã¢ÂÅ’';
 
             labelEl.appendChild(cb);
             labelEl.appendChild(span);
@@ -3550,7 +3120,7 @@ async function submitUnifiedDataFallback(data) {
         let amount = amountInput && amountInput.value ? amountInput.value : '';
         
         if (amount) {
-          paymentModes.push(`${mode}: â‚¹${amount}`);
+          paymentModes.push(`${mode}: Ã¢â€šÂ¹${amount}`);
         } else {
           paymentModes.push(mode);
         }
@@ -3925,820 +3495,6 @@ function submitDirectMobileFriendlyBackground(data) {
   // Don't return a promise - this is fire-and-forget
 }
 
-    // ===== ENHANCED SUB-ITEM SEARCH SYSTEM WITH CUSTOMIZATION SUPPORT =====
-class SubItemSearch {
-  constructor() {
-    this.searchInput = null;
-    this.searchResults = null;
-    this.originalPurchasedList = null;
-    this.cachedSubItems = [];
-    this.searchTimeout = null;
-    this.reindexTimeout = null;
-    this.focusedIndex = -1;
-    this.isSearchActive = false;
-    this.mutationObserver = null;
-    
-    this.init();
-  }
-  
-  init() {
-    this.createSearchUI();
-    this.cacheSubItems();
-    this.bindEvents();
-    this.setupMutationObserver();
-    this.setupEditableListeners();
-  }
-  
-  createSearchUI() {
-    const purchasedList = document.getElementById('purchasedList');
-    if (!purchasedList) return;
-    
-    // Create search container
-    const searchContainer = document.createElement('div');
-    searchContainer.className = 'search-container';
-    searchContainer.innerHTML = `
-      <div class="search-input-wrapper">
-        <input type="text" 
-               id="subItemSearch" 
-               class="search-input" 
-               placeholder='Search sub-items (e.g. "porcelain", "grout")'
-               autocomplete="off">
-        <button class="search-clear-btn" id="searchClearBtn" type="button">Ã—</button>
-        <div class="search-count" id="searchCount"></div>
-      </div>
-      <div class="search-results" id="searchResults" style="display: none;"></div>
-    `;
-    
-    // Insert before purchased list
-    purchasedList.parentNode.insertBefore(searchContainer, purchasedList);
-    
-    this.searchInput = document.getElementById('subItemSearch');
-    this.searchResults = document.getElementById('searchResults');
-    this.searchCount = document.getElementById('searchCount');
-    this.originalPurchasedList = purchasedList;
-  }
-  
-  cacheSubItems() {
-    this.cachedSubItems = [];
-    const subItems = document.querySelectorAll('.sub-item');
-    
-    subItems.forEach(subItem => {
-      const checkbox = subItem.querySelector('.subitem');
-      const labelEl = subItem.querySelector('.editable');
-      const parentRow = subItem.closest('.sublist').previousElementSibling;
-      const parentLabel = parentRow ? parentRow.querySelector('.editable') : null;
-      
-      if (checkbox && labelEl && parentLabel) {
-        this.cachedSubItems.push({
-          node: subItem,
-          checkbox: checkbox,
-          labelEl: labelEl,
-          textLower: labelEl.textContent.toLowerCase(),
-          parentId: parentRow.querySelector('.purchased').id,
-          parentLabel: parentLabel.textContent,
-          qtyInput: this.getQtyInput(checkbox.id),
-          unitSelect: this.getUnitSelect(checkbox.id),
-          customUnitInput: this.getCustomUnitInput(checkbox.id)
-        });
-      }
-    });
-    
-    // Update current search if active
-    if (this.isSearchActive && this.searchInput && this.searchInput.value.trim()) {
-      this.performSearch(this.searchInput.value);
-    }
-  }
-  
-  getQtyInput(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('q' + suffix);
-  }
-  
-  getUnitSelect(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('unit' + suffix);
-  }
-  
-  getCustomUnitInput(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('unitcustom' + suffix);
-  }
-  
-  setupMutationObserver() {
-    if (!window.MutationObserver) return;
-    
-    this.mutationObserver = new MutationObserver((mutations) => {
-      let shouldReindex = false;
-      
-      mutations.forEach(mutation => {
-        // Check for added/removed sub-items
-        if (mutation.type === 'childList') {
-          const hasSubItems = Array.from(mutation.addedNodes).some(node => 
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-          );
-          const removedSubItems = Array.from(mutation.removedNodes).some(node => 
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-          );
-          
-          if (hasSubItems || removedSubItems) {
-            shouldReindex = true;
-          }
-        }
-      });
-      
-      if (shouldReindex) {
-        this.debouncedReindex();
-        this.announceChange('Items updated');
-      }
-    });
-    
-    // Observe the purchased list for changes
-    const purchasedList = document.getElementById('purchasedList');
-    if (purchasedList) {
-      this.mutationObserver.observe(purchasedList, {
-        childList: true,
-        subtree: true
-      });
-    }
-  }
-  
-  setupEditableListeners() {
-    // Listen for changes to editable labels
-    document.addEventListener('blur', (e) => {
-      if (e.target.classList.contains('editable')) {
-        this.debouncedReindex();
-      }
-    }, true);
-    
-    document.addEventListener('input', (e) => {
-      if (e.target.classList.contains('editable')) {
-        this.debouncedReindex();
-      }
-    }, true);
-  }
-  
-  debouncedReindex() {
-    clearTimeout(this.reindexTimeout);
-    this.reindexTimeout = setTimeout(() => {
-      this.cacheSubItems();
-    }, 300);
-  }
-  
-  bindEvents() {
-    if (!this.searchInput) return;
-    
-    // Search input with debounce
-    this.searchInput.addEventListener('input', (e) => {
-      clearTimeout(this.searchTimeout);
-      this.searchTimeout = setTimeout(() => {
-        this.performSearch(e.target.value);
-      }, 250);
-    });
-    
-    // Clear button
-    document.getElementById('searchClearBtn').addEventListener('click', () => {
-      this.clearSearch();
-    });
-    
-    // Keyboard navigation
-    this.searchInput.addEventListener('keydown', (e) => {
-      this.handleKeydown(e);
-    });
-    
-    // Click outside to maintain focus
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search-container')) {
-        this.focusedIndex = -1;
-        this.updateFocusStyles();
-      }
-    });
-  }
-  
-  performSearch(query) {
-    const trimmedQuery = query.trim();
-    
-    if (!trimmedQuery) {
-      this.clearSearch();
-      return;
-    }
-    
-    const queryLower = trimmedQuery.toLowerCase();
-    const matches = this.cachedSubItems.filter(item => 
-      item.textLower.includes(queryLower)
-    );
-    
-    this.displayResults(matches, trimmedQuery);
-    this.announceResults(matches.length);
-  }
-  
-  displayResults(matches, originalQuery) {
-    if (matches.length === 0) {
-      this.showNoResults(originalQuery);
-      return;
-    }
-    
-    // Group by parent
-    const grouped = this.groupByParent(matches);
-    const resultsHTML = this.buildResultsHTML(grouped, originalQuery);
-    
-    this.searchResults.innerHTML = resultsHTML;
-    this.searchResults.style.display = 'block';
-    this.originalPurchasedList.style.display = 'none';
-    this.isSearchActive = true;
-    this.focusedIndex = -1;
-    
-    this.updateSearchCount(matches.length);
-    this.bindResultEvents();
-    this.setupQtyUnitControls();
-  }
-  
-  groupByParent(matches) {
-    const grouped = {};
-    matches.forEach(match => {
-      if (!grouped[match.parentId]) {
-        grouped[match.parentId] = {
-          parentLabel: match.parentLabel,
-          items: []
-        };
-      }
-      grouped[match.parentId].items.push(match);
-    });
-    return grouped;
-  }
-  
-  buildResultsHTML(grouped, query) {
-    let html = '<div class="search-results-content">';
-    
-    Object.keys(grouped).forEach(parentId => {
-      const group = grouped[parentId];
-      html += `
-        <div class="search-group">
-          <div class="search-group-header">${this.escapeHtml(group.parentLabel)}</div>
-          <div class="search-group-items">
-      `;
-      
-      group.items.forEach((item, index) => {
-        const highlighted = this.highlightMatch(item.labelEl.textContent, query);
-        const isChecked = item.checkbox.checked ? 'checked' : '';
-        const isDisabled = !item.checkbox.checked ? 'disabled' : '';
-        const qtyValue = item.qtyInput ? item.qtyInput.value : '';
-        const unitValue = item.unitSelect ? item.unitSelect.value : 'Boxes';
-        const customUnitValue = item.customUnitInput ? item.customUnitInput.value : '';
-        const customUnitVisible = unitValue === 'Custom' ? 'style="display:block"' : 'style="display:none"';
-        
-        // Get current unit options
-        const unitOptions = this.getUnitOptions(item.unitSelect);
-        
-        html += `
-          <div class="search-result-item" data-checkbox-id="${item.checkbox.id}">
-            <div class="search-result-main">
-              <label class="search-result-label">
-                <input type="checkbox" class="search-result-checkbox" ${isChecked}>
-                <span class="search-result-text">${highlighted}</span>
-              </label>
-            </div>
-            <div class="search-result-controls">
-              <div class="search-qty-unit">
-                <input type="number" 
-                       class="search-qty-input" 
-                       min="0" 
-                       step="1" 
-                       placeholder="Qty" 
-                       value="${qtyValue}"
-                       ${isDisabled}
-                       data-original-id="${item.qtyInput ? item.qtyInput.id : ''}">
-                <select class="search-unit-select" 
-                        ${isDisabled}
-                        data-original-id="${item.unitSelect ? item.unitSelect.id : ''}">
-                  ${unitOptions}
-                </select>
-                <input type="text" 
-                       class="search-custom-unit" 
-                       placeholder="Custom unit" 
-                       value="${customUnitValue}"
-                       ${customUnitVisible}
-                       ${isDisabled}
-                       data-original-id="${item.customUnitInput ? item.customUnitInput.id : ''}">
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += '</div></div>';
-    });
-    
-    html += '</div>';
-    return html;
-  }
-  
-  getUnitOptions(originalSelect) {
-    if (!originalSelect) {
-      return `
-        <option value="Boxes">Boxes</option>
-        <option value="Pieces">Pieces</option>
-        <option value="Kg">Kg</option>
-        <option value="Custom">Custom</option>
-      `;
-    }
-    
-    let options = '';
-    Array.from(originalSelect.options).forEach(option => {
-      const selected = option.selected ? 'selected' : '';
-      options += `<option value="${option.value}" ${selected}>${option.text}</option>`;
-    });
-    
-    return options;
-  }
-  
-  setupQtyUnitControls() {
-    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
-    
-    // Sync qty inputs
-    qtyInputs.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    });
-    
-    // Sync unit selects
-    unitSelects.forEach(select => {
-      select.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalSelect = document.getElementById(originalId);
-        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
-        
-        if (originalSelect) {
-          originalSelect.value = e.target.value;
-          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
-          
-          // Handle custom unit visibility
-          if (e.target.value === 'Custom') {
-            customUnit.style.display = 'block';
-            customUnit.disabled = false;
-            // Focus custom unit on mobile after a brief delay
-            setTimeout(() => {
-              if (window.innerWidth <= 768) {
-                customUnit.focus();
-              }
-            }, 100);
-          } else {
-            customUnit.style.display = 'none';
-            customUnit.disabled = true;
-          }
-          
-          // Save unit preference
-          this.saveUnitPreference(originalId, e.target.value);
-        }
-      });
-    });
-    
-    // Sync custom unit inputs
-    customUnits.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    });
-  }
-  
-  saveUnitPreference(originalId, unitValue) {
-    if (typeof saveUnitPref === 'function') {
-      saveUnitPref(originalId, unitValue);
-    } else {
-      // Fallback unit preference saving
-      try {
-        const prefs = JSON.parse(localStorage.getItem('unitPreferences') || '{}');
-        prefs[originalId] = unitValue;
-        localStorage.setItem('unitPreferences', JSON.stringify(prefs));
-      } catch (e) {
-        console.warn('Could not save unit preference:', e);
-      }
-    }
-  }
-  
-  showNoResults(query) {
-    this.searchResults.innerHTML = `
-      <div class="search-no-results">
-        <div class="no-results-message">No sub-items found for "${this.escapeHtml(query)}"</div>
-        <button class="add-subitem-btn" data-query="${this.escapeHtml(query)}">
-          Add sub-item: "${this.escapeHtml(query)}"
-        </button>
-      </div>
-    `;
-    this.searchResults.style.display = 'block';
-    this.originalPurchasedList.style.display = 'none';
-    this.isSearchActive = true;
-    this.updateSearchCount(0);
-    this.bindAddSubitemEvent();
-  }
-  
-  bindResultEvents() {
-    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
-    
-    resultItems.forEach((item, index) => {
-      const label = item.querySelector('.search-result-label');
-      
-      // Click/touch events on the label area
-      label.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.toggleResult(item);
-      });
-      
-      // Touch-friendly tap
-      label.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        this.toggleResult(item);
-      });
-      
-      // Store index for keyboard navigation
-      item.dataset.resultIndex = index;
-    });
-  }
-  
-  bindAddSubitemEvent() {
-    const addBtn = this.searchResults.querySelector('.add-subitem-btn');
-    if (addBtn) {
-      addBtn.addEventListener('click', (e) => {
-        this.showAddSubitemModal(e.target.dataset.query);
-      });
-    }
-  }
-  
-  toggleResult(resultItem) {
-    const checkboxId = resultItem.dataset.checkboxId;
-    const originalCheckbox = document.getElementById(checkboxId);
-    const resultCheckbox = resultItem.querySelector('.search-result-checkbox');
-    const qtyInput = resultItem.querySelector('.search-qty-input');
-    const unitSelect = resultItem.querySelector('.search-unit-select');
-    const customUnit = resultItem.querySelector('.search-custom-unit');
-    
-    if (originalCheckbox && resultCheckbox) {
-      // Toggle original checkbox
-      originalCheckbox.checked = !originalCheckbox.checked;
-      resultCheckbox.checked = originalCheckbox.checked;
-      
-      // Trigger change event on original checkbox
-      originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      
-      // Update controls state
-      const isEnabled = originalCheckbox.checked;
-      if (qtyInput) qtyInput.disabled = !isEnabled;
-      if (unitSelect) unitSelect.disabled = !isEnabled;
-      if (customUnit && unitSelect.value !== 'Custom') customUnit.disabled = !isEnabled;
-      
-      // Update visual feedback
-      resultItem.classList.toggle('selected', originalCheckbox.checked);
-      
-      // If checked, ensure parent main category is visible/expanded
-      if (originalCheckbox.checked) {
-        this.ensureParentExpanded(checkboxId);
-        
-        // Focus qty input on mobile for better UX
-        if (window.innerWidth <= 768 && qtyInput && !qtyInput.disabled) {
-          setTimeout(() => {
-            qtyInput.focus();
-            qtyInput.select();
-          }, 150);
-        }
-      }
-    }
-  }
-  
-  ensureParentExpanded(checkboxId) {
-    const originalSubitem = document.getElementById(checkboxId);
-    if (!originalSubitem) return;
-    
-    const sublist = originalSubitem.closest('.sublist');
-    const parentRow = sublist ? sublist.previousElementSibling : null;
-    const parentCheckbox = parentRow ? parentRow.querySelector('.purchased') : null;
-    
-    if (parentCheckbox && sublist) {
-      if (!parentCheckbox.checked) {
-        parentCheckbox.checked = true;
-        parentCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      sublist.style.display = 'block';
-    }
-  }
-  
-  handleKeydown(e) {
-    if (!this.isSearchActive) return;
-    
-    const resultItems = Array.from(this.searchResults.querySelectorAll('.search-result-item'));
-    
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        this.focusedIndex = Math.min(this.focusedIndex + 1, resultItems.length - 1);
-        this.updateFocusStyles();
-        this.scrollToFocused();
-        break;
-        
-      case 'ArrowUp':
-        e.preventDefault();
-        this.focusedIndex = Math.max(this.focusedIndex - 1, -1);
-        this.updateFocusStyles();
-        this.scrollToFocused();
-        break;
-        
-      case 'Enter':
-        e.preventDefault();
-        if (this.focusedIndex >= 0 && resultItems[this.focusedIndex]) {
-          this.toggleResult(resultItems[this.focusedIndex]);
-          // Focus qty input after toggle
-          const qtyInput = resultItems[this.focusedIndex].querySelector('.search-qty-input');
-          if (qtyInput && !qtyInput.disabled) {
-            setTimeout(() => {
-              qtyInput.focus();
-              qtyInput.select();
-            }, 100);
-          }
-        }
-        break;
-        
-      case 'Escape':
-        e.preventDefault();
-        this.clearSearch();
-        this.searchInput.focus();
-        break;
-    }
-  }
-  
-  updateFocusStyles() {
-    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
-    resultItems.forEach((item, index) => {
-      item.classList.toggle('focused', index === this.focusedIndex);
-    });
-  }
-  
-  scrollToFocused() {
-    const focusedItem = this.searchResults.querySelector('.search-result-item.focused');
-    if (focusedItem) {
-      focusedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
-  
-  showAddSubitemModal(query) {
-    const modal = document.createElement('div');
-    modal.className = 'add-subitem-modal';
-    modal.innerHTML = `
-      <div class="add-subitem-modal-content">
-        <h3>Add New Sub-item</h3>
-        <div class="add-subitem-form">
-          <label>Category:</label>
-          <select class="add-subitem-category">
-            <option value="floor">Floor Tiles</option>
-            <option value="wall">Wall Tiles</option>
-            <option value="san">Sanitaryware</option>
-            <option value="acc">Accessories</option>
-          </select>
-          
-          <label>Sub-item name:</label>
-          <input type="text" class="add-subitem-label" value="${this.escapeHtml(query)}">
-          
-          <div class="add-subitem-actions">
-            <button class="btn add-subitem-confirm">Add Sub-item</button>
-            <button class="btn add-subitem-cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Focus input
-    const labelInput = modal.querySelector('.add-subitem-label');
-    labelInput.focus();
-    labelInput.select();
-    
-    // Bind events
-    modal.querySelector('.add-subitem-confirm').addEventListener('click', () => {
-      this.createNewSubitem(
-        modal.querySelector('.add-subitem-category').value,
-        modal.querySelector('.add-subitem-label').value
-      );
-      document.body.removeChild(modal);
-    });
-    
-    modal.querySelector('.add-subitem-cancel').addEventListener('click', () => {
-      document.body.removeChild(modal);
-    });
-    
-    // Close on outside click
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        document.body.removeChild(modal);
-      }
-    });
-  }
-  
-  createNewSubitem(category, label) {
-    if (!label.trim()) return;
-    
-    const trimmedLabel = label.trim();
-    const slug = trimmedLabel.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const baseId = `sub${category}${slug}`;
-    
-    // Find unique ID
-    let elementId = baseId;
-    let i = 1;
-    while (document.getElementById(elementId)) {
-      elementId = `${baseId}${i}`;
-      i++;
-    }
-    
-    // Get target sublist
-    const sublistId = `sublist${category}`;
-    const sublist = document.getElementById(sublistId);
-    if (!sublist) {
-      alert('Could not find category container');
-      return;
-    }
-    
-    // Create sub-item element
-    const suffix = elementId.slice(3); // Remove 'sub' prefix
-    const qtyId = `q${suffix}`;
-    const unitId = `unit${suffix}`;
-    const customUnitId = `unitcustom${suffix}`;
-    
-    const subDiv = document.createElement('div');
-    subDiv.className = 'sub-item';
-    subDiv.setAttribute('data-generated', 'true');
-    
-    subDiv.innerHTML = `
-      <label>
-        <input type="checkbox" class="subitem" id="${elementId}" value="${trimmedLabel}">
-        <span class="editable" data-config-id="${elementId}label" id="label${elementId}">${trimmedLabel}</span>
-        <button class="del-btn" type="button" title="Remove sub-item" aria-label="Remove">Ã—</button>
-      </label>
-      <div class="qty-unit">
-        <input type="number" min="0" step="1" id="${qtyId}" class="subqty qty" placeholder="Quantity" disabled>
-        <select id="${unitId}" class="unit-select" disabled>
-          <option value="Boxes">Boxes</option>
-          <option value="Pieces">Pieces</option>
-          <option value="Kg">Kg</option>
-          <option value="Custom">Custom</option>
-        </select>
-        <input type="text" id="${customUnitId}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
-      </div>
-    `;
-    
-    // Add to sublist
-    sublist.appendChild(subDiv);
-    
-    // Re-register handlers and cache
-    if (typeof bindSubitemHandlers === 'function') {
-      bindSubitemHandlers();
-    }
-    if (typeof registerEditable === 'function') {
-      registerEditable(subDiv.querySelector('.editable'));
-    }
-    
-    // Auto-check the new item
-    const newCheckbox = document.getElementById(elementId);
-    if (newCheckbox) {
-      newCheckbox.checked = true;
-      newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    
-    // Cache will be updated automatically by MutationObserver
-    // Announce the addition
-    this.announceChange(`New item added: ${trimmedLabel}`);
-    
-    // Show success message
-    if (typeof showTempMessage === 'function') {
-      showTempMessage(`Added "${trimmedLabel}" to ${category} category`);
-    }
-  }
-  
-  clearSearch() {
-    this.searchInput.value = '';
-    this.searchResults.style.display = 'none';
-    this.originalPurchasedList.style.display = 'block';
-    this.isSearchActive = false;
-    this.focusedIndex = -1;
-    this.updateSearchCount(0);
-  }
-  
-  updateSearchCount(count) {
-    if (count === 0) {
-      this.searchCount.textContent = '';
-    } else {
-      this.searchCount.textContent = `${count} result${count === 1 ? '' : 's'}`;
-    }
-  }
-  
-  announceResults(count) {
-    // Screen reader announcement
-    const announcement = `${count} result${count === 1 ? '' : 's'} found`;
-    this.announceChange(announcement);
-  }
-  
-  announceChange(message) {
-    // Screen reader announcement
-    const srAnnounce = document.getElementById('sr-announce') || document.createElement('div');
-    srAnnounce.id = 'sr-announce';
-    srAnnounce.setAttribute('aria-live', 'polite');
-    srAnnounce.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
-    srAnnounce.textContent = message;
-    document.body.appendChild(srAnnounce);
-  }
-  
-  highlightMatch(text, query) {
-    const index = text.toLowerCase().indexOf(query.toLowerCase());
-    if (index === -1) return this.escapeHtml(text);
-    
-    const before = text.substring(0, index);
-    const match = text.substring(index, index + query.length);
-    const after = text.substring(index + query.length);
-    
-    return `${this.escapeHtml(before)}<mark class="search-highlight">${this.escapeHtml(match)}</mark>${this.escapeHtml(after)}`;
-  }
-  
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-  
-  // Public methods for external integration
-  reindexSubItems() {
-    this.cacheSubItems();
-  }
-  
-  refresh() {
-    this.cacheSubItems();
-  }
-  
-  destroy() {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-    }
-    clearTimeout(this.searchTimeout);
-    clearTimeout(this.reindexTimeout);
-  }
-}
-
-// Initialize search system after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Wait a bit for existing initialization to complete
-  setTimeout(() => {
-    window.subItemSearch = new SubItemSearch();
-    
-    // Expose public reindex function
-    window.reindexSubItems = function() {
-      if (window.subItemSearch) {
-        window.subItemSearch.reindexSubItems();
-      }
-    };
-  }, 500);
-});
-
-// Hook into existing add subitem functionality to refresh search cache
-if (typeof addSubBtn !== 'undefined' && addSubBtn) {
-  const originalAddSubClick = addSubBtn.onclick;
-  addSubBtn.onclick = function() {
-    if (originalAddSubClick) originalAddSubClick();
-    setTimeout(() => {
-      if (window.subItemSearch) window.subItemSearch.refresh();
-    }, 100);
-  };
-}
-
-
-
 
   </script>
 </div> <!-- Close appContent div -->
@@ -4746,6 +3502,9 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
+
+
 
 
 
