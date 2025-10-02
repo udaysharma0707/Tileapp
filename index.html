@@ -29,7 +29,6 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
-
     h1{font-size:20px;margin:0 0 10px 0; display:flex; align-items:center; gap:8px;}
     .gear {
       margin-left:auto; cursor:pointer; font-size:18px; color:#2c7be5;
@@ -150,8 +149,6 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-
-   
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -291,436 +288,6 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-  /* ===== ULTRA-COMPACT SEARCH SYSTEM (TINY MOBILE CONTROLS) ===== */
-.search-container {
-  margin: 10px 0;
-  border: 2px solid #e3f2fd;
-  border-radius: 8px;
-  padding: 10px;
-  background: #f8f9ff;
-}
-
-.search-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 8px 30px 8px 10px;
-  font-size: 14px;
-  border: 2px solid #2196F3;
-  border-radius: 6px;
-  background: white;
-  box-sizing: border-box;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #1976D2;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-.search-clear-btn {
-  position: absolute;
-  right: 8px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: #999;
-  cursor: pointer;
-  padding: 2px;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-clear-btn:hover {
-  color: #666;
-  background: #f0f0f0;
-  border-radius: 50%;
-}
-
-.search-count {
-  font-size: 12px;
-  color: #666;
-  font-weight: 500;
-  min-width: 60px;
-  white-space: nowrap;
-}
-
-.search-results {
-  background: white;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-}
-
-.search-group {
-  border-bottom: 1px solid #eee;
-}
-
-.search-group:last-child {
-  border-bottom: none;
-}
-
-.search-group-header {
-  background: #f5f5f5;
-  padding: 6px 10px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-}
-
-.search-group-items {
-  padding: 2px 0;
-}
-
-/* SINGLE LINE LAYOUT FOR SUB-ITEMS */
-.search-result-item {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  margin: 0;
-  cursor: pointer;
-  min-height: 36px; /* Reduced for compactness */
-  border-bottom: 1px solid #f8f8f8;
-  gap: 8px; /* Space between elements */
-}
-
-.search-result-item:last-child {
-  border-bottom: none;
-}
-
-.search-result-item:hover {
-  background: #f0f8ff;
-}
-
-.search-result-item.focused {
-  background: #e3f2fd;
-  box-shadow: inset 2px 0 0 #2196F3;
-}
-
-.search-result-item.selected {
-  background: #e8f5e8;
-}
-
-/* CHECKBOX AREA */
-.search-result-checkbox {
-  transform: scale(1.6);
-  margin: 1;
-  flex-shrink: 0;
-}
-
-/* TEXT AREA - TAKES AVAILABLE SPACE */
-.search-result-text {
-  flex: 1;
-  font-size: 13px;
-  line-height: 1.2;
-  min-width: 0;
-  word-break: break-word;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-right: 6px;
-}
-
-/* TINY QTY + UNIT CONTROLS IN ONE LINE */
-.search-qty-unit {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-}
-
-/* LARGER QUANTITY INPUT - MORE COMFORTABLE */
-.search-qty-input {
-  width: 100px !important; /* Increased from 50px */
-  height: 28px; /* Increased height */
-  padding: 3px 5px; /* More padding */
-  font-size: 12px; /* Larger font */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  text-align: center;
-  box-sizing: border-box;
-  background: white;
-}
-
-.search-qty-input:disabled {
-  background: #f8f8f8;
-  color: #aaa;
-}
-
-.search-qty-input:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-/* UNIT SELECT - PROPORTIONAL SIZE */
-.search-unit-select {
-  width: 70px !important; /* Increased from 60px */
-  height: 28px; /* Match qty input height */
-  padding: 2px 4px;
-  font-size: 11px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
-  box-sizing: border-box;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 3px center;
-  background-size: 12px;
-  padding-right: 20px;
-}
-
-.search-unit-select:disabled {
-  background-color: #f8f8f8;
-  color: #aaa;
-}
-
-.search-unit-select:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-/* CUSTOM UNIT INPUT */
-.search-custom-unit {
-  width: 100px !important; /* Increased from 60px */
-  height: 28px; /* Match other inputs */
-  padding: 3px 5px;
-  font-size: 11px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  background: white;
-}
-
-.search-custom-unit:disabled {
-  background: #f8f8f8;
-  color: #aaa;
-}
-
-.search-custom-unit:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
-}
-
-
-.search-highlight {
-  background: #ffeb3b;
-  padding: 1px 2px;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.search-no-results {
-  padding: 24px 12px;
-  text-align: center;
-}
-
-.no-results-message {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
-}
-
-.add-subitem-btn {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  min-height: 36px;
-}
-
-.add-subitem-btn:hover {
-  background: #45a049;
-}
-
-.add-subitem-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10001;
-}
-
-.add-subitem-modal-content {
-  background: white;
-  padding: 16px;
-  border-radius: 6px;
-  width: 90%;
-  max-width: 320px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-}
-
-.add-subitem-modal h3 {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 16px;
-}
-
-.add-subitem-form label {
-  display: block;
-  margin: 10px 0 3px 0;
-  font-weight: 600;
-  font-size: 12px;
-}
-
-.add-subitem-category,
-.add-subitem-label {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-
-.add-subitem-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.add-subitem-confirm {
-  background: #4CAF50 !important;
-  flex: 1;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-.add-subitem-cancel {
-  background: #999 !important;
-  flex: 1;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-/* Screen reader announcements */
-#sr-announce {
-  position: absolute !important;
-  left: -10000px !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-}
-
-/* DESKTOP VERSION - EVEN LARGER */
-@media (min-width: 769px) {
-  .search-qty-input {
-    width: 100px !important; /* Desktop: 75px */
-    height: 30px;
-    font-size: 13px;
-    padding: 4px 6px;
-  }
-  
-  .search-result-text {
-    font-size: 14px;
-  }
-  
-  .search-qty-input {
-    width: 85px !important;
-    height: 28px;
-    font-size: 12px;
-  }
-  
-  .search-unit-select {
-    width: 100px !important; /* Desktop: 80px */
-    height: 30px;
-    font-size: 12px;
-    padding: 3px 5px;
-    padding-right: 22px;
-  }
-  search-custom-unit {
-    width: 110px !important; /* Desktop: 85px */
-    height: 30px;
-    font-size: 12px;
-    padding: 4px 6px;
-  }
-}
-
-/* MOBILE - COMFORTABLE SIZE */
-@media (max-width: 768px) {
-  .search-qty-input {
-    min-height: 32px; /* Touch-friendly */
-    font-size: 14px; /* Prevent zoom on iOS */
-  }
-  
-  .search-result-item {
-    min-height: 36px;
-    padding: 3px 6px;
-  }
-  
-  .search-result-text {
-    font-size: 13px;
-  }
-  
-  .search-checkbox {
-    transform: scale(1.2); /* Slightly larger for touch */
-  }
-  
-  /* Keep tiny inputs but ensure they're tappable */
-  .search-qty-input,
-  .search-unit-select,
-  .search-custom-unit {
-    min-height: 26px; /* Ensure touch-friendly */
-  }
-}
-
-/* VERY SMALL SCREENS - KEEP SINGLE LINE */
-@media (max-width: 480px) {
-  .search-result-item {
-    gap: 4px; /* Tighter spacing */
-  }
-  
-  .search-result-text {
-    font-size: 12px;
-  }
-  
-  .search-qty-input {
-    width: 60px !important; /* Even smaller on tiny screens */
-  }
-  
- .search-unit-select {
-    min-height: 32px;
-    font-size: 14px;
-  }
-  
-  .search-custom-unit {
-    min-height: 32px;
-    font-size: 14px;
-  }
-}
-
-/* HIGH CONTRAST MODE */
-@media (prefers-contrast: high) {
-  .search-highlight {
-    background: #000;
-    color: #fff;
-  }
-}
-
-
-
 
     /* quantity + unit inline controls */
     .qty-unit {
@@ -870,22 +437,18 @@
     /* Unit management styling */
     .unit-item { display:flex; align-items:center; gap:8px; padding:6px; background:white; margin-bottom:6px; border:1px solid #eee; border-radius:4px; }
     .remove-unit { background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
-
   </style>
 </head>
 <body>
   <div class="container" id="appContainer">
-
- 
-
-
-<div id="appContent">
-
      <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
-      <span id="appTitle">Tile Purchase Entry</span>   
+      <span id="appTitle">Tile Purchase Entry</span>
+
+      
+      
       <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
     </h1>
 
@@ -933,7 +496,7 @@
             <option value="floor">Floor Tiles</option>
             <option value="wall">Wall Tiles</option>
             <option value="san">Sanitaryware</option>
-            <option value="acc">extraparts</option>
+            <option value="acc">Accessories</option>
             <option value="mode">Mode of payment</option>
           </select>
           <input id="addSubLabelInput" type="text" placeholder="New sub-item label (e.g. 'Large format tiles')" style="flex:1; margin-left:8px;">
@@ -947,7 +510,7 @@
 
     <!-- Photo Upload Section -->
     <div class="photo-section">
-      <h2>📷 Photo Upload (Optional)</h2>
+      <h2>📸 Photo Upload (Optional)</h2>
       
       <div class="upload-area" id="uploadArea">
           <div class="upload-icon">📷</div>
@@ -1178,11 +741,11 @@
         </div>
       </div>
 
-      <!-- extraparts -->
+      <!-- ACCESSORIES -->
       <div class="item-row">
         <label class="cb">
-          <input type="checkbox" class="purchased" id="p_acc" value="extraparts">
-          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">extraparts</span>
+          <input type="checkbox" class="purchased" id="p_acc" value="Accessories">
+          <span class="editable" data-config-id="p_acc_label" id="label_p_acc">Accessories</span>
         </label>
       </div>
       <div class="sublist" id="sublist_acc">
@@ -1295,7 +858,7 @@
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
-        <input id="purchasedOtherText" type="text" placeholder="If Others — specify (e.g. 'Grout, Adhesive')">
+        <input id="purchasedOtherText" type="text" placeholder="If Others – specify (e.g. 'Grout, Adhesive')">
       </div>
     </div>
 
@@ -1309,7 +872,7 @@
         <option value="Customised">Customised</option>
         <option value="Other">Other</option>
       </select>
-      <input id="purchasedFrom" type="text" placeholder="If Other — specify vendor name" style="flex:1; display:none;">
+      <input id="purchasedFrom" type="text" placeholder="If Other – specify vendor name" style="flex:1; display:none;">
     </div>
 
     <!-- custom vendor manager -->
@@ -1371,11 +934,9 @@
   <script src="app.js"></script>
 
   <script>
-
     // --- Config / server endpoint detection ---
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzUXoFXUYI_TtB1lKvXT4sa3UzjkOLLSshapJ0Ya19ffcctR-FcKGLv0WoSI7e3oYF12w/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
-
 
     // Replace with your Google Apps Script Web App URL
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUXoFXUYI_TtB1lKvXT4sa3UzjkOLLSshapJ0Ya19ffcctR-FcKGLv0WoSI7e3oYF12w/exec';
@@ -1609,10 +1170,6 @@
         setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
       });
     }
-
-
-    
-
 
     // ----------------- Unit Management Functions -----------------
     function loadGlobalUnits() {
@@ -2258,7 +1815,7 @@
           oh();
         }
       }
-
+      
       function setupMainToSubBindings() {
         const mainToSub = {
           'p_floor': 'sublist_floor',
@@ -2476,7 +2033,6 @@
         });
       }
 
-
       // Config save/load functions
       function buildConfigObject() {
         const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
@@ -2558,85 +2114,6 @@
 
         return cfg;
       }
-
-// Save server: send config including structure via JSONP action=saveConfig
-      saveServerBtn.addEventListener('click', async function(){
-        // finish any inline editing first
-        endEditingSession();
-        const cfg = buildConfigObject();
-        const cfgStr = JSON.stringify(cfg);
-        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
-        try {
-          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
-          const resp = await jsonpCall(url, 20000);
-          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
-          if (resp && resp.success) {
-            alert('Customization saved on server.');
-            setCustomizeMode(false);
-            // also persist locally (so dropdown updates instantly survive reloads before server sync)
-            try { localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom || {})); } catch(e){}
-          } else {
-            console.error('save resp', resp);
-            alert('Save failed. Server returned error. Check console.');
-          }
-        } catch (err) {
-          console.error('save err', err);
-          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
-          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
-        }
-      });
-
-      // On load: try to fetch saved config and apply
-      (async function tryLoadConfig(){
-        try {
-          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
-          const resp = await jsonpCall(url, 15000);
-          if (resp && resp.success && resp.config) {
-            applyConfigObject(resp.config);
-          } else {
-            // no config found or error; fallback to localStorage for purchasedFromCustom
-            try {
-              const local = localStorage.getItem('purchasedFromCustom');
-              if (local) {
-                const parsed = JSON.parse(local);
-                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
-              }
-            } catch(e){}
-          }
-        } catch (e) {
-          console.warn('Could not load config:', e);
-          // fallback to localStorage as above
-          try {
-            const local = localStorage.getItem('purchasedFromCustom');
-            if (local) {
-              const parsed = JSON.parse(local);
-              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
-            }
-          } catch(e){}
-        }
-      })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-     
 
       function applyConfigObject(cfg) {
         if (!cfg) return;
@@ -3130,189 +2607,61 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-   // --- MOBILE-FRIENDLY Main Submission Logic (handles both photo + manual entries) ---
-async function submitMainForm(e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) { 
-    submitBtn.disabled = true; 
-    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; 
-    submitBtn.textContent = 'Submitting...'; 
-  }
-  
-  // Show loading indicator
-  if (typeof showLoading === 'function') showLoading(true);
-
-  try {
-    // 1) Collect form data first
-    const data = collectFormData ? collectFormData() : {};
-    console.log('Collected form data:', data);
-
-    // 2) Handle photo if selected
-    if (selectedFile && !selectedImage) {
-      // Wait briefly for FileReader to finish if needed
-      const start = Date.now();
-      while (!selectedImage && (Date.now() - start) < 2000) {
-        await new Promise(r => setTimeout(r, 100));
+    // --- Main Submission Logic ---
+    async function submitMainForm() {
+      const submitBtn = document.getElementById('submitBtn');
+      if (!submitBtn) return;
+      
+      // Disable button during submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        let photoUploadResult = null;
+        
+        // First, handle photo upload if there's a selected image
+        if (selectedImage) {
+          showPhotoStatus('Uploading photo...', 'success');
+          try {
+            photoUploadResult = await uploadPhotoToServer();
+            if (photoUploadResult) {
+              showPhotoStatus('Photo uploaded successfully!', 'success');
+            } else {
+              showPhotoStatus('Photo upload failed, but form will continue', 'error');
+            }
+          } catch (error) {
+            console.error('Photo upload error:', error);
+            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
+          }
+        }
+        
+        // Collect form data
+        const formData = collectFormData();
+        
+        // Add photo link to Column D if available
+        if (photoUploadResult) {
+          formData.photoLink = photoUploadResult;
+        }
+        
+        // Submit main form data
+        const mainSubmitResult = await submitFormData(formData);
+        
+        if (mainSubmitResult.success) {
+          showTempMessage('Entry submitted successfully!');
+          clearForm();
+          resetPhotoForm();
+        } else {
+          throw new Error(mainSubmitResult.error || 'Submission failed');
+        }
+        
+      } catch (error) {
+        console.error('Submission error:', error);
+        showTempMessage('Error: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
       }
     }
-
-    // 3) Add photo info to data
-    if (selectedImage) {
-      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
-      if (typeof showPhotoStatus === 'function') {
-        showPhotoStatus('Including photo in submission...', 'success');
-      }
-      console.log('Photo will be included:', data.photoLink);
-    } else {
-      data.photoLink = '';
-    }
-
-    // 4) Ensure clientId exists
-    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
-    data.clientId = cid;
-
-    // 5) Use mobile-friendly direct submission instead of iframe
-    const result = await submitDirectMobileFriendly(data);
-    
-    if (result.success) {
-      if (typeof showTempMessage === 'function') showTempMessage('Entry submitted successfully!');
-      if (typeof clearForm === 'function') clearForm();
-      if (typeof resetPhotoForm === 'function') resetPhotoForm();
-    } else {
-      throw new Error(result.error || 'Submission failed');
-    }
-
-  } catch (error) {
-    console.error('Submission error:', error);
-    if (typeof showTempMessage === 'function') {
-      showTempMessage('Error: ' + (error.message || 'Unknown error'));
-    }
-  } finally {
-    // Always restore button state
-    if (submitBtn) { 
-      submitBtn.disabled = false; 
-      submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; 
-    }
-    if (typeof showLoading === 'function') showLoading(false);
-  }
-}
-
-// --- Mobile-friendly direct submission (no iframe) ---
-async function submitDirectMobileFriendly(data) {
-  return new Promise((resolve, reject) => {
-    // Create FormData for proper mobile handling
-    const formData = new FormData();
-    
-    // Add all form fields
-    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
-    formData.append('action', 'submit');
-    formData.append('purchased', data.purchased || '');
-    formData.append('purchasedFrom', data.purchasedFrom || '');
-    formData.append('paymentModes', data.paymentModes || '');
-    formData.append('paymentPaid', data.paymentPaid || '');
-    formData.append('otherInfo', data.otherInfo || '');
-    formData.append('photoLink', data.photoLink || '');
-    formData.append('clientId', data.clientId || '');
-
-    // Add photo data if present
-    if (selectedImage) {
-      formData.append('imageData', selectedImage);
-      formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
-      console.log('Photo data included in submission');
-    }
-
-    console.log('Submitting form data directly (mobile-friendly)');
-
-    const result = await submitUnifiedDataFallback(data);
-
-    
-
-// --- Fallback iframe method (original) ---
-async function submitUnifiedDataFallback(data) {
-  return new Promise((resolve, reject) => {
-    console.log('Using iframe fallback method');
-    
-    // Create iframe for submission
-    const iframeName = 'submit_iframe_fallback';
-    let iframe = document.getElementById(iframeName);
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = iframeName;
-      iframe.name = iframeName;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-
-    // Create form with all data
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SCRIPT_URL;
-    form.target = iframeName;
-    form.enctype = 'multipart/form-data';
-
-    // Helper to add hidden inputs
-    function addHidden(name, value) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value != null ? String(value) : '';
-      form.appendChild(input);
-    }
-
-    // Add all form fields
-    addHidden('token', SERVER_TOKEN || 'shopSecret2025');
-    addHidden('action', 'submit');
-    addHidden('purchased', data.purchased || '');
-    addHidden('purchasedFrom', data.purchasedFrom || '');
-    addHidden('paymentModes', data.paymentModes || '');
-    addHidden('paymentPaid', data.paymentPaid || '');
-    addHidden('otherInfo', data.otherInfo || '');
-    addHidden('photoLink', data.photoLink || '');
-    addHidden('clientId', data.clientId || '');
-
-    // Add photo data if present
-    if (selectedImage) {
-      addHidden('imageData', selectedImage);
-      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
-    }
-
-    document.body.appendChild(form);
-
-    // Handle response with shorter timeout for mobile
-    let handled = false;
-    function finalize(success) {
-      if (handled) return;
-      handled = true;
-      resolve({ success: success });
-      // Cleanup
-      try { 
-        if (form.parentNode) form.parentNode.removeChild(form); 
-      } catch(e) {}
-    }
-
-    // Set up iframe response handler with mobile-specific timeout
-    iframe.onload = function() {
-      finalize(true); // Assume success on mobile
-    };
-
-    // Submit form
-    try {
-      form.submit();
-      console.log('Fallback form submitted to server');
-    } catch (err) {
-      console.warn('Fallback form submit error:', err);
-      finalize(true); // Still assume success for mobile compatibility
-    }
-
-    // Shorter timeout for mobile - assume success after 5 seconds
-    setTimeout(() => {
-      finalize(true);
-    }, 5000);
-  });
-}
-
 
     function collectFormData() {
       const data = {};
@@ -3497,1139 +2846,41 @@ async function submitUnifiedDataFallback(data) {
       });
     }
 
-  // MOBILE-FRIENDLY Event Listeners
-document.addEventListener('DOMContentLoaded', function() {
-  const submitBtn = document.getElementById('submitBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  
-  if (submitBtn) {
-    // Remove any existing listeners by cloning the button
-    const newSubmitBtn = submitBtn.cloneNode(true);
-    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
-    
-    // Add ONLY ONE mobile-friendly submit handler
-    newSubmitBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      const submitBtn = document.getElementById('submitBtn');
+      const clearBtn = document.getElementById('clearBtn');
       
-      console.log('Submit button clicked - bypassing validation...');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', submitMainForm);
+      }
       
-      // Disable button immediately
-      newSubmitBtn.disabled = true;
-      newSubmitBtn.textContent = 'Submitting...';
-      
-      // Call submission function with a small delay to bypass any popups
-      setTimeout(() => {
-        mobileSubmitFunction();
-      }, 200); // Delay ensures popup doesn't block submission
-    });
-  }
-  
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function() {
-      if (confirm('Clear all form data?')) {
-        clearForm();
-        resetPhotoForm();
-      }
-    });
-  }
-  
-  // Trigger change events to set initial states
-  document.querySelectorAll('.purchased').forEach(cb => {
-    cb.dispatchEvent(new Event('change'));
-  });
-  
-  document.querySelectorAll('.subitem').forEach(cb => {
-    cb.dispatchEvent(new Event('change'));
-  });
-  
-  document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => {
-    cb.dispatchEvent(new Event('change'));
-  });
-});
-
-// Mobile-friendly submission function with FAST button restoration
-async function mobileSubmitFunction() {
-  const submitBtn = document.getElementById('submitBtn');
-  
-  try {
-    console.log('Starting mobile-friendly submission...');
-    
-    // Collect form data without strict validation
-    const data = collectFormDataMobile();
-
-    console.log('Collected form data:', data);
-
-    // Handle photo if selected
-    if (selectedFile && !selectedImage) {
-      const start = Date.now();
-      while (!selectedImage && (Date.now() - start) < 2000) {
-        await new Promise(r => setTimeout(r, 100));
-      }
-    }
-
-    // Add photo info to data
-    if (selectedImage) {
-      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
-      console.log('Photo will be included:', data.photoLink);
-    } else {
-      data.photoLink = '';
-    }
-
-    // Ensure clientId exists
-    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
-    data.clientId = cid;
-
-    // FIRE AND FORGET: Submit in background and restore button immediately
-    submitDirectMobileFriendlyBackground(data);
-    
-    // Restore button state immediately (after 1-2 seconds)
-    setTimeout(() => {
-      if (submitBtn) { 
-        submitBtn.disabled = false; 
-        submitBtn.textContent = 'Submit'; 
-      }
-      alert('Entry submitted successfully!');
-      if (typeof clearForm === 'function') clearForm();
-      if (typeof resetPhotoForm === 'function') resetPhotoForm();
-    }, 1500); // Button restores in 1.5 seconds
-
-  } catch (error) {
-    console.error('Mobile submission error:', error);
-    // Restore button even on error
-    setTimeout(() => {
-      if (submitBtn) { 
-        submitBtn.disabled = false; 
-        submitBtn.textContent = 'Submit'; 
-      }
-      alert('Error: ' + (error.message || 'Unknown error'));
-    }, 1000);
-  }
-}
-
-
-// Mobile-friendly data collection with PROPER subitem handling
-function collectFormDataMobile() {
-  const data = {};
-  const purchased = [];
-  
-  // Collect checked main items
-  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-  
-  if (purchasedCheckboxes.length === 0) {
-    // Fallback for mobile - always allow some entry
-    const otherText = document.getElementById('purchasedOtherText');
-    if (otherText && otherText.value.trim()) {
-      purchased.push(otherText.value.trim());
-    } else if (selectedImage) {
-      purchased.push('Photo entry - see attached image');
-    } else {
-      purchased.push('Entry from mobile device');
-    }
-  } else {
-    // Process each main category for subitems
-    purchasedCheckboxes.forEach(cb => {
-      const value = cb.value || 'Item';
-      
-      // Handle "Others" category specially
-      if (cb.id === 'p_other') {
-        const qtyEl = document.getElementById('q_other');
-        const unitEl = document.getElementById('unit_other');
-        const unitCustomEl = document.getElementById('unit_custom_other');
-        const otherTextEl = document.getElementById('purchasedOtherText');
-        
-        let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-        let unit = '';
-        
-        if (unitEl && unitEl.value) {
-          if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-            unit = unitCustomEl.value.trim();
-          } else {
-            unit = unitEl.value;
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+          if (confirm('Clear all form data?')) {
+            clearForm();
+            resetPhotoForm();
           }
-        }
-        
-        let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
-        
-        if (qty && unit) {
-          purchased.push(`${qty} ${unit} ${description}`);
-        } else if (description) {
-          purchased.push(description);
-        } else {
-          purchased.push(value);
-        }
-      } else {
-        // Handle main categories with subitems (Floor Tiles, Wall Tiles, etc.)
-        const sublistId = getSublistIdMobile(cb.id);
-        if (sublistId) {
-          const sublist = document.getElementById(sublistId);
-          if (sublist) {
-            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-            if (checkedSubs.length > 0) {
-              // Process each checked subitem with quantities
-              checkedSubs.forEach(subCb => {
-                const subValue = subCb.value || '';
-                const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
-                const qtyEl = document.getElementById('q_' + subSuffix);
-                const unitEl = document.getElementById('unit_' + subSuffix);
-                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-                
-                let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-                let unit = '';
-                
-                if (unitEl && unitEl.value) {
-                  if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-                    unit = unitCustomEl.value.trim();
-                  } else {
-                    unit = unitEl.value;
-                  }
-                }
-                
-                if (qty && unit) {
-                  purchased.push(`${qty} ${unit} ${subValue}`);
-                } else {
-                  purchased.push(subValue);
-                }
-              });
-            } else {
-              // Main category checked but no subitems - just add main category
-              purchased.push(value);
-            }
-          } else {
-            purchased.push(value);
-          }
-        } else {
-          purchased.push(value);
-        }
-      }
-    });
-  }
-  
-  data.purchased = purchased.join(', ');
-
-// Add this helper function right after the collectFormDataMobile function:
-function getSublistIdMobile(mainCheckboxId) {
-  const mapping = {
-    'p_floor': 'sublist_floor',
-    'p_wall': 'sublist_wall',
-    'p_san': 'sublist_san',
-    'p_acc': 'sublist_acc'
-  };
-  return mapping[mainCheckboxId] || null;
-}
-
-  
-  // Collect other fields
-  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-  const purchasedFromText = document.getElementById('purchasedFrom');
-  if (purchasedFromSelect) {
-    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
-      data.purchasedFrom = purchasedFromText.value.trim();
-    } else {
-      data.purchasedFrom = purchasedFromSelect.value || '';
-    }
-  }
-  
-  const paymentPaidEl = document.getElementById('paymentPaid');
-  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-  
-  const otherInfoEl = document.getElementById('otherInfo');
-  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-  
-  // Collect payment modes
-  const paymentModes = [];
-  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
-  modeCheckboxes.forEach(cb => {
-    const mode = cb.value || '';
-    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
-    const amount = amountInput && amountInput.value ? amountInput.value : '';
-    if (amount) {
-      paymentModes.push(`${mode}: ₹${amount}`);
-    } else {
-      paymentModes.push(mode);
-    }
-  });
-  data.paymentModes = paymentModes.join(', ');
-  
-  return data;
-}
-
-// Background submission - FIRE AND FORGET (doesn't wait for response)
-function submitDirectMobileFriendlyBackground(data) {
-  // Create FormData for mobile compatibility
-  const formData = new FormData();
-  
-  // Add all form fields
-  formData.append('token', SERVER_TOKEN || 'shopSecret2025');
-  formData.append('action', 'submit');
-  formData.append('purchased', data.purchased || '');
-  formData.append('purchasedFrom', data.purchasedFrom || '');
-  formData.append('paymentModes', data.paymentModes || '');
-  formData.append('paymentPaid', data.paymentPaid || '');
-  formData.append('otherInfo', data.otherInfo || '');
-  formData.append('photoLink', data.photoLink || '');
-  formData.append('clientId', data.clientId || '');
-
-  // Add photo data if present
-  if (selectedImage) {
-    formData.append('imageData', selectedImage);
-    formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('mobile_photo_' + Date.now() + '.jpg'));
-  }
-
-  console.log('Submitting form data in background...');
-
-  const result = await submitUnifiedDataFallback(data);
-
-  
- 
-
-    // ===== ENHANCED SUB-ITEM SEARCH SYSTEM WITH CUSTOMIZATION SUPPORT =====
-class SubItemSearch {
-  constructor() {
-    this.searchInput = null;
-    this.searchResults = null;
-    this.originalPurchasedList = null;
-    this.cachedSubItems = [];
-    this.searchTimeout = null;
-    this.reindexTimeout = null;
-    this.focusedIndex = -1;
-    this.isSearchActive = false;
-    this.mutationObserver = null;
-    
-    this.init();
-  }
-  
-  init() {
-    this.createSearchUI();
-    this.cacheSubItems();
-    this.bindEvents();
-    this.setupMutationObserver();
-    this.setupEditableListeners();
-  }
-  
-  createSearchUI() {
-    const purchasedList = document.getElementById('purchasedList');
-    if (!purchasedList) return;
-    
-    // Create search container
-    const searchContainer = document.createElement('div');
-    searchContainer.className = 'search-container';
-    searchContainer.innerHTML = `
-      <div class="search-input-wrapper">
-        <input type="text" 
-               id="subItemSearch" 
-               class="search-input" 
-               placeholder='Search sub-items (e.g. "porcelain", "grout")'
-               autocomplete="off">
-        <button class="search-clear-btn" id="searchClearBtn" type="button">×</button>
-        <div class="search-count" id="searchCount"></div>
-      </div>
-      <div class="search-results" id="searchResults" style="display: none;"></div>
-    `;
-    
-    // Insert before purchased list
-    purchasedList.parentNode.insertBefore(searchContainer, purchasedList);
-    
-    this.searchInput = document.getElementById('subItemSearch');
-    this.searchResults = document.getElementById('searchResults');
-    this.searchCount = document.getElementById('searchCount');
-    this.originalPurchasedList = purchasedList;
-  }
-  
-  cacheSubItems() {
-    this.cachedSubItems = [];
-    const subItems = document.querySelectorAll('.sub-item');
-    
-    subItems.forEach(subItem => {
-      const checkbox = subItem.querySelector('.subitem');
-      const labelEl = subItem.querySelector('.editable');
-      const parentRow = subItem.closest('.sublist').previousElementSibling;
-      const parentLabel = parentRow ? parentRow.querySelector('.editable') : null;
-      
-      if (checkbox && labelEl && parentLabel) {
-        this.cachedSubItems.push({
-          node: subItem,
-          checkbox: checkbox,
-          labelEl: labelEl,
-          textLower: labelEl.textContent.toLowerCase(),
-          parentId: parentRow.querySelector('.purchased').id,
-          parentLabel: parentLabel.textContent,
-          qtyInput: this.getQtyInput(checkbox.id),
-          unitSelect: this.getUnitSelect(checkbox.id),
-          customUnitInput: this.getCustomUnitInput(checkbox.id)
         });
       }
     });
-    
-    // Update current search if active
-    if (this.isSearchActive && this.searchInput && this.searchInput.value.trim()) {
-      this.performSearch(this.searchInput.value);
-    }
-  }
-  
-  getQtyInput(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('q' + suffix);
-  }
-  
-  getUnitSelect(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('unit' + suffix);
-  }
-  
-  getCustomUnitInput(checkboxId) {
-    const suffix = checkboxId.slice(4); // Remove 'sub' prefix
-    return document.getElementById('unitcustom' + suffix);
-  }
-  
-  setupMutationObserver() {
-    if (!window.MutationObserver) return;
-    
-    this.mutationObserver = new MutationObserver((mutations) => {
-      let shouldReindex = false;
-      
-      mutations.forEach(mutation => {
-        // Check for added/removed sub-items
-        if (mutation.type === 'childList') {
-          const hasSubItems = Array.from(mutation.addedNodes).some(node => 
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-          );
-          const removedSubItems = Array.from(mutation.removedNodes).some(node => 
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.classList.contains('sub-item') || node.querySelector('.sub-item'))
-          );
-          
-          if (hasSubItems || removedSubItems) {
-            shouldReindex = true;
-          }
-        }
-      });
-      
-      if (shouldReindex) {
-        this.debouncedReindex();
-        this.announceChange('Items updated');
-      }
-    });
-    
-    // Observe the purchased list for changes
-    const purchasedList = document.getElementById('purchasedList');
-    if (purchasedList) {
-      this.mutationObserver.observe(purchasedList, {
-        childList: true,
-        subtree: true
-      });
-    }
-  }
-  
-  setupEditableListeners() {
-    // Listen for changes to editable labels
-    document.addEventListener('blur', (e) => {
-      if (e.target.classList.contains('editable')) {
-        this.debouncedReindex();
-      }
-    }, true);
-    
-    document.addEventListener('input', (e) => {
-      if (e.target.classList.contains('editable')) {
-        this.debouncedReindex();
-      }
-    }, true);
-  }
-  
-  debouncedReindex() {
-    clearTimeout(this.reindexTimeout);
-    this.reindexTimeout = setTimeout(() => {
-      this.cacheSubItems();
-    }, 300);
-  }
-  
-  bindEvents() {
-    if (!this.searchInput) return;
-    
-    // Search input with debounce
-    this.searchInput.addEventListener('input', (e) => {
-      clearTimeout(this.searchTimeout);
-      this.searchTimeout = setTimeout(() => {
-        this.performSearch(e.target.value);
-      }, 250);
-    });
-    
-    // Clear button
-    document.getElementById('searchClearBtn').addEventListener('click', () => {
-      this.clearSearch();
-    });
-    
-    // Keyboard navigation
-    this.searchInput.addEventListener('keydown', (e) => {
-      this.handleKeydown(e);
-    });
-    
-    // Click outside to maintain focus
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search-container')) {
-        this.focusedIndex = -1;
-        this.updateFocusStyles();
-      }
-    });
-  }
-  
-  performSearch(query) {
-    const trimmedQuery = query.trim();
-    
-    if (!trimmedQuery) {
-      this.clearSearch();
-      return;
-    }
-    
-    const queryLower = trimmedQuery.toLowerCase();
-    const matches = this.cachedSubItems.filter(item => 
-      item.textLower.includes(queryLower)
-    );
-    
-    this.displayResults(matches, trimmedQuery);
-    this.announceResults(matches.length);
-  }
-  
-  displayResults(matches, originalQuery) {
-    if (matches.length === 0) {
-      this.showNoResults(originalQuery);
-      return;
-    }
-    
-    // Group by parent
-    const grouped = this.groupByParent(matches);
-    const resultsHTML = this.buildResultsHTML(grouped, originalQuery);
-    
-    this.searchResults.innerHTML = resultsHTML;
-    this.searchResults.style.display = 'block';
-    this.originalPurchasedList.style.display = 'none';
-    this.isSearchActive = true;
-    this.focusedIndex = -1;
-    
-    this.updateSearchCount(matches.length);
-    this.bindResultEvents();
-    this.setupQtyUnitControls();
-  }
-  
-  groupByParent(matches) {
-    const grouped = {};
-    matches.forEach(match => {
-      if (!grouped[match.parentId]) {
-        grouped[match.parentId] = {
-          parentLabel: match.parentLabel,
-          items: []
-        };
-      }
-      grouped[match.parentId].items.push(match);
-    });
-    return grouped;
-  }
-  
-  buildResultsHTML(grouped, query) {
-    let html = '<div class="search-results-content">';
-    
-    Object.keys(grouped).forEach(parentId => {
-      const group = grouped[parentId];
-      html += `
-        <div class="search-group">
-          <div class="search-group-header">${this.escapeHtml(group.parentLabel)}</div>
-          <div class="search-group-items">
-      `;
-      
-      group.items.forEach((item, index) => {
-        const highlighted = this.highlightMatch(item.labelEl.textContent, query);
-        const isChecked = item.checkbox.checked ? 'checked' : '';
-        const isDisabled = !item.checkbox.checked ? 'disabled' : '';
-        const qtyValue = item.qtyInput ? item.qtyInput.value : '';
-        const unitValue = item.unitSelect ? item.unitSelect.value : 'Boxes';
-        const customUnitValue = item.customUnitInput ? item.customUnitInput.value : '';
-        const customUnitVisible = unitValue === 'Custom' ? 'style="display:block"' : 'style="display:none"';
-        
-        // Get current unit options
-        const unitOptions = this.getUnitOptions(item.unitSelect);
-        
-        html += `
-          <div class="search-result-item" data-checkbox-id="${item.checkbox.id}">
-            <div class="search-result-main">
-              <label class="search-result-label">
-                <input type="checkbox" class="search-result-checkbox" ${isChecked}>
-                <span class="search-result-text">${highlighted}</span>
-              </label>
-            </div>
-            <div class="search-result-controls">
-              <div class="search-qty-unit">
-                <input type="number" 
-                       class="search-qty-input" 
-                       min="0" 
-                       step="1" 
-                       placeholder="Qty" 
-                       value="${qtyValue}"
-                       ${isDisabled}
-                       data-original-id="${item.qtyInput ? item.qtyInput.id : ''}">
-                <select class="search-unit-select" 
-                        ${isDisabled}
-                        data-original-id="${item.unitSelect ? item.unitSelect.id : ''}">
-                  ${unitOptions}
-                </select>
-                <input type="text" 
-                       class="search-custom-unit" 
-                       placeholder="Custom unit" 
-                       value="${customUnitValue}"
-                       ${customUnitVisible}
-                       ${isDisabled}
-                       data-original-id="${item.customUnitInput ? item.customUnitInput.id : ''}">
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += '</div></div>';
-    });
-    
-    html += '</div>';
-    return html;
-  }
-  
-  getUnitOptions(originalSelect) {
-    if (!originalSelect) {
-      return `
-        <option value="Boxes">Boxes</option>
-        <option value="Pieces">Pieces</option>
-        <option value="Kg">Kg</option>
-        <option value="Custom">Custom</option>
-      `;
-    }
-    
-    let options = '';
-    Array.from(originalSelect.options).forEach(option => {
-      const selected = option.selected ? 'selected' : '';
-      options += `<option value="${option.value}" ${selected}>${option.text}</option>`;
-    });
-    
-    return options;
-  }
-  
-  setupQtyUnitControls() {
-    const qtyInputs = this.searchResults.querySelectorAll('.search-qty-input');
-    const unitSelects = this.searchResults.querySelectorAll('.search-unit-select');
-    const customUnits = this.searchResults.querySelectorAll('.search-custom-unit');
-    
-    // Sync qty inputs
-    qtyInputs.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    });
-    
-    // Sync unit selects
-    unitSelects.forEach(select => {
-      select.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalSelect = document.getElementById(originalId);
-        const customUnit = e.target.parentNode.querySelector('.search-custom-unit');
-        
-        if (originalSelect) {
-          originalSelect.value = e.target.value;
-          originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
-          
-          // Handle custom unit visibility
-          if (e.target.value === 'Custom') {
-            customUnit.style.display = 'block';
-            customUnit.disabled = false;
-            // Focus custom unit on mobile after a brief delay
-            setTimeout(() => {
-              if (window.innerWidth <= 768) {
-                customUnit.focus();
-              }
-            }, 100);
-          } else {
-            customUnit.style.display = 'none';
-            customUnit.disabled = true;
-          }
-          
-          // Save unit preference
-          this.saveUnitPreference(originalId, e.target.value);
-        }
-      });
-    });
-    
-    // Sync custom unit inputs
-    customUnits.forEach(input => {
-      input.addEventListener('input', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      
-      input.addEventListener('change', (e) => {
-        const originalId = e.target.dataset.originalId;
-        const originalInput = document.getElementById(originalId);
-        if (originalInput) {
-          originalInput.value = e.target.value;
-          originalInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    });
-  }
-  
-  saveUnitPreference(originalId, unitValue) {
-    if (typeof saveUnitPref === 'function') {
-      saveUnitPref(originalId, unitValue);
-    } else {
-      // Fallback unit preference saving
-      try {
-        const prefs = JSON.parse(localStorage.getItem('unitPreferences') || '{}');
-        prefs[originalId] = unitValue;
-        localStorage.setItem('unitPreferences', JSON.stringify(prefs));
-      } catch (e) {
-        console.warn('Could not save unit preference:', e);
-      }
-    }
-  }
-  
-  showNoResults(query) {
-    this.searchResults.innerHTML = `
-      <div class="search-no-results">
-        <div class="no-results-message">No sub-items found for "${this.escapeHtml(query)}"</div>
-        <button class="add-subitem-btn" data-query="${this.escapeHtml(query)}">
-          Add sub-item: "${this.escapeHtml(query)}"
-        </button>
-      </div>
-    `;
-    this.searchResults.style.display = 'block';
-    this.originalPurchasedList.style.display = 'none';
-    this.isSearchActive = true;
-    this.updateSearchCount(0);
-    this.bindAddSubitemEvent();
-  }
-  
-  bindResultEvents() {
-    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
-    
-    resultItems.forEach((item, index) => {
-      const label = item.querySelector('.search-result-label');
-      
-      // Click/touch events on the label area
-      label.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.toggleResult(item);
-      });
-      
-      // Touch-friendly tap
-      label.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        this.toggleResult(item);
-      });
-      
-      // Store index for keyboard navigation
-      item.dataset.resultIndex = index;
-    });
-  }
-  
-  bindAddSubitemEvent() {
-    const addBtn = this.searchResults.querySelector('.add-subitem-btn');
-    if (addBtn) {
-      addBtn.addEventListener('click', (e) => {
-        this.showAddSubitemModal(e.target.dataset.query);
-      });
-    }
-  }
-  
-  toggleResult(resultItem) {
-    const checkboxId = resultItem.dataset.checkboxId;
-    const originalCheckbox = document.getElementById(checkboxId);
-    const resultCheckbox = resultItem.querySelector('.search-result-checkbox');
-    const qtyInput = resultItem.querySelector('.search-qty-input');
-    const unitSelect = resultItem.querySelector('.search-unit-select');
-    const customUnit = resultItem.querySelector('.search-custom-unit');
-    
-    if (originalCheckbox && resultCheckbox) {
-      // Toggle original checkbox
-      originalCheckbox.checked = !originalCheckbox.checked;
-      resultCheckbox.checked = originalCheckbox.checked;
-      
-      // Trigger change event on original checkbox
-      originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      
-      // Update controls state
-      const isEnabled = originalCheckbox.checked;
-      if (qtyInput) qtyInput.disabled = !isEnabled;
-      if (unitSelect) unitSelect.disabled = !isEnabled;
-      if (customUnit && unitSelect.value !== 'Custom') customUnit.disabled = !isEnabled;
-      
-      // Update visual feedback
-      resultItem.classList.toggle('selected', originalCheckbox.checked);
-      
-      // If checked, ensure parent main category is visible/expanded
-      if (originalCheckbox.checked) {
-        this.ensureParentExpanded(checkboxId);
-        
-        // Focus qty input on mobile for better UX
-        if (window.innerWidth <= 768 && qtyInput && !qtyInput.disabled) {
-          setTimeout(() => {
-            qtyInput.focus();
-            qtyInput.select();
-          }, 150);
-        }
-      }
-    }
-  }
-  
-  ensureParentExpanded(checkboxId) {
-    const originalSubitem = document.getElementById(checkboxId);
-    if (!originalSubitem) return;
-    
-    const sublist = originalSubitem.closest('.sublist');
-    const parentRow = sublist ? sublist.previousElementSibling : null;
-    const parentCheckbox = parentRow ? parentRow.querySelector('.purchased') : null;
-    
-    if (parentCheckbox && sublist) {
-      if (!parentCheckbox.checked) {
-        parentCheckbox.checked = true;
-        parentCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      sublist.style.display = 'block';
-    }
-  }
-  
-  handleKeydown(e) {
-    if (!this.isSearchActive) return;
-    
-    const resultItems = Array.from(this.searchResults.querySelectorAll('.search-result-item'));
-    
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        this.focusedIndex = Math.min(this.focusedIndex + 1, resultItems.length - 1);
-        this.updateFocusStyles();
-        this.scrollToFocused();
-        break;
-        
-      case 'ArrowUp':
-        e.preventDefault();
-        this.focusedIndex = Math.max(this.focusedIndex - 1, -1);
-        this.updateFocusStyles();
-        this.scrollToFocused();
-        break;
-        
-      case 'Enter':
-        e.preventDefault();
-        if (this.focusedIndex >= 0 && resultItems[this.focusedIndex]) {
-          this.toggleResult(resultItems[this.focusedIndex]);
-          // Focus qty input after toggle
-          const qtyInput = resultItems[this.focusedIndex].querySelector('.search-qty-input');
-          if (qtyInput && !qtyInput.disabled) {
-            setTimeout(() => {
-              qtyInput.focus();
-              qtyInput.select();
-            }, 100);
-          }
-        }
-        break;
-        
-      case 'Escape':
-        e.preventDefault();
-        this.clearSearch();
-        this.searchInput.focus();
-        break;
-    }
-  }
-  
-  updateFocusStyles() {
-    const resultItems = this.searchResults.querySelectorAll('.search-result-item');
-    resultItems.forEach((item, index) => {
-      item.classList.toggle('focused', index === this.focusedIndex);
-    });
-  }
-  
-  scrollToFocused() {
-    const focusedItem = this.searchResults.querySelector('.search-result-item.focused');
-    if (focusedItem) {
-      focusedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
-  
-  showAddSubitemModal(query) {
-    const modal = document.createElement('div');
-    modal.className = 'add-subitem-modal';
-    modal.innerHTML = `
-      <div class="add-subitem-modal-content">
-        <h3>Add New Sub-item</h3>
-        <div class="add-subitem-form">
-          <label>Category:</label>
-          <select class="add-subitem-category">
-            <option value="floor">Floor Tiles</option>
-            <option value="wall">Wall Tiles</option>
-            <option value="san">Sanitaryware</option>
-            <option value="acc">Accessories</option>
-          </select>
-          
-          <label>Sub-item name:</label>
-          <input type="text" class="add-subitem-label" value="${this.escapeHtml(query)}">
-          
-          <div class="add-subitem-actions">
-            <button class="btn add-subitem-confirm">Add Sub-item</button>
-            <button class="btn add-subitem-cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Focus input
-    const labelInput = modal.querySelector('.add-subitem-label');
-    labelInput.focus();
-    labelInput.select();
-    
-    // Bind events
-    modal.querySelector('.add-subitem-confirm').addEventListener('click', () => {
-      this.createNewSubitem(
-        modal.querySelector('.add-subitem-category').value,
-        modal.querySelector('.add-subitem-label').value
-      );
-      document.body.removeChild(modal);
-    });
-    
-    modal.querySelector('.add-subitem-cancel').addEventListener('click', () => {
-      document.body.removeChild(modal);
-    });
-    
-    // Close on outside click
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        document.body.removeChild(modal);
-      }
-    });
-  }
-  
-  createNewSubitem(category, label) {
-    if (!label.trim()) return;
-    
-    const trimmedLabel = label.trim();
-    const slug = trimmedLabel.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const baseId = `sub${category}${slug}`;
-    
-    // Find unique ID
-    let elementId = baseId;
-    let i = 1;
-    while (document.getElementById(elementId)) {
-      elementId = `${baseId}${i}`;
-      i++;
-    }
-    
-    // Get target sublist
-    const sublistId = `sublist${category}`;
-    const sublist = document.getElementById(sublistId);
-    if (!sublist) {
-      alert('Could not find category container');
-      return;
-    }
-    
-    // Create sub-item element
-    const suffix = elementId.slice(3); // Remove 'sub' prefix
-    const qtyId = `q${suffix}`;
-    const unitId = `unit${suffix}`;
-    const customUnitId = `unitcustom${suffix}`;
-    
-    const subDiv = document.createElement('div');
-    subDiv.className = 'sub-item';
-    subDiv.setAttribute('data-generated', 'true');
-    
-    subDiv.innerHTML = `
-      <label>
-        <input type="checkbox" class="subitem" id="${elementId}" value="${trimmedLabel}">
-        <span class="editable" data-config-id="${elementId}label" id="label${elementId}">${trimmedLabel}</span>
-        <button class="del-btn" type="button" title="Remove sub-item" aria-label="Remove">×</button>
-      </label>
-      <div class="qty-unit">
-        <input type="number" min="0" step="1" id="${qtyId}" class="subqty qty" placeholder="Quantity" disabled>
-        <select id="${unitId}" class="unit-select" disabled>
-          <option value="Boxes">Boxes</option>
-          <option value="Pieces">Pieces</option>
-          <option value="Kg">Kg</option>
-          <option value="Custom">Custom</option>
-        </select>
-        <input type="text" id="${customUnitId}" class="unit-custom" placeholder="Custom unit" style="display:none" disabled>
-      </div>
-    `;
-    
-    // Add to sublist
-    sublist.appendChild(subDiv);
-    
-    // Re-register handlers and cache
-    if (typeof bindSubitemHandlers === 'function') {
-      bindSubitemHandlers();
-    }
-    if (typeof registerEditable === 'function') {
-      registerEditable(subDiv.querySelector('.editable'));
-    }
-    
-    // Auto-check the new item
-    const newCheckbox = document.getElementById(elementId);
-    if (newCheckbox) {
-      newCheckbox.checked = true;
-      newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    
-    // Cache will be updated automatically by MutationObserver
-    // Announce the addition
-    this.announceChange(`New item added: ${trimmedLabel}`);
-    
-    // Show success message
-    if (typeof showTempMessage === 'function') {
-      showTempMessage(`Added "${trimmedLabel}" to ${category} category`);
-    }
-  }
-  
-  clearSearch() {
-    this.searchInput.value = '';
-    this.searchResults.style.display = 'none';
-    this.originalPurchasedList.style.display = 'block';
-    this.isSearchActive = false;
-    this.focusedIndex = -1;
-    this.updateSearchCount(0);
-  }
-  
-  updateSearchCount(count) {
-    if (count === 0) {
-      this.searchCount.textContent = '';
-    } else {
-      this.searchCount.textContent = `${count} result${count === 1 ? '' : 's'}`;
-    }
-  }
-  
-  announceResults(count) {
-    // Screen reader announcement
-    const announcement = `${count} result${count === 1 ? '' : 's'} found`;
-    this.announceChange(announcement);
-  }
-  
-  announceChange(message) {
-    // Screen reader announcement
-    const srAnnounce = document.getElementById('sr-announce') || document.createElement('div');
-    srAnnounce.id = 'sr-announce';
-    srAnnounce.setAttribute('aria-live', 'polite');
-    srAnnounce.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
-    srAnnounce.textContent = message;
-    document.body.appendChild(srAnnounce);
-  }
-  
-  highlightMatch(text, query) {
-    const index = text.toLowerCase().indexOf(query.toLowerCase());
-    if (index === -1) return this.escapeHtml(text);
-    
-    const before = text.substring(0, index);
-    const match = text.substring(index, index + query.length);
-    const after = text.substring(index + query.length);
-    
-    return `${this.escapeHtml(before)}<mark class="search-highlight">${this.escapeHtml(match)}</mark>${this.escapeHtml(after)}`;
-  }
-  
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-  
-  // Public methods for external integration
-  reindexSubItems() {
-    this.cacheSubItems();
-  }
-  
-  refresh() {
-    this.cacheSubItems();
-  }
-  
-  destroy() {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-    }
-    clearTimeout(this.searchTimeout);
-    clearTimeout(this.reindexTimeout);
-  }
-}
 
-// Initialize search system after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Wait a bit for existing initialization to complete
-  setTimeout(() => {
-    window.subItemSearch = new SubItemSearch();
-    
-    // Expose public reindex function
-    window.reindexSubItems = function() {
-      if (window.subItemSearch) {
-        window.subItemSearch.reindexSubItems();
-      }
-    };
-  }, 500);
-});
-
-// Hook into existing add subitem functionality to refresh search cache
-if (typeof addSubBtn !== 'undefined' && addSubBtn) {
-  const originalAddSubClick = addSubBtn.onclick;
-  addSubBtn.onclick = function() {
-    if (originalAddSubClick) originalAddSubClick();
-    setTimeout(() => {
-      if (window.subItemSearch) window.subItemSearch.refresh();
-    }, 100);
-  };
-}
-
-
-
-
+    // Initialize form bindings when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Trigger change events to set initial states
+      document.querySelectorAll('.purchased').forEach(cb => {
+        cb.dispatchEvent(new Event('change'));
+      });
+      
+      document.querySelectorAll('.subitem').forEach(cb => {
+        cb.dispatchEvent(new Event('change'));
+      });
+      
+      document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => {
+        cb.dispatchEvent(new Event('change'));
+      });
+    });
   </script>
-</div> <!-- Close appContent div -->
-   
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
