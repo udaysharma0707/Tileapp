@@ -3225,24 +3225,7 @@ async function submitDirectMobileFriendly(data) {
 
     console.log('Submitting form data directly (mobile-friendly)');
 
-    // Use fetch with proper error handling for mobile
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors', // Important for mobile cross-origin requests
-    })
-    .then(response => {
-      // With no-cors mode, we can't read the response, but we know the request was sent
-      console.log('Form submitted successfully (no-cors mode)');
-      resolve({ success: true });
-    })
-    .catch(error => {
-      console.error('Direct fetch failed, trying fallback method:', error);
-      // Fallback to the iframe method as a last resort
-      submitUnifiedDataFallback(data).then(resolve).catch(reject);
-    });
-  });
-}
+    
 
 // --- Fallback iframe method (original) ---
 async function submitUnifiedDataFallback(data) {
@@ -3793,21 +3776,9 @@ function submitDirectMobileFriendlyBackground(data) {
 
   console.log('Submitting form data in background...');
 
-  // FIRE AND FORGET: Send request but don't wait for response
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: formData,
-    mode: 'no-cors',
-  })
-  .then(() => {
-    console.log('Background submission sent successfully');
-  })
-  .catch(error => {
-    console.log('Background submission sent (error ignored for mobile):', error);
-  });
   
-  // Don't return a promise - this is fire-and-forget
-}
+  
+ 
 
     // ===== ENHANCED SUB-ITEM SEARCH SYSTEM WITH CUSTOMIZATION SUPPORT =====
 class SubItemSearch {
@@ -4630,6 +4601,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
