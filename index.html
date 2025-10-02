@@ -3225,6 +3225,8 @@ async function submitDirectMobileFriendly(data) {
 
     console.log('Submitting form data directly (mobile-friendly)');
 
+    const result = await submitUnifiedDataFallback(data);
+
     
 
 // --- Fallback iframe method (original) ---
@@ -3776,7 +3778,8 @@ function submitDirectMobileFriendlyBackground(data) {
 
   console.log('Submitting form data in background...');
 
-  
+  const result = await submitUnifiedDataFallback(data);
+
   
  
 
@@ -4601,6 +4604,7 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
 
 
 
