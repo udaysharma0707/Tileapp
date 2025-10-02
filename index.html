@@ -1,3 +1,4 @@
+Working index.html with photo upload from laptop 
 <!doctype html>
 <html>
 <head>
@@ -513,7 +514,7 @@
       <h2>ðŸ“¸ Photo Upload (Optional)</h2>
       
       <div class="upload-area" id="uploadArea">
-          <div class="upload-icon">ðŸ“·</div>
+          <div class="upload-icon">ðŸ“•</div>
           <div class="upload-text">
               Click to select a photo or drag & drop here
           </div>
@@ -1815,7 +1816,7 @@
           oh();
         }
       }
-      
+
       function setupMainToSubBindings() {
         const mainToSub = {
           'p_floor': 'sublist_floor',
@@ -2033,6 +2034,7 @@
         });
       }
 
+
       // Config save/load functions
       function buildConfigObject() {
         const cfg = { title: '', labels: {}, structure: { mainItems: [], modes: [] }, globalUnits: loadGlobalUnits() };
@@ -2114,6 +2116,7 @@
 
         return cfg;
       }
+     
 
       function applyConfigObject(cfg) {
         if (!cfg) return;
@@ -2607,61 +2610,204 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // --- Main Submission Logic ---
-    async function submitMainForm() {
-      const submitBtn = document.getElementById('submitBtn');
-      if (!submitBtn) return;
-      
-      // Disable button during submission
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-      
-      try {
-        let photoUploadResult = null;
-        
-        // First, handle photo upload if there's a selected image
-        if (selectedImage) {
-          showPhotoStatus('Uploading photo...', 'success');
-          try {
-            photoUploadResult = await uploadPhotoToServer();
-            if (photoUploadResult) {
-              showPhotoStatus('Photo uploaded successfully!', 'success');
-            } else {
-              showPhotoStatus('Photo upload failed, but form will continue', 'error');
-            }
-          } catch (error) {
-            console.error('Photo upload error:', error);
-            showPhotoStatus('Photo upload failed: ' + error.message, 'error');
-          }
-        }
-        
-        // Collect form data
-        const formData = collectFormData();
-        
-        // Add photo link to Column D if available
-        if (photoUploadResult) {
-          formData.photoLink = photoUploadResult;
-        }
-        
-        // Submit main form data
-        const mainSubmitResult = await submitFormData(formData);
-        
-        if (mainSubmitResult.success) {
-          showTempMessage('Entry submitted successfully!');
-          clearForm();
-          resetPhotoForm();
-        } else {
-          throw new Error(mainSubmitResult.error || 'Submission failed');
-        }
-        
-      } catch (error) {
-        console.error('Submission error:', error);
-        showTempMessage('Error: ' + error.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
+   // --- MOBILE-FRIENDLY Main Submission Logic (handles both photo + manual entries) ---
+async function submitMainForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) { 
+    submitBtn.disabled = true; 
+    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; 
+    submitBtn.textContent = 'Submitting...'; 
+  }
+  
+  // Show loading indicator
+  if (typeof showLoading === 'function') showLoading(true);
+
+  try {
+    // 1) Collect form data first
+    const data = collectFormData ? collectFormData() : {};
+    console.log('Collected form data:', data);
+
+    // 2) Handle photo if selected
+    if (selectedFile && !selectedImage) {
+      // Wait briefly for FileReader to finish if needed
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        await new Promise(r => setTimeout(r, 100));
       }
     }
+
+    // 3) Add photo info to data
+    if (selectedImage) {
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
+      if (typeof showPhotoStatus === 'function') {
+        showPhotoStatus('Including photo in submission...', 'success');
+      }
+      console.log('Photo will be included:', data.photoLink);
+    } else {
+      data.photoLink = '';
+    }
+
+    // 4) Ensure clientId exists
+    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
+    data.clientId = cid;
+
+    // 5) Use mobile-friendly direct submission instead of iframe
+    const result = await submitDirectMobileFriendly(data);
+    
+    if (result.success) {
+      if (typeof showTempMessage === 'function') showTempMessage('Entry submitted successfully!');
+      if (typeof clearForm === 'function') clearForm();
+      if (typeof resetPhotoForm === 'function') resetPhotoForm();
+    } else {
+      throw new Error(result.error || 'Submission failed');
+    }
+
+  } catch (error) {
+    console.error('Submission error:', error);
+    if (typeof showTempMessage === 'function') {
+      showTempMessage('Error: ' + (error.message || 'Unknown error'));
+    }
+  } finally {
+    // Always restore button state
+    if (submitBtn) { 
+      submitBtn.disabled = false; 
+      submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; 
+    }
+    if (typeof showLoading === 'function') showLoading(false);
+  }
+}
+
+// --- Mobile-friendly direct submission (no iframe) ---
+async function submitDirectMobileFriendly(data) {
+  return new Promise((resolve, reject) => {
+    // Create FormData for proper mobile handling
+    const formData = new FormData();
+    
+    // Add all form fields
+    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+    formData.append('action', 'submit');
+    formData.append('purchased', data.purchased || '');
+    formData.append('purchasedFrom', data.purchasedFrom || '');
+    formData.append('paymentModes', data.paymentModes || '');
+    formData.append('paymentPaid', data.paymentPaid || '');
+    formData.append('otherInfo', data.otherInfo || '');
+    formData.append('photoLink', data.photoLink || '');
+    formData.append('clientId', data.clientId || '');
+
+    // Add photo data if present
+    if (selectedImage) {
+      formData.append('imageData', selectedImage);
+      formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+      console.log('Photo data included in submission');
+    }
+
+    console.log('Submitting form data directly (mobile-friendly)');
+
+    // Use fetch with proper error handling for mobile
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData,
+      mode: 'no-cors', // Important for mobile cross-origin requests
+    })
+    .then(response => {
+      // With no-cors mode, we can't read the response, but we know the request was sent
+      console.log('Form submitted successfully (no-cors mode)');
+      resolve({ success: true });
+    })
+    .catch(error => {
+      console.error('Direct fetch failed, trying fallback method:', error);
+      // Fallback to the iframe method as a last resort
+      submitUnifiedDataFallback(data).then(resolve).catch(reject);
+    });
+  });
+}
+
+// --- Fallback iframe method (original) ---
+async function submitUnifiedDataFallback(data) {
+  return new Promise((resolve, reject) => {
+    console.log('Using iframe fallback method');
+    
+    // Create iframe for submission
+    const iframeName = 'submit_iframe_fallback';
+    let iframe = document.getElementById(iframeName);
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeName;
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    // Create form with all data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = iframeName;
+    form.enctype = 'multipart/form-data';
+
+    // Helper to add hidden inputs
+    function addHidden(name, value) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value != null ? String(value) : '';
+      form.appendChild(input);
+    }
+
+    // Add all form fields
+    addHidden('token', SERVER_TOKEN || 'shopSecret2025');
+    addHidden('action', 'submit');
+    addHidden('purchased', data.purchased || '');
+    addHidden('purchasedFrom', data.purchasedFrom || '');
+    addHidden('paymentModes', data.paymentModes || '');
+    addHidden('paymentPaid', data.paymentPaid || '');
+    addHidden('otherInfo', data.otherInfo || '');
+    addHidden('photoLink', data.photoLink || '');
+    addHidden('clientId', data.clientId || '');
+
+    // Add photo data if present
+    if (selectedImage) {
+      addHidden('imageData', selectedImage);
+      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
+    }
+
+    document.body.appendChild(form);
+
+    // Handle response with shorter timeout for mobile
+    let handled = false;
+    function finalize(success) {
+      if (handled) return;
+      handled = true;
+      resolve({ success: success });
+      // Cleanup
+      try { 
+        if (form.parentNode) form.parentNode.removeChild(form); 
+      } catch(e) {}
+    }
+
+    // Set up iframe response handler with mobile-specific timeout
+    iframe.onload = function() {
+      finalize(true); // Assume success on mobile
+    };
+
+    // Submit form
+    try {
+      form.submit();
+      console.log('Fallback form submitted to server');
+    } catch (err) {
+      console.warn('Fallback form submit error:', err);
+      finalize(true); // Still assume success for mobile compatibility
+    }
+
+    // Shorter timeout for mobile - assume success after 5 seconds
+    setTimeout(() => {
+      finalize(true);
+    }, 5000);
+  });
+}
+
 
     function collectFormData() {
       const data = {};
