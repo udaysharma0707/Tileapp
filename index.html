@@ -29,7 +29,6 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
     }
-
     h1{font-size:20px;margin:0 0 10px 0; display:flex; align-items:center; gap:8px;}
     .gear {
       margin-left:auto; cursor:pointer; font-size:18px; color:#2c7be5;
@@ -150,57 +149,6 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-
-    /* PIN Modal Styles */
-.pin-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pin-modal-content {
-  background: white;
-  padding: 40px;
-  border-radius: 15px;
-  text-align: center;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.pin-modal h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-#pinInput {
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-family: monospace;
-  letter-spacing: 2px;
-}
-
-#pinInput:focus {
-  outline: none;
-  border-color: #2c7be5;
-  box-shadow: 0 0 10px rgba(44, 123, 229, 0.3);
-}
-
-#submitPin:hover {
-  background: #1e5bb8;
-}
-
-#submitPin:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -339,6 +287,10 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width:920px){
+      .container { padding:10px; }
     }
 
     /* quantity + unit inline controls */
@@ -489,41 +441,26 @@
     /* Unit management styling */
     .unit-item { display:flex; align-items:center; gap:8px; padding:6px; background:white; margin-bottom:6px; border:1px solid #eee; border-radius:4px; }
     .remove-unit { background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
-
   </style>
 </head>
 <body>
   <div class="container" id="appContainer">
-
-   <!-- PIN Protection Modal -->
-<div id="pinModal" class="pin-modal" style="display: none;">
-  <div class="pin-modal-content">
-    <h2>ðŸ”’ Daily Access PIN</h2>
-    <p>Enter the daily PIN to access the purchase entry form:</p>
-    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="10" style="padding: 15px; font-size: 18px; text-align: center; width: 200px; margin: 20px 0;">
-    <br>
-    <button id="submitPin" style="padding: 15px 30px; font-size: 16px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer;">Unlock</button>
-    <div id="pinError" style="color: red; margin-top: 10px; font-weight: bold;"></div>
-    <div style="font-size: 12px; color: #666; margin-top: 15px;">PIN is required once per day for security</div>
-  </div>
-</div>
-
-
-<div id="appContent">
-
      <a class="sheet-link"
        href="https://docs.google.com/spreadsheets/d/1YyjZjRbePZ4fL40hKgJloSLJMzWZgW-6fFIvc-A7ELQ/edit"
        target="_blank" rel="noopener" aria-label="Open Google sheet">Google sheet</a>
     <h1>
-      <span id="appTitle">Tile Purchase Entry</span>   
-      <span class="gear" id="gearBtn" title="Customize form">Ã¢Å¡â„¢Ã¯Â¸Â</span>
+      <span id="appTitle">Tile Purchase Entry</span>
+
+      
+      
+      <span class="gear" id="gearBtn" title="Customize form">⚙️</span>
     </h1>
 
     <div class="custom-mode-badge">Customize mode</div>
 
     <!-- Customize panel (hidden by default) -->
     <div id="customPanel" role="dialog" aria-modal="true" aria-label="Customize form">
-      <button class="close-x" id="panelCloseX" title="Close (Esc)">Ã¢ÂÅ’</button>
+      <button class="close-x" id="panelCloseX" title="Close (Esc)">❌</button>
       <strong>Customize form text</strong>
       <div style="margin-top:8px">Click any visible text label on the form to edit it directly. After editing, use <b>Apply Preview</b> to try changes locally or <b>Save (server)</b> to store the customization so it will persist next time the app loads.</div>
       <div class="panel-row">
@@ -556,7 +493,7 @@
       <!-- Add / Remove sub-item controls -->
       <div style="margin-top:12px; border-top:1px dashed #ddd; padding-top:10px;">
         <strong>Add / Remove Sub-items</strong>
-        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red Ã¢ÂÅ’ next to each sub-item label to remove it.</div>
+        <div style="font-size:13px;color:#444;margin-top:6px">Add a new checkbox sub-item to a main category. While in Customize mode you'll see a red ❌ next to each sub-item label to remove it.</div>
 
         <div class="panel-row" style="margin-top:8px; align-items:center;">
           <select id="addCategorySelect" style="width:40%; padding:8px; font-size:14px;">
@@ -575,39 +512,42 @@
       </div>
     </div>
 
-    <!-- Photo Upload Section -->
-    <div class="photo-section">
-      <h2>Ã°Å¸â€œÂ¸ Photo Upload (Optional)</h2>
-      
-      <div class="upload-area" id="uploadArea">
-          <div class="upload-icon">Ã°Å¸â€œÂ·</div>
-          <div class="upload-text">
-              Click to select a photo or drag & drop here
-          </div>
-          <button class="btn" onclick="document.getElementById('fileInput').click()">
-              Choose from Gallery
-          </button>
-          <button class="btn camera-btn" onclick="openCamera()">
-              Take Photo
-          </button>
-      </div>
-      
-      <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
-      <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
-      
-      <div class="preview-container" id="previewContainer">
-          <img id="previewImage" class="preview-image" alt="Preview">
-          <br>
-          <button class="btn" onclick="resetPhotoForm()">Cancel Photo</button>
-      </div>
-      
-      <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <p>Processing...</p>
-      </div>
-      
-      <div id="photoStatus"></div>
+
+     <div class="container">
+        <h1>📸 Photo Upload</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">
+                Click to select a photo or drag & drop here
+            </div>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">
+                Choose from Gallery
+            </button>
+            <button class="btn camera-btn" onclick="openCamera()">
+                Take Photo
+            </button>
+        </div>
+        
+        <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
+        <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+        
+        <div class="preview-container" id="previewContainer">
+            <img id="previewImage" class="preview-image" alt="Preview">
+            <br>
+            <button class="btn" onclick="uploadPhoto()">Submit Photo</button>
+            <button class="btn" onclick="resetForm()">Cancel</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Uploading photo...</p>
+        </div>
+        
+        <div id="status"></div>
     </div>
+
+    
 
     <!-- Purchased items with inline qty and nested subitems -->
     <label class="q-label">1. <span id="qPurchasedLabel">Purchased what (check items and enter quantity for specific sub-items)</span></label>
@@ -624,7 +564,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_vitrified" value="Vitrified tiles">
             <span class="editable" data-config-id="sub_floor_vitrified_label" id="label_sub_floor_vitrified">Vitrified tiles (most popular for homes/offices)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_vitrified" class="subqty qty" placeholder="Quantity" disabled>
@@ -639,7 +579,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_ceramic" value="Ceramic tiles">
             <span class="editable" data-config-id="sub_floor_ceramic_label" id="label_sub_floor_ceramic">Ceramic tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_ceramic" class="subqty qty" placeholder="Quantity" disabled>
@@ -654,7 +594,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_porcelain" value="Porcelain tiles">
             <span class="editable" data-config-id="sub_floor_porcelain_label" id="label_sub_floor_porcelain">Porcelain tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_porcelain" class="subqty qty" placeholder="Quantity" disabled>
@@ -669,7 +609,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_marble" value="Marble finish tiles">
             <span class="editable" data-config-id="sub_floor_marble_label" id="label_sub_floor_marble">Marble finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_marble" class="subqty qty" placeholder="Quantity" disabled>
@@ -684,7 +624,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_floor_granite" value="Granite finish tiles">
             <span class="editable" data-config-id="sub_floor_granite_label" id="label_sub_floor_granite">Granite finish tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_floor_granite" class="subqty qty" placeholder="Quantity" disabled>
@@ -709,7 +649,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_kitchen" value="Kitchen wall tiles (backsplash)">
             <span class="editable" data-config-id="sub_wall_kitchen_label" id="label_sub_wall_kitchen">Kitchen wall tiles (backsplash)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_kitchen" class="subqty qty" placeholder="Quantity" disabled>
@@ -724,7 +664,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_bath" value="Bathroom wall tiles (glazed/anti-skid)">
             <span class="editable" data-config-id="sub_wall_bath_label" id="label_sub_wall_bath">Bathroom wall tiles (glazed/anti-skid)</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_bath" class="subqty qty" placeholder="Quantity" disabled>
@@ -739,7 +679,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_wall_decor" value="Decorative/Designer wall tiles">
             <span class="editable" data-config-id="sub_wall_decor_label" id="label_sub_wall_decor">Decorative / designer wall tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_wall_decor" class="subqty qty" placeholder="Quantity" disabled>
@@ -764,7 +704,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wash" value="Washbasins">
             <span class="editable" data-config-id="sub_san_wash_label" id="label_sub_san_wash">Washbasins</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wash" class="subqty qty" placeholder="Quantity" disabled>
@@ -779,7 +719,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_wc" value="WC">
             <span class="editable" data-config-id="sub_san_wc_label" id="label_sub_san_wc">WC</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_wc" class="subqty qty" placeholder="Quantity" disabled>
@@ -794,7 +734,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_san_urinal" value="Urinals">
             <span class="editable" data-config-id="sub_san_urinal_label" id="label_sub_san_urinal">Urinals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_san_urinal" class="subqty qty" placeholder="Quantity" disabled>
@@ -819,7 +759,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_grout" value="Tile grout & adhesives">
             <span class="editable" data-config-id="sub_acc_grout_label" id="label_sub_acc_grout">Tile grout & adhesives</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_grout" class="subqty qty" placeholder="Quantity" disabled>
@@ -834,7 +774,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_spacers" value="Spacers">
             <span class="editable" data-config-id="sub_acc_spacers_label" id="label_sub_acc_spacers">Spacers</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_spacers" class="subqty qty" placeholder="Quantity" disabled>
@@ -849,7 +789,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_sealants" value="Sealants">
             <span class="editable" data-config-id="sub_acc_sealants_label" id="label_sub_acc_sealants">Sealants</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_sealants" class="subqty qty" placeholder="Quantity" disabled>
@@ -864,7 +804,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_chem" value="Chemicals">
             <span class="editable" data-config-id="sub_acc_chem_label" id="label_sub_acc_chem">Chemicals</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_chem" class="subqty qty" placeholder="Quantity" disabled>
@@ -879,7 +819,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_skirting" value="Skirting & border tiles">
             <span class="editable" data-config-id="sub_acc_skirting_label" id="label_sub_acc_skirting">Skirting & border tiles</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_skirting" class="subqty qty" placeholder="Quantity" disabled>
@@ -894,7 +834,7 @@
         <div class="sub-item" data-original="true">
           <label><input type="checkbox" class="subitem" id="sub_acc_mosaic" value="Mosaic tiles for decoration">
             <span class="editable" data-config-id="sub_acc_mosaic_label" id="label_sub_acc_mosaic">Mosaic tiles for decoration</span>
-            <button class="del-btn" title="Remove sub-item" aria-label="Remove">Ã¢ÂÅ’</button>
+            <button class="del-btn" title="Remove sub-item" aria-label="Remove">❌</button>
           </label>
           <div class="qty-unit">
             <input type="number" min="0" step="1" id="q_acc_mosaic" class="subqty qty" placeholder="Quantity" disabled>
@@ -925,7 +865,7 @@
         </div>
       </div>
       <div style="margin-top:6px; margin-left:6px;">
-        <input id="purchasedOtherText" type="text" placeholder="If Others Ã¢â‚¬â€œ specify (e.g. 'Grout, Adhesive')">
+        <input id="purchasedOtherText" type="text" placeholder="If Others â€“ specify (e.g. 'Grout, Adhesive')">
       </div>
     </div>
 
@@ -939,7 +879,7 @@
         <option value="Customised">Customised</option>
         <option value="Other">Other</option>
       </select>
-      <input id="purchasedFrom" type="text" placeholder="If Other Ã¢â‚¬â€œ specify vendor name" style="flex:1; display:none;">
+      <input id="purchasedFrom" type="text" placeholder="If Other â€“ specify vendor name" style="flex:1; display:none;">
     </div>
 
     <!-- custom vendor manager -->
@@ -958,30 +898,30 @@
     <div class="checkbox-row" id="modes">
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Cash" id="mode_cash"> <span class="editable" data-config-id="mode_cash_label" id="label_mode_cash">Cash</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">Ã¢ÂÅ’</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_cash" class="mode-amount" placeholder="Cash Rs." disabled data-mode-amount="Cash">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Online" id="mode_online"> <span class="editable" data-config-id="mode_online_label" id="label_mode_online">Online</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">Ã¢ÂÅ’</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_online" class="mode-amount" placeholder="Online Rs." disabled data-mode-amount="Online">
       </div>
       <div class="mode-row" data-original="true">
         <label class="mode-label"><input type="checkbox" name="modeOfPayment" value="Credit" id="mode_credit"> <span class="editable" data-config-id="mode_credit_label" id="label_mode_credit">Credit</span>
-          <button class="del-btn" title="Remove mode" aria-label="Remove">Ã¢ÂÅ’</button>
+          <button class="del-btn" title="Remove mode" aria-label="Remove">❌</button>
         </label>
         <input type="number" min="0" step="0.01" id="amt_credit" class="mode-amount" placeholder="Credit Rs." disabled data-mode-amount="Credit">
       </div>
     </div>
 
     <!-- Total -->
-    <label class="q-label">Payment paid (Ã¢â€šÂ¹)</label>
-    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount (optional)" >
+    <label class="q-label">Payment paid (₹) <span style="color:red">*</span></label>
+    <input id="paymentPaid" type="number" min="0" step="0.01" placeholder="Total amount" >
 
     <label class="q-label">Any other information</label>
-    <textarea id="otherInfo" rows="2" placeholder="Optional additional information"></textarea>
+    <textarea id="otherInfo" rows="2"></textarea>
 
     <div class="form-actions">
       <button id="submitBtn" type="button">Submit</button>
@@ -1001,117 +941,143 @@
   <script src="app.js"></script>
 
   <script>
-
     // --- Config / server endpoint detection ---
     const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwToDrVfsXln5JohaK2_YEH5dRtRJWJPvDFfRb0Y9NgG-VNE3sYRZ6EBhlY5R1Yz_DW/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
-
     // Replace with your Google Apps Script Web App URL
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwToDrVfsXln5JohaK2_YEH5dRtRJWJPvDFfRb0Y9NgG-VNE3sYRZ6EBhlY5R1Yz_DW/exec';
 
-    let selectedFile = null;
-    let selectedImage = null;
+        let selectedFile = null;
+        let selectedImage = null;
 
-    // Drag and drop functionality
-    const uploadArea = document.getElementById('uploadArea');
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
 
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-    });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
 
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0 && files[0].type.startsWith('image/')) {
-            handleFile(files[0]);
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                handleFile(files[0]);
+            }
+        });
+
+        function openCamera() {
+            document.getElementById('cameraInput').click();
         }
-    });
 
-    function openCamera() {
-        document.getElementById('cameraInput').click();
-    }
-
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            handleFile(file);
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
         }
-    }
 
-    function handleFile(file) {
-        selectedFile = file;
-        
-        // Compress and create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Set max dimensions to avoid large uploads
-                const maxWidth = 1920;
-                const maxHeight = 1080;
-                let { width, height } = img;
-                
-                // Calculate new dimensions
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
+        function handleFile(file) {
+            selectedFile = file;
+            
+            // Compress and create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set max dimensions to avoid large uploads
+                    const maxWidth = 1920;
+                    const maxHeight = 1080;
+                    let { width, height } = img;
+                    
+                    // Calculate new dimensions
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
                     }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                // Draw and compress
-                ctx.drawImage(img, 0, 0, width, height);
-                selectedImage = canvas.toDataURL('image/jpeg', 0.7);
-                
-                // Show preview
-                document.getElementById('previewImage').src = selectedImage;
-                document.getElementById('previewContainer').style.display = 'block';
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Draw and compress
+                    ctx.drawImage(img, 0, 0, width, height);
+                    selectedImage = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    // Show preview
+                    document.getElementById('previewImage').src = selectedImage;
+                    document.getElementById('previewContainer').style.display = 'block';
+                };
+                img.src = e.target.result;
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Photo upload function (integrated with main submit)
-    async function uploadPhotoToServer() {
-        if (!selectedImage) {
-            return null; // No photo to upload
+            reader.readAsDataURL(file);
         }
-        
-        showLoading(true);
-        
-        try {
-            // Use form submission approach for photo upload
-            return await uploadViaFormSubmission();
-        } catch (error) {
-            console.error('Photo upload error:', error);
-            return null;
-        } finally {
-            showLoading(false);
-        }
-    }
 
-    function uploadViaFormSubmission() {
-        return new Promise((resolve, reject) => {
+        // Main upload function - NO google.script.run used
+        async function uploadPhoto() {
+            if (!selectedImage) {
+                showStatus('Please select a photo first', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Use JSONP method to avoid CORS
+            uploadViaJsonp();
+        }
+
+        function uploadViaJsonp() {
+            // Create unique callback name
+            const callbackName = 'photoUploadCallback_' + Date.now();
+            
+            // Create callback function
+            window[callbackName] = function(response) {
+                // Cleanup
+                const script = document.getElementById(callbackName);
+                if (script) {
+                    document.head.removeChild(script);
+                }
+                delete window[callbackName];
+                
+                showLoading(false);
+                
+                if (response.success) {
+                    showStatus(`Success! Photo saved as "${response.shortName}"`, 'success');
+                    resetForm();
+                } else {
+                    showStatus(`Error: ${response.error || response.message}`, 'error');
+                }
+            };
+            
+            // Create script tag for JSONP
+            const script = document.createElement('script');
+            script.id = callbackName;
+            
+            // Prepare URL with parameters (truncate image data if too long for URL)
+            const fileName = selectedFile ? selectedFile.name : 'camera_photo_' + Date.now() + '.jpg';
+            
+            // For JSONP, we need to use a shorter approach or base64 encode differently
+            // Let's use a form submission approach instead
+            uploadViaFormSubmission();
+        }
+
+        function uploadViaFormSubmission() {
             // Create a hidden iframe for form submission
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
@@ -1153,24 +1119,25 @@
                     const response = iframe.contentDocument.body.textContent;
                     const result = JSON.parse(response);
                     
+                    showLoading(false);
+                    
                     if (result.success) {
-                        resolve(result.shortName || 'Photo uploaded');
+                        showStatus(`Success! Photo saved as "${result.shortName}"`, 'success');
+                        resetForm();
                     } else {
-                        reject(new Error(result.error || 'Upload failed'));
+                        showStatus(`Error: ${result.error}`, 'error');
                     }
                 } catch (e) {
                     // Cross-origin restriction, assume success after delay
-                    resolve('Photo uploaded successfully');
+                    showLoading(false);
+                    showStatus('Photo uploaded! Check your Google Sheet.', 'success');
+                    resetForm();
                 }
                 
                 // Cleanup
                 setTimeout(() => {
-                    if (document.body.contains(form)) {
-                        document.body.removeChild(form);
-                    }
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
                 }, 1000);
             };
             
@@ -1180,49 +1147,55 @@
             // Set a timeout for cleanup in case iframe doesn't load
             setTimeout(() => {
                 if (document.body.contains(form)) {
-                    resolve('Photo upload completed');
+                    showLoading(false);
+                    showStatus('Upload completed! Check your Google Sheet.', 'success');
+                    resetForm();
                     document.body.removeChild(form);
                     document.body.removeChild(iframe);
                 }
             }, 10000); // 10 second timeout
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            selectedImage = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('previewContainer').style.display = 'none';
+            setTimeout(() => {
+                document.getElementById('status').innerHTML = '';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Network status handling
+        window.addEventListener('online', () => {
+            showStatus('Back online! You can upload photos now.', 'success');
         });
-    }
 
-    function resetPhotoForm() {
-        selectedFile = null;
-        selectedImage = null;
-        document.getElementById('fileInput').value = '';
-        document.getElementById('cameraInput').value = '';
-        document.getElementById('previewContainer').style.display = 'none';
-        document.getElementById('photoStatus').innerHTML = '';
-    }
-
-    function showLoading(show) {
-        document.getElementById('loading').style.display = show ? 'block' : 'none';
-    }
-
-    function showPhotoStatus(message, type) {
-        const statusDiv = document.getElementById('photoStatus');
-        statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-    }
-
-    // Network status handling
-    window.addEventListener('online', () => {
-        showPhotoStatus('Back online! You can upload photos now.', 'success');
-    });
-
-    window.addEventListener('offline', () => {
-        showPhotoStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
-    });
-
-    // Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('SW registered'))
-                .catch(error => console.log('SW registration failed'));
+        window.addEventListener('offline', () => {
+            showStatus('You\'re offline. Photos will be uploaded when connection returns.', 'error');
         });
-    }
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+  
 
     // JSONP helper
     function jsonpCall(url, timeoutMs = 20000) {
@@ -1239,144 +1212,6 @@
         setTimeout(() => { try{ delete window[cbName]; }catch(e){} reject(new Error('JSONP timeout')); }, timeoutMs);
       });
     }
-
-
-    
-// === COMPREHENSIVE PIN PROTECTION SYSTEM ===
-let isUnlocked = false;
-
-// MOBILE-FRIENDLY PIN CHECK
-function checkPinValidation() {
-  const today = new Date().toISOString().split('T')[0];
-  const lastValidated = localStorage.getItem('pinValidated');
-  
-  console.log('Checking PIN validation:', { today, lastValidated });
-  
-  // Always check PIN if not validated today OR if no validation exists
-  if (!lastValidated || lastValidated !== today) {
-    console.log('Need PIN validation');
-    setTimeout(() => {
-      const pinModal = document.getElementById('pinModal');
-      if (pinModal) {
-        pinModal.style.display = 'flex';
-        const pinInput = document.getElementById('pinInput');
-        if (pinInput) {
-          pinInput.focus();
-        }
-      } else {
-        console.error('PIN modal not found!');
-      }
-    }, 500); // Small delay for mobile compatibility
-  } else {
-    console.log('Already validated today');
-    unlockApp();
-  }
-}
-
-
-function showPinModal() {
-  document.getElementById('pinModal').style.display = 'flex';
-  document.getElementById('pinInput').focus();
-}
-
-function unlockApp() {
-  isUnlocked = true;
-  document.getElementById('pinModal').style.display = 'none';
-}
-
-// Simple PIN validation (client-side with server backup)
-async function validatePin(pin) {
-  // Primary validation: Check correct PIN
-  if (pin === '5678') {
-    return { success: true };
-  } else {
-    return { success: false, error: 'Invalid PIN' };
-  }
-}
-
-// PIN modal event listeners
-document.addEventListener('DOMContentLoaded', function() {
-  const pinInput = document.getElementById('pinInput');
-  const submitPinBtn = document.getElementById('submitPin');
-  const pinError = document.getElementById('pinError');
-  
-  // Enter key support
-  if (pinInput) {
-    pinInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        submitPinBtn.click();
-      }
-    });
-  }
-  
-  // Submit PIN
-  if (submitPinBtn) {
-    submitPinBtn.addEventListener('click', async function() {
-      const pin = pinInput.value.trim();
-      if (!pin) {
-        pinError.textContent = 'Please enter PIN';
-        return;
-      }
-      
-      // Disable button during validation
-      submitPinBtn.disabled = true;
-      submitPinBtn.textContent = 'Validating...';
-      pinError.textContent = '';
-      
-      try {
-        const result = await validatePin(pin);
-        
-        if (result.success) {
-          // Store validation for today
-          const today = new Date().toISOString().split('T')[0];
-          localStorage.setItem('pinValidated', today);
-          
-          // Unlock app
-          pinError.textContent = 'PIN accepted! Loading form...';
-          pinError.style.color = 'green';
-          
-          setTimeout(() => {
-            unlockApp();
-          }, 500);
-        } else {
-          pinError.textContent = result.error || 'Invalid PIN';
-          pinError.style.color = 'red';
-          pinInput.value = '';
-          pinInput.focus();
-        }
-      } catch (error) {
-        pinError.textContent = 'Validation error. Please try again.';
-        pinError.style.color = 'red';
-      } finally {
-        submitPinBtn.disabled = false;
-        submitPinBtn.textContent = 'Unlock';
-      }
-    });
-  }
-  
-  // Check PIN validation on load
-  checkPinValidation();
-});
-
-// Protect form submission
-const originalMobileSubmitFunction = window.mobileSubmitFunction;
-if (originalMobileSubmitFunction) {
-  window.mobileSubmitFunction = function() {
-    if (!isUnlocked) {
-      alert('Please enter daily PIN first');
-      showPinModal();
-      
-      // Re-enable submit button
-      const submitBtn = document.getElementById('submitBtn');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
-      }
-      return;
-    }
-    return originalMobileSubmitFunction.apply(this, arguments);
-  };
-}
 
     // ----------------- Unit Management Functions -----------------
     function loadGlobalUnits() {
@@ -1731,7 +1566,7 @@ if (originalMobileSubmitFunction) {
         b.type = 'button';
         b.className = 'remove-checkbox';
         b.title = 'Remove this item';
-        b.textContent = 'Ã¢ÂÅ’';
+        b.textContent = '❌';
         b.style.marginLeft = '8px';
         b.style.background = '#ff6b6b';
         b.style.color = '#fff';
@@ -2022,7 +1857,7 @@ if (originalMobileSubmitFunction) {
           oh();
         }
       }
-
+      
       function setupMainToSubBindings() {
         const mainToSub = {
           'p_floor': 'sublist_floor',
@@ -2113,7 +1948,7 @@ if (originalMobileSubmitFunction) {
             delBtn.type = 'button';
             delBtn.title = 'Remove mode';
             delBtn.setAttribute('aria-label','Remove');
-            delBtn.textContent = 'Ã¢ÂÅ’';
+            delBtn.textContent = '❌';
 
             labelEl.appendChild(cb);
             labelEl.appendChild(span);
@@ -2171,7 +2006,7 @@ if (originalMobileSubmitFunction) {
           delBtn.type = 'button';
           delBtn.title = 'Remove sub-item';
           delBtn.setAttribute('aria-label','Remove');
-          delBtn.textContent = 'Ã¢ÂÅ’';
+          delBtn.textContent = '❌';
 
           labelEl.appendChild(cb);
           labelEl.appendChild(span);
@@ -2239,7 +2074,6 @@ if (originalMobileSubmitFunction) {
           showTempMessage('Added: ' + rawLabel);
         });
       }
-
 
       // Config save/load functions
       function buildConfigObject() {
@@ -2322,314 +2156,369 @@ if (originalMobileSubmitFunction) {
 
         return cfg;
       }
-     
 
-      function applyConfigObject(cfg) {
+      saveServerBtn.addEventListener('click', async function(){
+        endEditingSession();
+        const cfg = buildConfigObject();
+        const cfgStr = JSON.stringify(cfg);
+        const url = SERVER_ENDPOINT + '?action=saveConfig&token=' + encodeURIComponent(SERVER_TOKEN) + '&config=' + encodeURIComponent(cfgStr);
+        try {
+          saveServerBtn.disabled = true; saveServerBtn.textContent = 'Saving...';
+          const resp = await jsonpCall(url, 20000);
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+          if (resp && resp.success) {
+            alert('Customization saved on server.');
+            setCustomizeMode(false);
+            try { localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom || {})); } catch(e){}
+          } else {
+            console.error('save resp', resp);
+            alert('Save failed. Server returned error. Check console.');
+          }
+        } catch (err) {
+          console.error('save err', err);
+          alert('Save to server failed. Please ensure ENDPOINT & SHARED_TOKEN in app.js are correct and you are online.');
+          saveServerBtn.disabled = false; saveServerBtn.textContent = 'Save (server)';
+        }
+      });
+
+      (async function tryLoadConfig(){
+        try {
+          const url = SERVER_ENDPOINT + '?action=getConfig&token=' + encodeURIComponent(SERVER_TOKEN);
+          const resp = await jsonpCall(url, 15000);
+          if (resp && resp.success && resp.config) {
+            applyConfig(resp.config);
+          } else {
+            try {
+              const local = localStorage.getItem('purchasedFromCustom');
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+              }
+            } catch(e){}
+          }
+        } catch (e) {
+          console.warn('Could not load config:', e);
+          try {
+            const local = localStorage.getItem('purchasedFromCustom');
+            if (local) {
+              const parsed = JSON.parse(local);
+              if (parsed && parsed.items) applyPurchasedFromConfig(parsed.items, parsed.selected || '');
+            }
+          } catch(e){}
+        }
+      })();
+
+      function applyConfig(cfg) {
         if (!cfg) return;
 
-        if (cfg.title) {
-          const titleEl = document.getElementById('appTitle');
-          if (titleEl) titleEl.textContent = cfg.title;
-        }
-
-        if (cfg.labels) {
-          Object.keys(cfg.labels).forEach(key => {
-            const el = document.querySelector('[data-config-id="' + key + '"]') || document.getElementById(key);
-            if (el) el.textContent = cfg.labels[key];
-          });
-        }
-
-        if (cfg.globalUnits) {
+        if (cfg.globalUnits && Array.isArray(cfg.globalUnits)) {
           saveGlobalUnits(cfg.globalUnits);
           renderUnitList();
           rebuildAllUnitSelects();
         }
 
-        if (cfg.purchasedFromCustom && cfg.purchasedFromCustom.items) {
-          saveCustomVendors(cfg.purchasedFromCustom.items);
-          rebuildVendorSelect();
-          renderVendorList();
+        if (cfg.title) {
+          const t = document.getElementById('appTitle');
+          if (t) t.textContent = cfg.title;
         }
-
-        if (!cfg.structure) return;
-
-        // Rebuild structure
-        const purchasedList = document.getElementById('purchasedList');
-
-        function findItemRowByMainId(mainId) {
-          const allRows = Array.from(purchasedList.querySelectorAll('.item-row'));
-          return allRows.find(row => {
-            const cb = row.querySelector('input[type="checkbox"]');
-            return cb && cb.id === mainId;
+        if (cfg.labels) {
+          Object.keys(cfg.labels).forEach(key => {
+            const sel = '[data-config-id="' + key + '"]';
+            const el = document.querySelector(sel) || document.getElementById(key);
+            if (el) el.textContent = cfg.labels[key];
           });
         }
 
-        function createMainItem(main) {
-          const row = document.createElement('div');
-          row.className = 'item-row';
-          row.setAttribute('data-generated', 'true');
+        if (cfg.structure && (cfg.structure.mainItems || cfg.structure.modes)) {
+          const purchasedList = document.getElementById('purchasedList');
 
-          const label = document.createElement('label');
-          label.className = 'cb';
-
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.className = 'purchased';
-          cb.id = main.id;
-          cb.value = main.label || main.id;
-
-          const span = document.createElement('span');
-          span.className = 'editable';
-          span.setAttribute('data-config-id', main.id + '_label');
-          span.id = 'label_' + main.id;
-          span.textContent = main.label || main.id;
-
-          label.appendChild(cb);
-          label.appendChild(span);
-          row.appendChild(label);
-
-          const otherRow = Array.from(purchasedList.querySelectorAll('.item-row')).find(r => {
-            const ch = r.querySelector('input[type="checkbox"]');
-            return ch && ch.id === 'p_other';
-          });
-          if (otherRow) purchasedList.insertBefore(row, otherRow);
-          else purchasedList.appendChild(row);
-
-          registerEditable(span);
-          return row;
-        }
-
-        function ensureSublist(main) {
-          let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
-          let sl = document.getElementById(sublistId);
-          if (!sl) {
-            sl = document.createElement('div');
-            sl.className = 'sublist';
-            sl.id = sublistId;
-            const row = findItemRowByMainId(main.id) || createMainItem(main);
-            row.insertAdjacentElement('afterend', sl);
+          function findItemRowByMainId(mainId) {
+            return Array.from(purchasedList.querySelectorAll('.item-row')).find(row => {
+              const cb = row.querySelector('input[type="checkbox"]');
+              return cb && cb.id === mainId;
+            });
           }
-          return sl;
-        }
 
-        if (cfg.structure.mainItems) {
-          cfg.structure.mainItems.forEach(main => {
-            const existing = findItemRowByMainId(main.id);
-            if (!existing) {
-              createMainItem(main);
-            }
-
-            const sl = ensureSublist(main);
-
-            if (main.subitems) {
-              main.subitems.forEach(sub => {
-                const existingSubitem = document.getElementById(sub.id);
-                if (!existingSubitem) {
-                  const suffix = sub.id.slice(4);
-                  const qtyId = 'q' + sub.id.slice(3);
-
-                  const subDiv = document.createElement('div');
-                  subDiv.className = 'sub-item';
-                  subDiv.setAttribute('data-generated', 'true');
-
-                  const labelEl = document.createElement('label');
-                  const cb = document.createElement('input');
-                  cb.type = 'checkbox';
-                  cb.className = 'subitem';
-                  cb.id = sub.id;
-                  cb.value = sub.label || sub.id;
-
-                  const span = document.createElement('span');
-                  span.className = 'editable';
-                  span.setAttribute('data-config-id', sub.id + '_label');
-                  span.id = 'label_' + sub.id;
-                  span.textContent = sub.label || sub.id;
-
-                  const delBtn = document.createElement('button');
-                  delBtn.className = 'del-btn';
-                  delBtn.type = 'button';
-                  delBtn.title = 'Remove sub-item';
-                  delBtn.setAttribute('aria-label', 'Remove');
-                  delBtn.textContent = 'Ã¢ÂÅ’';
-
-                  labelEl.appendChild(cb);
-                  labelEl.appendChild(span);
-                  labelEl.appendChild(delBtn);
-
-                  const qtyUnitDiv = document.createElement('div');
-                  qtyUnitDiv.className = 'qty-unit';
-
-                  const qty = document.createElement('input');
-                  qty.type = 'number';
-                  qty.min = '0';
-                  qty.step = '1';
-                  qty.placeholder = 'Quantity';
-                  qty.className = 'subqty qty';
-                  qty.id = qtyId;
-                  qty.disabled = true;
-
-                  const unitSel = document.createElement('select');
-                  unitSel.id = 'unit_' + suffix;
-                  unitSel.className = 'unit-select';
-                  unitSel.disabled = true;
-                  
-                  const defaultUnits = ['Boxes','Pieces','Kg'];
-                  defaultUnits.forEach(unit => {
-                    const o = document.createElement('option'); 
-                    o.value = unit; 
-                    o.textContent = unit; 
-                    unitSel.appendChild(o);
-                  });
-                  
-                  const globalUnits = loadGlobalUnits();
-                  globalUnits.forEach(unit => {
-                    const o = document.createElement('option'); 
-                    o.value = unit; 
-                    o.textContent = unit; 
-                    unitSel.appendChild(o);
-                  });
-
-                  const unitCustom = document.createElement('input');
-                  unitCustom.type = 'text';
-                  unitCustom.id = 'unit_custom_' + suffix;
-                  unitCustom.className = 'unit-custom';
-                  unitCustom.placeholder = 'Custom unit';
-                  unitCustom.style.display = 'none';
-                  unitCustom.disabled = true;
-
-                  qtyUnitDiv.appendChild(qty);
-                  qtyUnitDiv.appendChild(unitSel);
-                  qtyUnitDiv.appendChild(unitCustom);
-
-                  subDiv.appendChild(labelEl);
-                  subDiv.appendChild(qtyUnitDiv);
-
-                  sl.appendChild(subDiv);
-
-                  registerEditable(span);
-                }
-              });
-            }
-          });
-        }
-
-        if (cfg.structure.modes) {
-          const modesContainer = document.getElementById('modes');
-          cfg.structure.modes.forEach(mode => {
-            const existing = document.getElementById(mode.id);
-            if (existing) return;
-
-            const modeDiv = document.createElement('div');
-            modeDiv.className = 'mode-row';
-            modeDiv.setAttribute('data-generated', 'true');
-
-            const labelEl = document.createElement('label');
-            labelEl.className = 'mode-label';
+          function createMainItem(main) {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            const label = document.createElement('label');
+            label.className = 'cb';
 
             const cb = document.createElement('input');
             cb.type = 'checkbox';
-            cb.name = 'modeOfPayment';
-            cb.value = mode.label || mode.id;
-            cb.id = mode.id;
+            cb.className = 'purchased';
+            cb.id = main.id;
+            cb.value = main.label || main.id;
 
             const span = document.createElement('span');
             span.className = 'editable';
-            span.setAttribute('data-config-id', mode.id + '_label');
-            span.id = 'label_' + mode.id;
-            span.textContent = mode.label || mode.id;
+            span.setAttribute('data-config-id', main.id + '_label');
+            span.id = 'label_' + main.id;
+            span.textContent = main.label || main.id;
 
-            const delBtn = document.createElement('button');
-            delBtn.className = 'del-btn';
-            delBtn.type = 'button';
-            delBtn.title = 'Remove mode';
-            delBtn.setAttribute('aria-label', 'Remove');
-            delBtn.textContent = 'Ã¢ÂÅ’';
+            label.appendChild(cb);
+            label.appendChild(span);
+            row.appendChild(label);
 
-            labelEl.appendChild(cb);
-            labelEl.appendChild(span);
-            labelEl.appendChild(delBtn);
-
-            const amt = document.createElement('input');
-            amt.type = 'number';
-            amt.min = '0';
-            amt.step = '0.01';
-            amt.placeholder = (mode.label || mode.id) + ' Rs.';
-            amt.className = 'mode-amount';
-            amt.id = mode.amountInputId || ('amt_' + mode.id);
-            amt.disabled = true;
-            amt.setAttribute('data-mode-amount', mode.amountAttrName || mode.label || mode.id);
-
-            modeDiv.appendChild(labelEl);
-            modeDiv.appendChild(amt);
-
-            modesContainer.appendChild(modeDiv);
+            const otherRow = Array.from(purchasedList.querySelectorAll('.item-row')).find(r => {
+              const ch = r.querySelector('input[type="checkbox"]');
+              return ch && ch.id === 'p_other';
+            });
+            if (otherRow) purchasedList.insertBefore(row, otherRow);
+            else purchasedList.appendChild(row);
 
             registerEditable(span);
-            bindModeToggle(cb);
-          });
+            return row;
+          }
+
+          function ensureSublist(main) {
+            let sublistId = main.sublistId || ('sublist_' + (main.id.split('_').slice(1).join('_') || main.id));
+            let sl = document.getElementById(sublistId);
+            if (!sl) {
+              sl = document.createElement('div');
+              sl.className = 'sublist';
+              sl.id = sublistId;
+              const row = findItemRowByMainId(main.id) || createMainItem(main);
+              row.insertAdjacentElement('afterend', sl);
+            }
+            return sl;
+          }
+
+          if (cfg.structure.mainItems) {
+            cfg.structure.mainItems.forEach(main => {
+              const existing = findItemRowByMainId(main.id);
+              if (!existing) {
+                createMainItem(main);
+              }
+
+              const sl = ensureSublist(main);
+
+              if (main.subitems) {
+                main.subitems.forEach(sub => {
+                  const existingSubitem = document.getElementById(sub.id);
+                  if (!existingSubitem) {
+                    const suffix = sub.id.slice(4);
+                    const qtyId = 'q' + sub.id.slice(3);
+
+                    const subDiv = document.createElement('div');
+                    subDiv.className = 'sub-item';
+                    subDiv.setAttribute('data-generated', 'true');
+
+                    const labelEl = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'subitem';
+                    cb.id = sub.id;
+                    cb.value = sub.label || sub.id;
+
+                    const span = document.createElement('span');
+                    span.className = 'editable';
+                    span.setAttribute('data-config-id', sub.id + '_label');
+                    span.id = 'label_' + sub.id;
+                    span.textContent = sub.label || sub.id;
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'del-btn';
+                    delBtn.type = 'button';
+                    delBtn.title = 'Remove sub-item';
+                    delBtn.setAttribute('aria-label', 'Remove');
+                    delBtn.textContent = '❌';
+
+                    labelEl.appendChild(cb);
+                    labelEl.appendChild(span);
+                    labelEl.appendChild(delBtn);
+
+                    const qtyUnitDiv = document.createElement('div');
+                    qtyUnitDiv.className = 'qty-unit';
+
+                    const qty = document.createElement('input');
+                    qty.type = 'number';
+                    qty.min = '0';
+                    qty.step = '1';
+                    qty.placeholder = 'Quantity';
+                    qty.className = 'subqty qty';
+                    qty.id = qtyId;
+                    qty.disabled = true;
+
+                    const unitSel = document.createElement('select');
+                    unitSel.id = 'unit_' + suffix;
+                    unitSel.className = 'unit-select';
+                    unitSel.disabled = true;
+                    
+                    const defaultUnits = ['Boxes','Pieces','Kg'];
+                    defaultUnits.forEach(unit => {
+                      const o = document.createElement('option'); 
+                      o.value = unit; 
+                      o.textContent = unit; 
+                      unitSel.appendChild(o);
+                    });
+                    
+                    const globalUnits = loadGlobalUnits();
+                    globalUnits.forEach(unit => {
+                      const o = document.createElement('option'); 
+                      o.value = unit; 
+                      o.textContent = unit; 
+                      unitSel.appendChild(o);
+                    });
+
+                    const unitCustom = document.createElement('input');
+                    unitCustom.type = 'text';
+                    unitCustom.id = 'unit_custom_' + suffix;
+                    unitCustom.className = 'unit-custom';
+                    unitCustom.placeholder = 'Custom unit';
+                    unitCustom.style.display = 'none';
+                    unitCustom.disabled = true;
+
+                    qtyUnitDiv.appendChild(qty);
+                    qtyUnitDiv.appendChild(unitSel);
+                    qtyUnitDiv.appendChild(unitCustom);
+
+                    subDiv.appendChild(labelEl);
+                    subDiv.appendChild(qtyUnitDiv);
+
+                    sl.appendChild(subDiv);
+
+                    registerEditable(span);
+                  }
+                });
+              }
+            });
+          }
+
+          if (cfg.structure.modes) {
+            const modesContainer = document.getElementById('modes');
+            cfg.structure.modes.forEach(mode => {
+              const existing = document.getElementById(mode.id);
+              if (existing) return;
+
+              const modeDiv = document.createElement('div');
+              modeDiv.className = 'mode-row';
+              modeDiv.setAttribute('data-generated', 'true');
+
+              const labelEl = document.createElement('label');
+              labelEl.className = 'mode-label';
+
+              const cb = document.createElement('input');
+              cb.type = 'checkbox';
+              cb.name = 'modeOfPayment';
+              cb.value = mode.label || mode.id;
+              cb.id = mode.id;
+
+              const span = document.createElement('span');
+              span.className = 'editable';
+              span.setAttribute('data-config-id', mode.id + '_label');
+              span.id = 'label_' + mode.id;
+              span.textContent = mode.label || mode.id;
+
+              const delBtn = document.createElement('button');
+              delBtn.className = 'del-btn';
+              delBtn.type = 'button';
+              delBtn.title = 'Remove mode';
+              delBtn.setAttribute('aria-label', 'Remove');
+              delBtn.textContent = '❌';
+
+              labelEl.appendChild(cb);
+              labelEl.appendChild(span);
+              labelEl.appendChild(delBtn);
+
+              const amt = document.createElement('input');
+              amt.type = 'number';
+              amt.min = '0';
+              amt.step = '0.01';
+              amt.placeholder = (mode.label || mode.id) + ' Rs.';
+              amt.className = 'mode-amount';
+              amt.id = mode.amountInputId || ('amt_' + mode.id);
+              amt.disabled = true;
+              amt.setAttribute('data-mode-amount', mode.amountAttrName || mode.label || mode.id);
+
+              modeDiv.appendChild(labelEl);
+              modeDiv.appendChild(amt);
+              modesContainer.appendChild(modeDiv);
+
+              registerEditable(span);
+              bindModeToggle(cb);
+            });
+          }
+
+          bindSubitemHandlers();
+          setupMainToSubBindings();
         }
 
-        // Re-bind handlers after structural changes
-        bindSubitemHandlers();
-        setupMainToSubBindings();
-        document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+        if (cfg.purchasedFromCustom) {
+          applyPurchasedFromConfig(cfg.purchasedFromCustom.items || [], cfg.purchasedFromCustom.selected || '');
+          try {
+            localStorage.setItem('purchasedFromCustom', JSON.stringify(cfg.purchasedFromCustom));
+          } catch(e){}
+        }
       }
 
-      // Save server
-      saveServerBtn.addEventListener('click', async function() {
-        const cfg = buildConfigObject();
-        
-        try {
-          saveServerBtn.disabled = true;
-          saveServerBtn.textContent = 'Saving...';
-          
-          const submitData = {
-            action: 'saveConfig',
-            token: SERVER_TOKEN,
-            config: JSON.stringify(cfg)
-          };
-          
-          const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
-            encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
-          ).join('&');
-          
-          const response = await jsonpCall(url, 30000);
-          
-          if (response && response.success) {
-            alert('Configuration saved successfully!');
-            setCustomizeMode(false);
-          } else {
-            throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
-          }
-          
-        } catch (error) {
-          console.error('Save error:', error);
-          alert('Failed to save configuration: ' + error.message);
-        } finally {
-          saveServerBtn.disabled = false;
-          saveServerBtn.textContent = 'Save (server)';
-        }
-      });
+      function applyPurchasedFromConfig(items, selected) {
+        const sel = document.getElementById('purchasedFromSelect');
+        const txt = document.getElementById('purchasedFrom');
+        if (!sel) return;
 
+        const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
+        const currentOpts = Array.from(sel.options).map(o => o.value);
+        
+        items.forEach(item => {
+          if (fixed.indexOf(item) === -1 && currentOpts.indexOf(item) === -1) {
+            const o = document.createElement('option');
+            o.value = item;
+            o.textContent = item;
+            sel.appendChild(o);
+          }
+        });
+
+        if (selected) {
+          if (selected === 'Other' || fixed.indexOf(selected) !== -1 || items.indexOf(selected) !== -1) {
+            sel.value = selected;
+          } else {
+            const o = document.createElement('option');
+            o.value = selected;
+            o.textContent = selected;
+            sel.appendChild(o);
+            sel.value = selected;
+          }
+
+          if (sel.value === 'Other') {
+            if (txt) txt.style.display = '';
+          }
+        }
+      }
+
+      // Run initial setup
+      bindSubitemHandlers();
+      setupMainToSubBindings();
+      document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+
+      // Handle purchased-from toggling
       const purchasedFromSelect = document.getElementById('purchasedFromSelect');
       const purchasedFromText = document.getElementById('purchasedFrom');
       const customVendorManager = document.getElementById('customVendorManager');
-      const vendorList = document.getElementById('vendorList');
-      const addVendorBtn = document.getElementById('addVendorBtn');
       const newVendorInput = document.getElementById('newVendorInput');
+      const addVendorBtn = document.getElementById('addVendorBtn');
+      const vendorList = document.getElementById('vendorList');
 
       if (purchasedFromSelect && purchasedFromText) {
         purchasedFromSelect.addEventListener('change', function() {
-          const isOther = this.value === 'Other';
-          const isCustomised = this.value === 'Customised';
-          
-          purchasedFromText.style.display = isOther ? 'block' : 'none';
-          customVendorManager.style.display = isCustomised ? 'block' : 'none';
-          
-          if (!isOther) purchasedFromText.value = '';
+          const val = purchasedFromSelect.value;
+          if (val === 'Other') {
+            purchasedFromText.style.display = '';
+            purchasedFromText.required = true;
+          } else {
+            purchasedFromText.style.display = 'none';
+            purchasedFromText.required = false;
+            purchasedFromText.value = '';
+          }
+
+          if (val === 'Customised' && customVendorManager) {
+            customVendorManager.style.display = 'block';
+            renderVendorList();
+          } else if (customVendorManager) {
+            customVendorManager.style.display = 'none';
+          }
         });
-        
-        purchasedFromSelect.dispatchEvent(new Event('change'));
       }
 
       function getCustomVendors() {
@@ -2638,880 +2527,364 @@ if (originalMobileSubmitFunction) {
           const parsed = stored ? JSON.parse(stored) : {};
           return parsed.items || [];
         } catch(e) {
-          console.error('Error loading custom vendors:', e);
           return [];
         }
       }
 
-      function saveCustomVendors(vendors) {
+      function saveCustomVendors(items) {
         try {
-          localStorage.setItem('purchasedFromCustom', JSON.stringify({ items: vendors }));
+          const existing = localStorage.getItem('purchasedFromCustom');
+          const parsed = existing ? JSON.parse(existing) : {};
+          parsed.items = items;
+          localStorage.setItem('purchasedFromCustom', JSON.stringify(parsed));
         } catch(e) {
-          console.error('Error saving custom vendors:', e);
-        }
-      }
-
-      function rebuildVendorSelect() {
-        if (!purchasedFromSelect) return;
-        
-        const currentValue = purchasedFromSelect.value;
-        const fixedOptions = ['Delhi Tiles Company', 'Mumbai Tiles Company', 'Mumbai Marble Company', 'Customised', 'Other'];
-        const customVendors = getCustomVendors();
-        
-        // Clear current options
-        purchasedFromSelect.innerHTML = '';
-        
-        // Add fixed options
-        fixedOptions.forEach(option => {
-          const opt = document.createElement('option');
-          opt.value = option;
-          opt.textContent = option;
-          purchasedFromSelect.appendChild(opt);
-        });
-        
-        // Add custom vendors before "Customised"
-        const customisedOption = Array.from(purchasedFromSelect.options).find(opt => opt.value === 'Customised');
-        customVendors.forEach(vendor => {
-          const opt = document.createElement('option');
-          opt.value = vendor;
-          opt.textContent = vendor;
-          if (customisedOption) {
-            purchasedFromSelect.insertBefore(opt, customisedOption);
-          } else {
-            purchasedFromSelect.appendChild(opt);
-          }
-        });
-        
-        // Restore selection if it exists
-        const allValues = Array.from(purchasedFromSelect.options).map(opt => opt.value);
-        if (allValues.includes(currentValue)) {
-          purchasedFromSelect.value = currentValue;
+          console.error('Error saving vendors:', e);
         }
       }
 
       function renderVendorList() {
         if (!vendorList) return;
-        
         const vendors = getCustomVendors();
         vendorList.innerHTML = '';
-        
+
         if (vendors.length === 0) {
           vendorList.innerHTML = '<div style="color:#666;font-size:13px">No custom vendors added yet.</div>';
           return;
         }
-        
+
         vendors.forEach(vendor => {
           const div = document.createElement('div');
           div.className = 'vendor-item';
-          
+
           const span = document.createElement('span');
           span.textContent = vendor;
-          span.style.flex = '1';
-          
-          const removeBtn = document.createElement('button');
-          removeBtn.textContent = 'Remove';
-          removeBtn.dataset.vendor = vendor;
-          removeBtn.style.background = '#dc3545';
-          removeBtn.style.color = 'white';
-          removeBtn.style.border = 'none';
-          removeBtn.style.padding = '4px 8px';
-          removeBtn.style.borderRadius = '4px';
-          removeBtn.style.cursor = 'pointer';
-          
+
+          const btn = document.createElement('button');
+          btn.textContent = 'Remove';
+          btn.addEventListener('click', function() {
+            removeVendor(vendor);
+          });
+
           div.appendChild(span);
-          div.appendChild(removeBtn);
+          div.appendChild(btn);
           vendorList.appendChild(div);
         });
       }
 
-      function addCustomVendor(vendorName) {
-        if (!vendorName || !vendorName.trim()) return;
-        vendorName = vendorName.trim();
-        
+      function addVendor(name) {
+        if (!name || !name.trim()) return;
+        name = name.trim();
+
         const vendors = getCustomVendors();
-        if (vendors.includes(vendorName)) {
+        if (vendors.includes(name)) {
           alert('Vendor already exists!');
           return;
         }
-        
-        vendors.push(vendorName);
+
+        vendors.push(name);
         saveCustomVendors(vendors);
         rebuildVendorSelect();
         renderVendorList();
-        showTempMessage('Added vendor: ' + vendorName);
+        showTempMessage('Added vendor: ' + name);
       }
 
-      function removeCustomVendor(vendorName) {
-        if (!confirm(`Remove vendor "${vendorName}"?`)) return;
-        
-        const vendors = getCustomVendors().filter(v => v !== vendorName);
+      function removeVendor(name) {
+        if (!confirm(`Remove vendor "${name}"?`)) return;
+
+        const vendors = getCustomVendors().filter(v => v !== name);
         saveCustomVendors(vendors);
         rebuildVendorSelect();
         renderVendorList();
-        showTempMessage('Removed vendor: ' + vendorName);
+        showTempMessage('Removed vendor: ' + name);
       }
 
-      // Initialize vendor management
-      rebuildVendorSelect();
-      renderVendorList();
+      function rebuildVendorSelect() {
+        if (!purchasedFromSelect) return;
+
+        const current = purchasedFromSelect.value;
+        const fixed = ['Delhi Tiles Company','Mumbai Tiles Company','Mumbai Marble Company','Customised','Other'];
+        const vendors = getCustomVendors();
+
+        // Clear non-fixed options
+        Array.from(purchasedFromSelect.options).forEach(opt => {
+          if (fixed.indexOf(opt.value) === -1) {
+            opt.remove();
+          }
+        });
+
+        // Add custom vendors
+        vendors.forEach(vendor => {
+          const opt = document.createElement('option');
+          opt.value = vendor;
+          opt.textContent = vendor;
+          purchasedFromSelect.appendChild(opt);
+        });
+
+        // Restore selection if still valid
+        if (current && Array.from(purchasedFromSelect.options).some(opt => opt.value === current)) {
+          purchasedFromSelect.value = current;
+        }
+      }
 
       if (addVendorBtn && newVendorInput) {
         addVendorBtn.addEventListener('click', function() {
-          addCustomVendor(newVendorInput.value);
+          addVendor(newVendorInput.value);
           newVendorInput.value = '';
         });
-        
+
         newVendorInput.addEventListener('keypress', function(e) {
           if (e.key === 'Enter') {
             e.preventDefault();
-            addCustomVendor(newVendorInput.value);
+            addVendor(newVendorInput.value);
             newVendorInput.value = '';
           }
         });
       }
 
-      if (vendorList) {
-        vendorList.addEventListener('click', function(event) {
-          if (event.target.dataset.vendor) {
-            removeCustomVendor(event.target.dataset.vendor);
+      // Submit and clear functionality
+      const submitBtn = document.getElementById('submitBtn');
+      const clearBtn = document.getElementById('clearBtn');
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+          if (!confirm('Clear all form data?')) return;
+          
+          document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+          document.querySelectorAll('input[type="number"], input[type="text"], textarea').forEach(input => { 
+            if (input.id !== 'newVendorInput' && input.id !== 'newUnitInput' && input.id !== 'addSubLabelInput') {
+              input.value = ''; 
+            }
+          });
+          document.querySelectorAll('select').forEach(sel => { 
+            if (sel.id !== 'addCategorySelect') {
+              sel.selectedIndex = 0; 
+            }
+          });
+          
+          // Reset all disabled states
+          bindSubitemHandlers();
+          setupMainToSubBindings();
+          document.querySelectorAll('input[name="modeOfPayment"]').forEach(bindModeToggle);
+          
+          // Hide custom unit inputs
+          document.querySelectorAll('.unit-custom').forEach(uc => {
+            uc.style.display = 'none';
+            uc.value = '';
+          });
+          
+          if (purchasedFromText) purchasedFromText.style.display = 'none';
+          if (customVendorManager) customVendorManager.style.display = 'none';
+          
+          showTempMessage('Form cleared');
+        });
+      }
+
+      if (submitBtn) {
+        submitBtn.addEventListener('click', async function() {
+          // Validate required fields
+          const paymentPaid = document.getElementById('paymentPaid');
+          if (!paymentPaid || !paymentPaid.value.trim()) {
+            alert('Please enter the payment amount.');
+            if (paymentPaid) paymentPaid.focus();
+            return;
+          }
+
+          // Build submission data
+          const data = {
+            timestamp: new Date().toISOString(),
+            purchased: [],
+            purchasedFrom: '',
+            paymentModes: [],
+            paymentPaid: parseFloat(paymentPaid.value) || 0,
+            otherInfo: ''
+          };
+
+          // Collect purchased items
+          document.querySelectorAll('input[type="checkbox"].purchased:checked').forEach(cb => {
+            const item = { name: cb.value, subitems: [] };
+            
+            // Get subitems for this main item
+            const mainId = cb.id;
+            const suffix = mainId.startsWith('p_') ? mainId.slice(2) : mainId;
+            const sublistId = 'sublist_' + suffix;
+            const sublist = document.getElementById(sublistId);
+            
+            if (sublist) {
+              sublist.querySelectorAll('input[type="checkbox"].subitem:checked').forEach(subCb => {
+                const subId = subCb.id;
+                const qtyId = subId.replace('sub_', 'q_');
+                const unitId = subId.replace('sub_', 'unit_');
+                const customUnitId = subId.replace('sub_', 'unit_custom_');
+                
+                const qtyEl = document.getElementById(qtyId);
+                const unitEl = document.getElementById(unitId);
+                const customUnitEl = document.getElementById(customUnitId);
+                
+                const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
+                let unit = unitEl ? unitEl.value : '';
+                
+                if (unit === 'Custom' && customUnitEl && customUnitEl.value.trim()) {
+                  unit = customUnitEl.value.trim();
+                }
+                
+                if (qty > 0) {
+                  item.subitems.push({
+                    name: subCb.value,
+                    quantity: qty,
+                    unit: unit
+                  });
+                  
+                  // Save unit preference
+                  if (unitEl) {
+                    saveUnitPreference(unitEl.id, unit);
+                  }
+                }
+              });
+            }
+            
+            data.purchased.push(item);
+          });
+
+          // Handle "Others" main item
+          const otherMain = document.getElementById('p_other');
+          if (otherMain && otherMain.checked) {
+            const otherQty = document.getElementById('q_other');
+            const otherUnit = document.getElementById('unit_other');
+            const otherCustomUnit = document.getElementById('unit_custom_other');
+            const otherText = document.getElementById('purchasedOtherText');
+            
+            const qty = otherQty ? (parseInt(otherQty.value) || 0) : 0;
+            let unit = otherUnit ? otherUnit.value : '';
+            
+            if (unit === 'Custom' && otherCustomUnit && otherCustomUnit.value.trim()) {
+              unit = otherCustomUnit.value.trim();
+            }
+            
+            if (qty > 0) {
+              const otherItem = {
+                name: 'Others',
+                quantity: qty,
+                unit: unit,
+                description: otherText ? otherText.value.trim() : ''
+              };
+              data.purchased.push(otherItem);
+              
+              // Save unit preference for Others
+              if (otherUnit) {
+                saveUnitPreference(otherUnit.id, unit);
+              }
+            }
+          }
+
+          // Collect purchased from
+          if (purchasedFromSelect) {
+            if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+              data.purchasedFrom = purchasedFromText.value.trim();
+            } else {
+              data.purchasedFrom = purchasedFromSelect.value;
+            }
+          }
+
+          // Collect payment modes
+          document.querySelectorAll('input[name="modeOfPayment"]:checked').forEach(modeCb => {
+            const modeRow = modeCb.closest('.mode-row');
+            const amtInput = modeRow ? modeRow.querySelector('input[type="number"].mode-amount') : null;
+            const amount = amtInput ? (parseFloat(amtInput.value) || 0) : 0;
+            
+            if (amount > 0) {
+              data.paymentModes.push({
+                mode: modeCb.value,
+                amount: amount
+              });
+            }
+          });
+
+          // Other info
+          const otherInfo = document.getElementById('otherInfo');
+          if (otherInfo) {
+            data.otherInfo = otherInfo.value.trim();
+          }
+
+          // Check if any items were selected
+          if (data.purchased.length === 0) {
+            alert('Please select at least one item to purchase.');
+            return;
+          }
+
+          // Submit to server
+          try {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const submitData = {
+              action: 'submitForm',
+              token: SERVER_TOKEN,
+              data: JSON.stringify(data)
+            };
+            
+            const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
+              encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
+            ).join('&');
+            
+            const response = await jsonpCall(url, 30000);
+            
+            if (response && response.success) {
+              alert('Form submitted successfully!');
+              if (clearBtn) clearBtn.click(); // Clear form after successful submission
+            } else {
+              throw new Error(response ? response.error || 'Unknown server error' : 'No response from server');
+            }
+            
+          } catch (error) {
+            console.error('Submit error:', error);
+            alert('Failed to submit form: ' + error.message);
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
           }
         });
       }
 
-      // Load saved configuration on startup
-      async function loadServerConfig() {
-        try {
-          const url = SERVER_ENDPOINT + '?action=loadConfig&token=' + encodeURIComponent(SERVER_TOKEN);
-          const response = await jsonpCall(url, 15000);
-          
-          if (response && response.success && response.config) {
-            const cfg = JSON.parse(response.config);
-            applyConfigObject(cfg);
-            console.log('Configuration loaded from server');
-          }
-        } catch (error) {
-          console.log('Could not load server config (using defaults):', error.message);
-        }
-      }
-
-      // Load config when page loads
-      loadServerConfig();
-    });
-
-    // --- Network Status Management ---
-    function updateOnlineStatus() {
-      const statusEls = [document.getElementById('status'), document.getElementById('status-duplicate')];
-      const offlineNotice = document.getElementById('offlineNotice');
-      
-      statusEls.forEach(el => {
-        if (el) el.textContent = navigator.onLine ? 'online' : 'offline';
-      });
-      
-      if (offlineNotice) {
-        offlineNotice.style.display = navigator.onLine ? 'none' : 'block';
-      }
-    }
-
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-
-   // --- MOBILE-FRIENDLY Main Submission Logic (handles both photo + manual entries) ---
-async function submitMainForm(e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  const submitBtn = document.getElementById('submitBtn');
-  if (submitBtn) { 
-    submitBtn.disabled = true; 
-    submitBtn.dataset.origText = submitBtn.dataset.origText || submitBtn.textContent; 
-    submitBtn.textContent = 'Submitting...'; 
-  }
-  
-  // Show loading indicator
-  if (typeof showLoading === 'function') showLoading(true);
-
-  try {
-    // 1) Collect form data first
-    const data = collectFormData ? collectFormData() : {};
-    console.log('Collected form data:', data);
-
-    // 2) Handle photo if selected
-    if (selectedFile && !selectedImage) {
-      // Wait briefly for FileReader to finish if needed
-      const start = Date.now();
-      while (!selectedImage && (Date.now() - start) < 2000) {
-        await new Promise(r => setTimeout(r, 100));
-      }
-    }
-
-    // 3) Add photo info to data
-    if (selectedImage) {
-      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
-      if (typeof showPhotoStatus === 'function') {
-        showPhotoStatus('Including photo in submission...', 'success');
-      }
-      console.log('Photo will be included:', data.photoLink);
-    } else {
-      data.photoLink = '';
-    }
-
-    // 4) Ensure clientId exists
-    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
-    data.clientId = cid;
-
-    // 5) Use mobile-friendly direct submission instead of iframe
-    const result = await submitDirectMobileFriendly(data);
-    
-    if (result.success) {
-      if (typeof showTempMessage === 'function') showTempMessage('Entry submitted successfully!');
-      if (typeof clearForm === 'function') clearForm();
-      if (typeof resetPhotoForm === 'function') resetPhotoForm();
-    } else {
-      throw new Error(result.error || 'Submission failed');
-    }
-
-  } catch (error) {
-    console.error('Submission error:', error);
-    if (typeof showTempMessage === 'function') {
-      showTempMessage('Error: ' + (error.message || 'Unknown error'));
-    }
-  } finally {
-    // Always restore button state
-    if (submitBtn) { 
-      submitBtn.disabled = false; 
-      submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; 
-    }
-    if (typeof showLoading === 'function') showLoading(false);
-  }
-}
-
-// --- Mobile-friendly direct submission (no iframe) ---
-async function submitDirectMobileFriendly(data) {
-  return new Promise((resolve, reject) => {
-    // Create FormData for proper mobile handling
-    const formData = new FormData();
-    
-    // Add all form fields
-    formData.append('token', SERVER_TOKEN || 'shopSecret2025');
-    formData.append('action', 'submit');
-    formData.append('purchased', data.purchased || '');
-    formData.append('purchasedFrom', data.purchasedFrom || '');
-    formData.append('paymentModes', data.paymentModes || '');
-    formData.append('paymentPaid', data.paymentPaid || '');
-    formData.append('otherInfo', data.otherInfo || '');
-    formData.append('photoLink', data.photoLink || '');
-    formData.append('clientId', data.clientId || '');
-
-    // Add photo data if present
-    if (selectedImage) {
-      formData.append('imageData', selectedImage);
-      formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
-      console.log('Photo data included in submission');
-    }
-
-    console.log('Submitting form data directly (mobile-friendly)');
-
-    // Use fetch with proper error handling for mobile
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors', // Important for mobile cross-origin requests
-    })
-    .then(response => {
-      // With no-cors mode, we can't read the response, but we know the request was sent
-      console.log('Form submitted successfully (no-cors mode)');
-      resolve({ success: true });
-    })
-    .catch(error => {
-      console.error('Direct fetch failed, trying fallback method:', error);
-      // Fallback to the iframe method as a last resort
-      submitUnifiedDataFallback(data).then(resolve).catch(reject);
-    });
-  });
-}
-
-// --- Fallback iframe method (original) ---
-async function submitUnifiedDataFallback(data) {
-  return new Promise((resolve, reject) => {
-    console.log('Using iframe fallback method');
-    
-    // Create iframe for submission
-    const iframeName = 'submit_iframe_fallback';
-    let iframe = document.getElementById(iframeName);
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = iframeName;
-      iframe.name = iframeName;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-
-    // Create form with all data
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SCRIPT_URL;
-    form.target = iframeName;
-    form.enctype = 'multipart/form-data';
-
-    // Helper to add hidden inputs
-    function addHidden(name, value) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value != null ? String(value) : '';
-      form.appendChild(input);
-    }
-
-    // Add all form fields
-    addHidden('token', SERVER_TOKEN || 'shopSecret2025');
-    addHidden('action', 'submit');
-    addHidden('purchased', data.purchased || '');
-    addHidden('purchasedFrom', data.purchasedFrom || '');
-    addHidden('paymentModes', data.paymentModes || '');
-    addHidden('paymentPaid', data.paymentPaid || '');
-    addHidden('otherInfo', data.otherInfo || '');
-    addHidden('photoLink', data.photoLink || '');
-    addHidden('clientId', data.clientId || '');
-
-    // Add photo data if present
-    if (selectedImage) {
-      addHidden('imageData', selectedImage);
-      addHidden('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('camera_' + Date.now() + '.jpg'));
-    }
-
-    document.body.appendChild(form);
-
-    // Handle response with shorter timeout for mobile
-    let handled = false;
-    function finalize(success) {
-      if (handled) return;
-      handled = true;
-      resolve({ success: success });
-      // Cleanup
-      try { 
-        if (form.parentNode) form.parentNode.removeChild(form); 
-      } catch(e) {}
-    }
-
-    // Set up iframe response handler with mobile-specific timeout
-    iframe.onload = function() {
-      finalize(true); // Assume success on mobile
-    };
-
-    // Submit form
-    try {
-      form.submit();
-      console.log('Fallback form submitted to server');
-    } catch (err) {
-      console.warn('Fallback form submit error:', err);
-      finalize(true); // Still assume success for mobile compatibility
-    }
-
-    // Shorter timeout for mobile - assume success after 5 seconds
-    setTimeout(() => {
-      finalize(true);
-    }, 5000);
-  });
-}
-
-
-    function collectFormData() {
-      const data = {};
-      
-      // Collect purchased items with quantities and units
-      const purchased = [];
-      const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-      
-      purchasedCheckboxes.forEach(cb => {
-        const value = cb.value;
+      // Online/offline status
+      function updateStatus() {
+        const status = document.getElementById('status');
+        const statusDupe = document.getElementById('status-duplicate');
+        const offlineNotice = document.getElementById('offlineNotice');
         
-        // Check if this is the "Others" checkbox
-        if (cb.id === 'p_other') {
-          const qtyEl = document.getElementById('q_other');
-          const unitEl = document.getElementById('unit_other');
-          const unitCustomEl = document.getElementById('unit_custom_other');
-          const otherTextEl = document.getElementById('purchasedOtherText');
-          
-          let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-          let unit = '';
-          
-          if (unitEl && unitEl.value) {
-            if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-              unit = unitCustomEl.value.trim();
-            } else {
-              unit = unitEl.value;
-            }
-          }
-          
-          let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
-          
-          if (qty && unit) {
-            purchased.push(`${qty} ${unit} ${description}`);
-          } else if (description) {
-            purchased.push(description);
-          } else {
-            purchased.push(value);
-          }
-        } else {
-          // Handle main category with subitems
-          const sublistId = getSublistId(cb.id);
-          if (sublistId) {
-            const sublist = document.getElementById(sublistId);
-            if (sublist) {
-              const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-              if (checkedSubs.length > 0) {
-                checkedSubs.forEach(subCb => {
-                  const subValue = subCb.value;
-                  const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
-                  const qtyEl = document.getElementById('q_' + subSuffix);
-                  const unitEl = document.getElementById('unit_' + subSuffix);
-                  const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-                  
-                  let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-                  let unit = '';
-                  
-                  if (unitEl && unitEl.value) {
-                    if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-                      unit = unitCustomEl.value.trim();
-                    } else {
-                      unit = unitEl.value;
-                    }
-                  }
-                  
-                  if (qty && unit) {
-                    purchased.push(`${qty} ${unit} ${subValue}`);
-                  } else {
-                    purchased.push(subValue);
-                  }
-                });
-              } else {
-                purchased.push(value);
-              }
-            } else {
-              purchased.push(value);
-            }
-          } else {
-            purchased.push(value);
-          }
-        }
-      });
-      
-      data.purchased = purchased.join(', ');
-      
-      // Purchased from
-      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-      const purchasedFromText = document.getElementById('purchasedFrom');
-      
-      if (purchasedFromSelect) {
-        if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
-          data.purchasedFrom = purchasedFromText.value.trim();
-        } else {
-          data.purchasedFrom = purchasedFromSelect.value;
-        }
-      }
-      
-      // Payment modes and amounts
-      const paymentModes = [];
-      const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
-      
-      modeCheckboxes.forEach(cb => {
-        const mode = cb.value;
-        const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
-        let amount = amountInput && amountInput.value ? amountInput.value : '';
+        const isOnline = navigator.onLine;
+        const statusText = isOnline ? 'online' : 'offline';
         
-        if (amount) {
-          paymentModes.push(`${mode}: Ã¢â€šÂ¹${amount}`);
-        } else {
-          paymentModes.push(mode);
-        }
-      });
-      
-      data.paymentModes = paymentModes.join(', ');
-      
-      // Total payment
-      const paymentPaidEl = document.getElementById('paymentPaid');
-      data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-      
-      // Other information
-      const otherInfoEl = document.getElementById('otherInfo');
-      data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-      
-      return data;
-    }
+        if (status) status.textContent = statusText;
+        if (statusDupe) statusDupe.textContent = statusText;
+        if (offlineNotice) offlineNotice.style.display = isOnline ? 'none' : 'block';
+      }
 
-    function getSublistId(mainCheckboxId) {
-      const mapping = {
-        'p_floor': 'sublist_floor',
-        'p_wall': 'sublist_wall',
-        'p_san': 'sublist_san',
-        'p_acc': 'sublist_acc'
-      };
-      return mapping[mainCheckboxId] || null;
-    }
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+      updateStatus();
 
-    async function submitFormData(formData) {
-      const submitData = {
-        action: 'submit',
-        token: SERVER_TOKEN,
-        purchased: formData.purchased || '',
-        purchasedFrom: formData.purchasedFrom || '',
-        paymentModes: formData.paymentModes || '',
-        paymentPaid: formData.paymentPaid || '',
-        otherInfo: formData.otherInfo || '',
-        photoLink: formData.photoLink || ''
-      };
+      // Initialize vendor list on page load
+      rebuildVendorSelect();
       
-      const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
-        encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
-      ).join('&');
-      
-      return await jsonpCall(url, 30000);
-    }
-
-    function clearForm() {
-      // Clear all checkboxes
-      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-        cb.dispatchEvent(new Event('change'));
-      });
-      
-      // Clear all text inputs and number inputs
-      document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
-        if (input.id !== 'newUnitInput' && input.id !== 'newVendorInput' && 
-            input.id !== 'addSubLabelInput') {
-          input.value = '';
-        }
-      });
-      
-      // Reset selects to first option
-      document.querySelectorAll('select').forEach(select => {
-        if (select.id !== 'addCategorySelect') {
-          select.selectedIndex = 0;
-          select.dispatchEvent(new Event('change'));
-        }
-      });
-      
-      // Hide custom unit inputs
-      document.querySelectorAll('.unit-custom').forEach(uc => {
-        uc.style.display = 'none';
-        uc.value = '';
-      });
-    }
-
-  // MOBILE-FRIENDLY Event Listeners
-document.addEventListener('DOMContentLoaded', function() {
-  const submitBtn = document.getElementById('submitBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  
-  if (submitBtn) {
-    // Remove any existing listeners by cloning the button
-    const newSubmitBtn = submitBtn.cloneNode(true);
-    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
-    
-    // Add ONLY ONE mobile-friendly submit handler
-    newSubmitBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      console.log('Submit button clicked - bypassing validation...');
-      
-      // Disable button immediately
-      newSubmitBtn.disabled = true;
-      newSubmitBtn.textContent = 'Submitting...';
-      
-      // Call submission function with a small delay to bypass any popups
+      // Apply saved unit preferences on page load
       setTimeout(() => {
-        mobileSubmitFunction();
-      }, 200); // Delay ensures popup doesn't block submission
-    });
-  }
-  
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function() {
-      if (confirm('Clear all form data?')) {
-        clearForm();
-        resetPhotoForm();
-      }
-    });
-  }
-  
-  // Trigger change events to set initial states
-  document.querySelectorAll('.purchased').forEach(cb => {
-    cb.dispatchEvent(new Event('change'));
-  });
-  
-  document.querySelectorAll('.subitem').forEach(cb => {
-    cb.dispatchEvent(new Event('change'));
-  });
-  
-  document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => {
-    cb.dispatchEvent(new Event('change'));
-  });
-});
-
-// Mobile-friendly submission function with FAST button restoration
-async function mobileSubmitFunction() {
-  const submitBtn = document.getElementById('submitBtn');
-  
-  try {
-    console.log('Starting mobile-friendly submission...');
-    
-    // Collect form data without strict validation
-    const data = collectFormDataMobile();
-
-    console.log('Collected form data:', data);
-
-    // Handle photo if selected
-    if (selectedFile && !selectedImage) {
-      const start = Date.now();
-      while (!selectedImage && (Date.now() - start) < 2000) {
-        await new Promise(r => setTimeout(r, 100));
-      }
-    }
-
-    // Add photo info to data
-    if (selectedImage) {
-      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
-      console.log('Photo will be included:', data.photoLink);
-    } else {
-      data.photoLink = '';
-    }
-
-    // Ensure clientId exists
-    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
-    data.clientId = cid;
-
-    // FIRE AND FORGET: Submit in background and restore button immediately
-    submitDirectMobileFriendlyBackground(data);
-    
-    // Restore button state immediately (after 1-2 seconds)
-    setTimeout(() => {
-      if (submitBtn) { 
-        submitBtn.disabled = false; 
-        submitBtn.textContent = 'Submit'; 
-      }
-      alert('Entry submitted successfully!');
-      if (typeof clearForm === 'function') clearForm();
-      if (typeof resetPhotoForm === 'function') resetPhotoForm();
-    }, 1500); // Button restores in 1.5 seconds
-
-  } catch (error) {
-    console.error('Mobile submission error:', error);
-    // Restore button even on error
-    setTimeout(() => {
-      if (submitBtn) { 
-        submitBtn.disabled = false; 
-        submitBtn.textContent = 'Submit'; 
-      }
-      alert('Error: ' + (error.message || 'Unknown error'));
-    }, 1000);
-  }
-}
-
-
-// Mobile-friendly data collection with PROPER subitem handling
-function collectFormDataMobile() {
-  const data = {};
-  const purchased = [];
-  
-  // Collect checked main items
-  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
-  
-  if (purchasedCheckboxes.length === 0) {
-    // Fallback for mobile - always allow some entry
-    const otherText = document.getElementById('purchasedOtherText');
-    if (otherText && otherText.value.trim()) {
-      purchased.push(otherText.value.trim());
-    } else if (selectedImage) {
-      purchased.push('Photo entry - see attached image');
-    } else {
-      purchased.push('Entry from mobile device');
-    }
-  } else {
-    // Process each main category for subitems
-    purchasedCheckboxes.forEach(cb => {
-      const value = cb.value || 'Item';
-      
-      // Handle "Others" category specially
-      if (cb.id === 'p_other') {
-        const qtyEl = document.getElementById('q_other');
-        const unitEl = document.getElementById('unit_other');
-        const unitCustomEl = document.getElementById('unit_custom_other');
-        const otherTextEl = document.getElementById('purchasedOtherText');
-        
-        let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-        let unit = '';
-        
-        if (unitEl && unitEl.value) {
-          if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-            unit = unitCustomEl.value.trim();
-          } else {
-            unit = unitEl.value;
-          }
-        }
-        
-        let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
-        
-        if (qty && unit) {
-          purchased.push(`${qty} ${unit} ${description}`);
-        } else if (description) {
-          purchased.push(description);
-        } else {
-          purchased.push(value);
-        }
-      } else {
-        // Handle main categories with subitems (Floor Tiles, Wall Tiles, etc.)
-        const sublistId = getSublistIdMobile(cb.id);
-        if (sublistId) {
-          const sublist = document.getElementById(sublistId);
-          if (sublist) {
-            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
-            if (checkedSubs.length > 0) {
-              // Process each checked subitem with quantities
-              checkedSubs.forEach(subCb => {
-                const subValue = subCb.value || '';
-                const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
-                const qtyEl = document.getElementById('q_' + subSuffix);
-                const unitEl = document.getElementById('unit_' + subSuffix);
-                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
-                
-                let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
-                let unit = '';
-                
-                if (unitEl && unitEl.value) {
-                  if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
-                    unit = unitCustomEl.value.trim();
-                  } else {
-                    unit = unitEl.value;
-                  }
-                }
-                
-                if (qty && unit) {
-                  purchased.push(`${qty} ${unit} ${subValue}`);
-                } else {
-                  purchased.push(subValue);
-                }
-              });
-            } else {
-              // Main category checked but no subitems - just add main category
-              purchased.push(value);
+        const preferences = loadUnitPreferences();
+        Object.keys(preferences).forEach(selectId => {
+          const selectEl = document.getElementById(selectId);
+          if (selectEl && preferences[selectId]) {
+            const preferredUnit = preferences[selectId];
+            const allOptions = Array.from(selectEl.options).map(opt => opt.value);
+            if (allOptions.includes(preferredUnit)) {
+              selectEl.value = preferredUnit;
+              selectEl.dispatchEvent(new Event('change'));
             }
-          } else {
-            purchased.push(value);
           }
-        } else {
-          purchased.push(value);
-        }
-      }
+        });
+      }, 100);
     });
-  }
-  
-  data.purchased = purchased.join(', ');
-
-// Add this helper function right after the collectFormDataMobile function:
-function getSublistIdMobile(mainCheckboxId) {
-  const mapping = {
-    'p_floor': 'sublist_floor',
-    'p_wall': 'sublist_wall',
-    'p_san': 'sublist_san',
-    'p_acc': 'sublist_acc'
-  };
-  return mapping[mainCheckboxId] || null;
-}
-
-  
-  // Collect other fields
-  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
-  const purchasedFromText = document.getElementById('purchasedFrom');
-  if (purchasedFromSelect) {
-    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
-      data.purchasedFrom = purchasedFromText.value.trim();
-    } else {
-      data.purchasedFrom = purchasedFromSelect.value || '';
-    }
-  }
-  
-  const paymentPaidEl = document.getElementById('paymentPaid');
-  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
-  
-  const otherInfoEl = document.getElementById('otherInfo');
-  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
-  
-  // Collect payment modes
-  const paymentModes = [];
-  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
-  modeCheckboxes.forEach(cb => {
-    const mode = cb.value || '';
-    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
-    const amount = amountInput && amountInput.value ? amountInput.value : '';
-    if (amount) {
-      paymentModes.push(`${mode}: â‚¹${amount}`);
-    } else {
-      paymentModes.push(mode);
-    }
-  });
-  data.paymentModes = paymentModes.join(', ');
-  
-  return data;
-}
-
-// Background submission - FIRE AND FORGET (doesn't wait for response)
-function submitDirectMobileFriendlyBackground(data) {
-  // Create FormData for mobile compatibility
-  const formData = new FormData();
-  
-  // Add all form fields
-  formData.append('token', SERVER_TOKEN || 'shopSecret2025');
-  formData.append('action', 'submit');
-  formData.append('purchased', data.purchased || '');
-  formData.append('purchasedFrom', data.purchasedFrom || '');
-  formData.append('paymentModes', data.paymentModes || '');
-  formData.append('paymentPaid', data.paymentPaid || '');
-  formData.append('otherInfo', data.otherInfo || '');
-  formData.append('photoLink', data.photoLink || '');
-  formData.append('clientId', data.clientId || '');
-
-  // Add photo data if present
-  if (selectedImage) {
-    formData.append('imageData', selectedImage);
-    formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('mobile_photo_' + Date.now() + '.jpg'));
-  }
-
-  console.log('Submitting form data in background...');
-
-  // FIRE AND FORGET: Send request but don't wait for response
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: formData,
-    mode: 'no-cors',
-  })
-  .then(() => {
-    console.log('Background submission sent successfully');
-  })
-  .catch(error => {
-    console.log('Background submission sent (error ignored for mobile):', error);
-  });
-  
-  // Don't return a promise - this is fire-and-forget
-}
-
-
   </script>
-</div> <!-- Close appContent div -->
-   
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
 
 
