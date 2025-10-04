@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Tile Purchase Entry</title>
+  <title>Tile Purchase Entry App</title>
   <link rel="manifest" href="manifest.json">
   <style>
     html,body { height:100%; margin:0; padding:0; }
@@ -151,56 +151,46 @@
             margin: 0 auto;
         }
 
-    /* PIN Modal Styles */
-.pin-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    /* --- Voice-to-Text UI styles (paste inside the existing <style>) --- */
+.voice-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+.voice-btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #2c7be5;
+  background: #fff;
+  color:#2c7be5;
+  cursor:pointer;
+  font-weight:700;
+  box-shadow: 0 3px 8px rgba(44,123,229,0.12);
+  transition: transform .12s ease, background .12s ease, color .12s ease;
 }
+.voice-btn:active { transform: translateY(1px); }
+.voice-btn.listening {
+  background: linear-gradient(90deg,#ff6767,#ffb86b);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 20px rgba(255,120,90,0.18);
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 6px 18px rgba(255,120,90,0.12); }
+  50% { box-shadow: 0 18px 34px rgba(255,120,90,0.18); }
+  100% { box-shadow: 0 6px 18px rgba(255,120,90,0.12); }
+}
+.voice-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.voice-small { font-size:13px; color:#444; }
+.voice-lang, .voice-mode { padding:6px 8px; border-radius:6px; border:1px solid #ddd; background:#fff; }
+.voice-status { font-size:13px; padding:6px 10px; border-radius:6px; background:#f6f8fb; border:1px solid #e8eefc; color:#333; }
+.voice-confidence { font-weight:700; margin-left:6px; color:#2c7be5; }
+.voice-note { font-size:12px; color:#666; }
+.voice-btn .mic-icon { font-size:18px; display:inline-block; transform:translateY(-1px); }
 
-.pin-modal-content {
-  background: white;
-  padding: 40px;
-  border-radius: 15px;
-  text-align: center;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
 
-.pin-modal h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-#pinInput {
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-family: monospace;
-  letter-spacing: 2px;
-}
-
-#pinInput:focus {
-  outline: none;
-  border-color: #2c7be5;
-  box-shadow: 0 0 10px rgba(44, 123, 229, 0.3);
-}
-
-#submitPin:hover {
-  background: #1e5bb8;
-}
-
-#submitPin:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
+  
     /* main item row and nested sublist */
     .item-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
     .item-row label { flex:1; display:flex; align-items:center; gap:8px; }
@@ -925,18 +915,7 @@
 <body>
   <div class="container" id="appContainer">
 
-   <!-- PIN Protection Modal -->
-<div id="pinModal" class="pin-modal" style="display: none;">
-  <div class="pin-modal-content">
-    <h2>🔒 Daily Access PIN</h2>
-    <p>Enter the daily PIN to access the purchase entry form:</p>
-    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="10" style="padding: 15px; font-size: 18px; text-align: center; width: 200px; margin: 20px 0;">
-    <br>
-    <button id="submitPin" style="padding: 15px 30px; font-size: 16px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer;">Unlock</button>
-    <div id="pinError" style="color: red; margin-top: 10px; font-weight: bold;"></div>
-    <div style="font-size: 12px; color: #666; margin-top: 15px;">PIN is required once per day for security</div>
-  </div>
-</div>
+  
 
 
 <div id="appContent">
@@ -1413,6 +1392,38 @@
     <label class="q-label">Any other information</label>
     <textarea id="otherInfo" rows="2" placeholder="Optional additional information"></textarea>
 
+  <!-- Voice-to-Text UI: paste right after the otherInfo textarea -->
+<div class="voice-row" id="voiceRow">
+  <button id="voiceBtn" class="voice-btn" aria-pressed="false" title="Click to start voice input">
+    <span class="mic-icon">🎤</span>
+    <span id="voiceBtnLabel">Start voice</span>
+  </button>
+
+  <div class="voice-controls" aria-hidden="false">
+    <select id="voiceLang" class="voice-lang" title="Select language">
+      <option value="en-US">English (US)</option>
+      <option value="hi-IN">Hindi (India)</option>
+    </select>
+
+    <label class="voice-mode voice-small">
+      <input type="checkbox" id="voiceContinuous"> Continuous
+    </label>
+
+    <button id="voiceStopBtn" class="voice-btn" title="Stop listening" style="background:#f1f1f1;color:#333;border:1px solid #ccc;">Stop</button>
+    <button id="voiceClearBtn" class="voice-btn" title="Clear last transcript" style="background:#fff4f4;color:#b71c1c;border:1px solid #ffb3b3;">Clear</button>
+
+    <div id="voiceStatus" class="voice-status" aria-live="polite">Idle</div>
+    <div id="voiceConfidence" class="voice-confidence" aria-hidden="true" style="display:none">0%</div>
+  </div>
+  <div class="voice-note" style="width:100%; margin-top:6px">Tip: say <em>"stop recording"</em> to stop; interim text appears as you speak.</div>
+</div>
+
+
+
+
+
+  
+
     <div class="form-actions">
       <button id="submitBtn" type="button">Submit</button>
       <button id="clearBtn" type="button">Clear</button>
@@ -1433,12 +1444,12 @@
   <script>
 
     // --- Config / server endpoint detection ---
-    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbzkt6fSS2Rp4OisifcdSpxfkd-FTwJ6ipTNVLTKr3QllJQLQhDBzxVzItG4ENUWyGoR/exec";
+    const SERVER_ENDPOINT = window.ENDPOINT || "https://script.google.com/macros/s/AKfycbwsKGlbmcbrw3cm_jqKyhXJXup1P_mIodLoIXR8ZvmVUEQNSA9yympNYBRulM9r4VOfhA/exec";
     const SERVER_TOKEN = window.SHARED_TOKEN || "shopSecret2025";
 
 
     // Replace with your Google Apps Script Web App URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkt6fSS2Rp4OisifcdSpxfkd-FTwJ6ipTNVLTKr3QllJQLQhDBzxVzItG4ENUWyGoR/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsKGlbmcbrw3cm_jqKyhXJXup1P_mIodLoIXR8ZvmVUEQNSA9yympNYBRulM9r4VOfhA/exec';
 
     let selectedFile = null;
     let selectedImage = null;
@@ -1672,141 +1683,7 @@
 
 
     
-// === COMPREHENSIVE PIN PROTECTION SYSTEM ===
-let isUnlocked = false;
 
-// MOBILE-FRIENDLY PIN CHECK
-function checkPinValidation() {
-  const today = new Date().toISOString().split('T')[0];
-  const lastValidated = localStorage.getItem('pinValidated');
-  
-  console.log('Checking PIN validation:', { today, lastValidated });
-  
-  // Always check PIN if not validated today OR if no validation exists
-  if (!lastValidated || lastValidated !== today) {
-    console.log('Need PIN validation');
-    setTimeout(() => {
-      const pinModal = document.getElementById('pinModal');
-      if (pinModal) {
-        pinModal.style.display = 'flex';
-        const pinInput = document.getElementById('pinInput');
-        if (pinInput) {
-          pinInput.focus();
-        }
-      } else {
-        console.error('PIN modal not found!');
-      }
-    }, 500); // Small delay for mobile compatibility
-  } else {
-    console.log('Already validated today');
-    unlockApp();
-  }
-}
-
-
-function showPinModal() {
-  document.getElementById('pinModal').style.display = 'flex';
-  document.getElementById('pinInput').focus();
-}
-
-function unlockApp() {
-  isUnlocked = true;
-  document.getElementById('pinModal').style.display = 'none';
-}
-
-// Simple PIN validation (client-side with server backup)
-async function validatePin(pin) {
-  // Primary validation: Check correct PIN
-  if (pin === '5678') {
-    return { success: true };
-  } else {
-    return { success: false, error: 'Invalid PIN' };
-  }
-}
-
-// PIN modal event listeners
-document.addEventListener('DOMContentLoaded', function() {
-  const pinInput = document.getElementById('pinInput');
-  const submitPinBtn = document.getElementById('submitPin');
-  const pinError = document.getElementById('pinError');
-  
-  // Enter key support
-  if (pinInput) {
-    pinInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        submitPinBtn.click();
-      }
-    });
-  }
-  
-  // Submit PIN
-  if (submitPinBtn) {
-    submitPinBtn.addEventListener('click', async function() {
-      const pin = pinInput.value.trim();
-      if (!pin) {
-        pinError.textContent = 'Please enter PIN';
-        return;
-      }
-      
-      // Disable button during validation
-      submitPinBtn.disabled = true;
-      submitPinBtn.textContent = 'Validating...';
-      pinError.textContent = '';
-      
-      try {
-        const result = await validatePin(pin);
-        
-        if (result.success) {
-          // Store validation for today
-          const today = new Date().toISOString().split('T')[0];
-          localStorage.setItem('pinValidated', today);
-          
-          // Unlock app
-          pinError.textContent = 'PIN accepted! Loading form...';
-          pinError.style.color = 'green';
-          
-          setTimeout(() => {
-            unlockApp();
-          }, 500);
-        } else {
-          pinError.textContent = result.error || 'Invalid PIN';
-          pinError.style.color = 'red';
-          pinInput.value = '';
-          pinInput.focus();
-        }
-      } catch (error) {
-        pinError.textContent = 'Validation error. Please try again.';
-        pinError.style.color = 'red';
-      } finally {
-        submitPinBtn.disabled = false;
-        submitPinBtn.textContent = 'Unlock';
-      }
-    });
-  }
-  
-  // Check PIN validation on load
-  checkPinValidation();
-});
-
-// Protect form submission
-const originalMobileSubmitFunction = window.mobileSubmitFunction;
-if (originalMobileSubmitFunction) {
-  window.mobileSubmitFunction = function() {
-    if (!isUnlocked) {
-      alert('Please enter daily PIN first');
-      showPinModal();
-      
-      // Re-enable submit button
-      const submitBtn = document.getElementById('submitBtn');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
-      }
-      return;
-    }
-    return originalMobileSubmitFunction.apply(this, arguments);
-  };
-}
 
     // ----------------- Unit Management Functions -----------------
     function loadGlobalUnits() {
@@ -3439,7 +3316,494 @@ async function submitDirectMobileFriendly(data) {
   });
 }
 
+function collectFormData() {
+      const data = {};
+      
+      // Collect purchased items with quantities and units
+      const purchased = [];
+      const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+      
+      purchasedCheckboxes.forEach(cb => {
+        const value = cb.value;
+        
+        // Check if this is the "Others" checkbox
+        if (cb.id === 'p_other') {
+          const qtyEl = document.getElementById('q_other');
+          const unitEl = document.getElementById('unit_other');
+          const unitCustomEl = document.getElementById('unit_custom_other');
+          const otherTextEl = document.getElementById('purchasedOtherText');
+          
+          let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+          let unit = '';
+          
+          if (unitEl && unitEl.value) {
+            if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+              unit = unitCustomEl.value.trim();
+            } else {
+              unit = unitEl.value;
+            }
+          }
+          
+          let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+          
+          if (qty && unit) {
+            purchased.push(`${qty} ${unit} ${description}`);
+          } else if (description) {
+            purchased.push(description);
+          } else {
+            purchased.push(value);
+          }
+        } else {
+          // Handle main category with subitems
+          const sublistId = getSublistId(cb.id);
+          if (sublistId) {
+            const sublist = document.getElementById(sublistId);
+            if (sublist) {
+              const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+              if (checkedSubs.length > 0) {
+                checkedSubs.forEach(subCb => {
+                  const subValue = subCb.value;
+                  const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
+                  const qtyEl = document.getElementById('q_' + subSuffix);
+                  const unitEl = document.getElementById('unit_' + subSuffix);
+                  const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+                  
+                  let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+                  let unit = '';
+                  
+                  if (unitEl && unitEl.value) {
+                    if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+                      unit = unitCustomEl.value.trim();
+                    } else {
+                      unit = unitEl.value;
+                    }
+                  }
+                  
+                  if (qty && unit) {
+                    purchased.push(`${qty} ${unit} ${subValue}`);
+                  } else {
+                    purchased.push(subValue);
+                  }
+                });
+              } else {
+                purchased.push(value);
+              }
+            } else {
+              purchased.push(value);
+            }
+          } else {
+            purchased.push(value);
+          }
+        }
+      });
+      
+      data.purchased = purchased.join(', ');
+      
+      // Purchased from
+      const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+      const purchasedFromText = document.getElementById('purchasedFrom');
+      
+      if (purchasedFromSelect) {
+        if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+          data.purchasedFrom = purchasedFromText.value.trim();
+        } else {
+          data.purchasedFrom = purchasedFromSelect.value;
+        }
+      }
+      
+      // Payment modes and amounts
+      const paymentModes = [];
+      const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+      
+      modeCheckboxes.forEach(cb => {
+        const mode = cb.value;
+        const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+        let amount = amountInput && amountInput.value ? amountInput.value : '';
+        
+        if (amount) {
+          paymentModes.push(`${mode}: ₹${amount}`);
+        } else {
+          paymentModes.push(mode);
+        }
+      });
+      
+      data.paymentModes = paymentModes.join(', ');
+      
+      // Total payment
+      const paymentPaidEl = document.getElementById('paymentPaid');
+      data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+      
+      // Other information
+      const otherInfoEl = document.getElementById('otherInfo');
+      data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+      
+      return data;
+    }
 
+    function getSublistId(mainCheckboxId) {
+      const mapping = {
+        'p_floor': 'sublist_floor',
+        'p_wall': 'sublist_wall',
+        'p_san': 'sublist_san',
+        'p_acc': 'sublist_acc'
+      };
+      return mapping[mainCheckboxId] || null;
+    }
+
+    async function submitFormData(formData) {
+      const submitData = {
+        action: 'submit',
+        token: SERVER_TOKEN,
+        purchased: formData.purchased || '',
+        purchasedFrom: formData.purchasedFrom || '',
+        paymentModes: formData.paymentModes || '',
+        paymentPaid: formData.paymentPaid || '',
+        otherInfo: formData.otherInfo || '',
+        photoLink: formData.photoLink || ''
+      };
+      
+      const url = SERVER_ENDPOINT + '?' + Object.keys(submitData).map(k => 
+        encodeURIComponent(k) + '=' + encodeURIComponent(submitData[k])
+      ).join('&');
+      
+      return await jsonpCall(url, 30000);
+    }
+
+    function clearForm() {
+      // Clear all checkboxes
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.dispatchEvent(new Event('change'));
+      });
+      
+      // Clear all text inputs and number inputs
+      document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(input => {
+        if (input.id !== 'newUnitInput' && input.id !== 'newVendorInput' && 
+            input.id !== 'addSubLabelInput') {
+          input.value = '';
+        }
+      });
+      
+      // Reset selects to first option
+      document.querySelectorAll('select').forEach(select => {
+        if (select.id !== 'addCategorySelect') {
+          select.selectedIndex = 0;
+          select.dispatchEvent(new Event('change'));
+        }
+      });
+      
+      // Hide custom unit inputs
+      document.querySelectorAll('.unit-custom').forEach(uc => {
+        uc.style.display = 'none';
+        uc.value = '';
+      });
+    }
+
+  // MOBILE-FRIENDLY Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const submitBtn = document.getElementById('submitBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  
+  if (submitBtn) {
+    // Remove any existing listeners by cloning the button
+    const newSubmitBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+    
+    // Add ONLY ONE mobile-friendly submit handler
+    newSubmitBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('Submit button clicked - bypassing validation...');
+      
+      // Disable button immediately
+      newSubmitBtn.disabled = true;
+      newSubmitBtn.textContent = 'Submitting...';
+      
+      // Call submission function with a small delay to bypass any popups
+      setTimeout(() => {
+        mobileSubmitFunction();
+      }, 200); // Delay ensures popup doesn't block submission
+    });
+  }
+  
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      if (confirm('Clear all form data?')) {
+        clearForm();
+        resetPhotoForm();
+      }
+    });
+  }
+  
+  // Trigger change events to set initial states
+  document.querySelectorAll('.purchased').forEach(cb => {
+    cb.dispatchEvent(new Event('change'));
+  });
+  
+  document.querySelectorAll('.subitem').forEach(cb => {
+    cb.dispatchEvent(new Event('change'));
+  });
+  
+  document.querySelectorAll('input[name="modeOfPayment"]').forEach(cb => {
+    cb.dispatchEvent(new Event('change'));
+  });
+});
+
+// Mobile-friendly submission function with FAST button restoration
+async function mobileSubmitFunction() {
+  const submitBtn = document.getElementById('submitBtn');
+  
+  try {
+    console.log('Starting mobile-friendly submission...');
+    
+    // Collect form data without strict validation
+    const data = collectFormDataMobile();
+
+    console.log('Collected form data:', data);
+
+    // Handle photo if selected
+    if (selectedFile && !selectedImage) {
+      const start = Date.now();
+      while (!selectedImage && (Date.now() - start) < 2000) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+
+    // Add photo info to data
+    if (selectedImage) {
+      data.photoLink = selectedFile && selectedFile.name ? selectedFile.name : ('photo_' + Date.now());
+      console.log('Photo will be included:', data.photoLink);
+    } else {
+      data.photoLink = '';
+    }
+
+    // Ensure clientId exists
+    const cid = window.clientId || (window.clientId = ('c-' + Date.now()));
+    data.clientId = cid;
+
+    // FIRE AND FORGET: Submit in background and restore button immediately
+    submitDirectMobileFriendlyBackground(data);
+    
+    // Restore button state immediately (after 1-2 seconds)
+    setTimeout(() => {
+      if (submitBtn) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit'; 
+      }
+      alert('Entry submitted successfully!');
+      if (typeof clearForm === 'function') clearForm();
+      if (typeof resetPhotoForm === 'function') resetPhotoForm();
+    }, 1500); // Button restores in 1.5 seconds
+
+  } catch (error) {
+    console.error('Mobile submission error:', error);
+    // Restore button even on error
+    setTimeout(() => {
+      if (submitBtn) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = 'Submit'; 
+      }
+      alert('Error: ' + (error.message || 'Unknown error'));
+    }, 1000);
+  }
+}
+
+
+// Mobile-friendly data collection with PROPER subitem handling
+function collectFormDataMobile() {
+  const data = {};
+  const purchased = [];
+  
+  // Collect checked main items
+  const purchasedCheckboxes = document.querySelectorAll('input.purchased:checked');
+  
+  if (purchasedCheckboxes.length === 0) {
+    // Fallback for mobile - always allow some entry
+    const otherText = document.getElementById('purchasedOtherText');
+    if (otherText && otherText.value.trim()) {
+      purchased.push(otherText.value.trim());
+    } else if (selectedImage) {
+      purchased.push('Photo entry - see attached image');
+    } else {
+      purchased.push('Entry from mobile device');
+    }
+  } else {
+    // Process each main category for subitems
+    purchasedCheckboxes.forEach(cb => {
+      const value = cb.value || 'Item';
+      
+      // Handle "Others" category specially
+      if (cb.id === 'p_other') {
+        const qtyEl = document.getElementById('q_other');
+        const unitEl = document.getElementById('unit_other');
+        const unitCustomEl = document.getElementById('unit_custom_other');
+        const otherTextEl = document.getElementById('purchasedOtherText');
+        
+        let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+        let unit = '';
+        
+        if (unitEl && unitEl.value) {
+          if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+            unit = unitCustomEl.value.trim();
+          } else {
+            unit = unitEl.value;
+          }
+        }
+        
+        let description = otherTextEl && otherTextEl.value ? otherTextEl.value.trim() : 'Others';
+        
+        if (qty && unit) {
+          purchased.push(`${qty} ${unit} ${description}`);
+        } else if (description) {
+          purchased.push(description);
+        } else {
+          purchased.push(value);
+        }
+      } else {
+        // Handle main categories with subitems (Floor Tiles, Wall Tiles, etc.)
+        const sublistId = getSublistIdMobile(cb.id);
+        if (sublistId) {
+          const sublist = document.getElementById(sublistId);
+          if (sublist) {
+            const checkedSubs = sublist.querySelectorAll('input.subitem:checked');
+            if (checkedSubs.length > 0) {
+              // Process each checked subitem with quantities
+              checkedSubs.forEach(subCb => {
+                const subValue = subCb.value || '';
+                const subSuffix = subCb.id.slice(4); // Remove 'sub_' prefix
+                const qtyEl = document.getElementById('q_' + subSuffix);
+                const unitEl = document.getElementById('unit_' + subSuffix);
+                const unitCustomEl = document.getElementById('unit_custom_' + subSuffix);
+                
+                let qty = qtyEl && qtyEl.value ? qtyEl.value : '';
+                let unit = '';
+                
+                if (unitEl && unitEl.value) {
+                  if (unitEl.value === 'Custom' && unitCustomEl && unitCustomEl.value.trim()) {
+                    unit = unitCustomEl.value.trim();
+                  } else {
+                    unit = unitEl.value;
+                  }
+                }
+                
+                if (qty && unit) {
+                  purchased.push(`${qty} ${unit} ${subValue}`);
+                } else {
+                  purchased.push(subValue);
+                }
+              });
+            } else {
+              // Main category checked but no subitems - just add main category
+              purchased.push(value);
+            }
+          } else {
+            purchased.push(value);
+          }
+        } else {
+          purchased.push(value);
+        }
+      }
+    });
+  }
+  
+  data.purchased = purchased.join(', ');
+
+// Add this helper function right after the collectFormDataMobile function:
+function getSublistIdMobile(mainCheckboxId) {
+  const mapping = {
+    'p_floor': 'sublist_floor',
+    'p_wall': 'sublist_wall',
+    'p_san': 'sublist_san',
+    'p_acc': 'sublist_acc'
+  };
+  return mapping[mainCheckboxId] || null;
+}
+
+  
+  // Collect other fields
+  const purchasedFromSelect = document.getElementById('purchasedFromSelect');
+  const purchasedFromText = document.getElementById('purchasedFrom');
+  if (purchasedFromSelect) {
+    if (purchasedFromSelect.value === 'Other' && purchasedFromText && purchasedFromText.value.trim()) {
+      data.purchasedFrom = purchasedFromText.value.trim();
+    } else {
+      data.purchasedFrom = purchasedFromSelect.value || '';
+    }
+  }
+  
+  const paymentPaidEl = document.getElementById('paymentPaid');
+  data.paymentPaid = paymentPaidEl && paymentPaidEl.value ? paymentPaidEl.value : '';
+  
+  const otherInfoEl = document.getElementById('otherInfo');
+  data.otherInfo = otherInfoEl && otherInfoEl.value ? otherInfoEl.value.trim() : '';
+  
+  // Collect payment modes
+  const paymentModes = [];
+  const modeCheckboxes = document.querySelectorAll('input[name="modeOfPayment"]:checked');
+  modeCheckboxes.forEach(cb => {
+    const mode = cb.value || '';
+    const amountInput = document.querySelector(`input[data-mode-amount="${mode}"]`);
+    const amount = amountInput && amountInput.value ? amountInput.value : '';
+    if (amount) {
+      paymentModes.push(`${mode}: ₹${amount}`);
+    } else {
+      paymentModes.push(mode);
+    }
+  });
+  data.paymentModes = paymentModes.join(', ');
+  
+  return data;
+}
+
+// Background submission - FIRE AND FORGET (doesn't wait for response)
+function submitDirectMobileFriendlyBackground(data) {
+  // Create FormData for mobile compatibility
+  const formData = new FormData();
+  
+  // Add all form fields
+  formData.append('token', SERVER_TOKEN || 'shopSecret2025');
+  formData.append('action', 'submit');
+  formData.append('purchased', data.purchased || '');
+  formData.append('purchasedFrom', data.purchasedFrom || '');
+  formData.append('paymentModes', data.paymentModes || '');
+  formData.append('paymentPaid', data.paymentPaid || '');
+  formData.append('otherInfo', data.otherInfo || '');
+  formData.append('photoLink', data.photoLink || '');
+  formData.append('clientId', data.clientId || '');
+
+  // Add photo data if present
+  if (selectedImage) {
+    formData.append('imageData', selectedImage);
+    formData.append('fileName', selectedFile && selectedFile.name ? selectedFile.name : ('mobile_photo_' + Date.now() + '.jpg'));
+  }
+
+  console.log('Submitting form data in background...');
+
+  // FIRE AND FORGET: Send request but don't wait for response
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: formData,
+    mode: 'no-cors',
+  })
+  .then(() => {
+    console.log('Background submission sent successfully');
+  })
+  .catch(error => {
+    console.log('Background submission sent (error ignored for mobile):', error);
+  });
+  
+  // Don't return a promise - this is fire-and-forget
+}
+
+
+
+
+
+
+
+
+    
 
 
     // ===== ENHANCED SUB-ITEM SEARCH SYSTEM WITH CUSTOMIZATION SUPPORT =====
@@ -4263,6 +4627,224 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 }
 
 
+/* Voice-to-Text functionality using Web Speech API (vanilla JS) */
+/* Paste this block near the end of index.html (before </body>) */
+
+(function(){
+  // cross-browser SpeechRecognition
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const voiceBtn = document.getElementById('voiceBtn');
+  const voiceBtnLabel = document.getElementById('voiceBtnLabel');
+  const voiceStopBtn = document.getElementById('voiceStopBtn');
+  const voiceClearBtn = document.getElementById('voiceClearBtn');
+  const voiceLangSelect = document.getElementById('voiceLang');
+  const voiceContinuousCheckbox = document.getElementById('voiceContinuous');
+  const voiceStatus = document.getElementById('voiceStatus');
+  const voiceConfidence = document.getElementById('voiceConfidence');
+  const otherInfo = document.getElementById('otherInfo'); // target textarea
+
+  if (!otherInfo) {
+    console.warn('Voice-to-text: target #otherInfo not found (check where you pasted the HTML).');
+  }
+
+  if (!SpeechRecognition) {
+    // Unsupported
+    voiceStatus.textContent = 'SpeechRecognition not supported in this browser';
+    voiceBtn.disabled = true;
+    voiceStopBtn.disabled = true;
+    voiceClearBtn.disabled = false;
+    // Show an alert on click explaining fallback
+    voiceBtn.addEventListener('click', () => {
+      alert('Sorry — your browser does not support the Web Speech API. Use Chrome/Edge (Chromium) or Safari (if available) for voice input.');
+    });
+    return;
+  }
+
+  let recognition = null;
+  let listening = false;
+  let lastInterim = '';
+  let lastFinal = '';
+
+  function createRecognition() {
+    const r = new SpeechRecognition();
+    r.lang = voiceLangSelect.value || 'en-US';
+    r.interimResults = true; // show interim results
+    r.maxAlternatives = 3;
+    r.continuous = !!voiceContinuousCheckbox.checked; // continuous vs single
+    return r;
+  }
+
+  function updateUIListening(isListening) {
+    listening = !!isListening;
+    voiceBtn.setAttribute('aria-pressed', listening ? 'true' : 'false');
+    voiceBtn.classList.toggle('listening', listening);
+    voiceBtnLabel.textContent = listening ? 'Listening…' : 'Start voice';
+    voiceStatus.textContent = listening ? 'Listening — speak now' : 'Idle';
+    // Make Stop button available only while listening
+    voiceStopBtn.disabled = !listening;
+  }
+
+  function startListening() {
+    if (listening) return;
+    try {
+      recognition = createRecognition();
+
+      recognition.onstart = () => {
+        updateUIListening(true);
+        voiceConfidence.style.display = 'none';
+      };
+
+      recognition.onerror = (evt) => {
+        console.error('recognition error', evt);
+        if (evt.error === 'not-allowed' || evt.error === 'permission-denied') {
+          voiceStatus.textContent = 'Microphone permission denied. Please allow access.';
+        } else {
+          voiceStatus.textContent = 'Error: ' + (evt.error || 'unknown');
+        }
+        updateUIListening(false);
+        recognition && recognition.stop();
+      };
+
+      recognition.onend = () => {
+        // If continuous = true, onend may fire between interim, so only mark idle when not listening
+        updateUIListening(false);
+      };
+
+      recognition.onresult = (event) => {
+        // event.results is a ResultList; iterate to get final vs interim
+        let interim = '';
+        let finalTranscript = '';
+        let lastConf = 0;
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const res = event.results[i];
+          const text = res[0].transcript;
+          lastConf = res[0].confidence || lastConf;
+          if (res.isFinal) {
+            finalTranscript += text;
+          } else {
+            interim += text;
+          }
+        }
+
+        // Show interim while speaking
+        if (interim) {
+          lastInterim = interim;
+          if (otherInfo) {
+            // Append interim visually but don't overwrite confirmed final text
+            otherInfo.value = (lastFinal ? (lastFinal + ' ') : '') + interim;
+          }
+        }
+
+        // Commit final text
+        if (finalTranscript) {
+          lastFinal = (lastFinal ? (lastFinal + ' ') : '') + finalTranscript.trim();
+          if (otherInfo) {
+            otherInfo.value = lastFinal;
+          }
+          // Show confidence for the most recent final result
+          voiceConfidence.style.display = 'inline-block';
+          voiceConfidence.textContent = Math.round(lastConf * 100) + '%';
+          // voice command: stop recording
+          if (finalTranscript.toLowerCase().includes('stop recording')) {
+            stopListening();
+            // remove the spoken command phrase from the transcription
+            if (otherInfo) {
+              otherInfo.value = otherInfo.value.replace(/stop recording/ig, '').trim();
+            }
+          }
+        }
+
+        // If not continuous and we got a final result, stop
+        if (!voiceContinuousCheckbox.checked && event.results[event.results.length - 1].isFinal) {
+          recognition.stop();
+          updateUIListening(false);
+        }
+      };
+
+      recognition.start();
+      voiceStatus.textContent = 'Starting...';
+    } catch (err) {
+      console.error('startListening error', err);
+      voiceStatus.textContent = 'Start failed: ' + (err.message || err);
+      updateUIListening(false);
+    }
+  }
+
+  function stopListening() {
+    if (!listening) return;
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch (e) { /* ignore */ }
+    }
+    updateUIListening(false);
+  }
+
+  function clearTranscript() {
+    lastInterim = '';
+    lastFinal = '';
+    if (otherInfo) otherInfo.value = '';
+    voiceConfidence.style.display = 'none';
+    voiceStatus.textContent = 'Cleared';
+  }
+
+  // Bind UI
+  voiceBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    if (!listening) startListening();
+    else stopListening();
+  });
+
+  voiceStopBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    stopListening();
+  });
+
+  voiceClearBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    clearTranscript();
+  });
+
+  voiceLangSelect.addEventListener('change', function(){
+    // If currently listening restart recognition with new language
+    if (listening) {
+      stopListening();
+      setTimeout(startListening, 250);
+    }
+  });
+
+  voiceContinuousCheckbox.addEventListener('change', function(){
+    if (listening) {
+      // restart recognition to apply new continuous flag
+      stopListening();
+      setTimeout(startListening, 250);
+    }
+  });
+
+  // Keyboard accessibility: press Enter on mic button
+  voiceBtn.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      voiceBtn.click();
+    }
+  });
+
+  // On page unload, stop recognition to cleanup resources
+  window.addEventListener('beforeunload', () => {
+    if (recognition && listening) {
+      try { recognition.abort(); } catch(e) {}
+    }
+  });
+
+  // Announce readiness
+  voiceStatus.textContent = 'Ready';
+  voiceStopBtn.disabled = true;
+
+})();
+
+
+
 
 
   </script>
@@ -4271,6 +4853,15 @@ if (typeof addSubBtn !== 'undefined' && addSubBtn) {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
